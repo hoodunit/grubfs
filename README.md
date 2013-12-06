@@ -5,6 +5,13 @@ Install dependencies:
 
 ```
 npm install
+npm install -g grunt-cli
+```
+
+Run tests:
+
+```
+grunt
 ```
 
 Start development server:
