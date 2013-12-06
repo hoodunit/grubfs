@@ -6,9 +6,10 @@ Install dependencies:
 ```
 npm install
 npm install -g grunt-cli
+npm install -g browserify
 ```
 
-Run tests:
+Run jshint and build client-side script:
 
 ```
 grunt
