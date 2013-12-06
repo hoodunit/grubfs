@@ -13,12 +13,20 @@ module.exports = function(grunt) {
           document: true
         }
       }
+    },
+    browserify: {
+      dist: {
+        files: {
+          'public/js/client.js': ['src/client/*.js']
+        }
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-browserify');
 
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('default', ['test']);
+  grunt.registerTask('default', ['test', 'browserify']);
 
 };
