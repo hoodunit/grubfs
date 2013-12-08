@@ -26,7 +26,16 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-browserify');
 
+
+  grunt.registerTask('mocha', 'run mocha', function () {
+    var done = this.async();
+    require('child_process').exec('mocha ./test/unittests/unittests.js', function (err, stdout) {
+      grunt.log.write(stdout);
+      done(err);
+    });
+  });
+
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('default', ['test', 'browserify']);
+  grunt.registerTask('default', ['test', 'browserify', 'mocha']);
 
 };
