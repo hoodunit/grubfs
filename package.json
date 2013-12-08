@@ -28,6 +28,8 @@
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.7.2",
     "browserify": "~2.36.1",
-    "grunt-browserify": "~1.2.11"
+    "grunt-browserify": "~1.2.11",
+    "dalekjs": "0.0.8",
+    "grunt-dalek": "~0.2.0"
   }
 }

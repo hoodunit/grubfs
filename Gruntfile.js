@@ -20,11 +20,18 @@ module.exports = function(grunt) {
           'public/js/client.js': ['src/client/*.js']
         }
       }
+    },
+    dalek: {
+      dist: {
+        src: ['test/test.js'],
+        reporter: ['html']
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-dalek');
 
 
   grunt.registerTask('mocha', 'run mocha', function () {
@@ -36,6 +43,6 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('default', ['test', 'browserify', 'mocha']);
+  grunt.registerTask('default', ['test', 'browserify', 'dalek', 'mocha']);
 
 };
