@@ -1,14 +1,4 @@
-var $ = require('jquery-browserify');
-var Bacon = require('baconjs');
-  
-function baconExample(){
-  var mouseClicks = $("h1").asEventStream("click");
+var Grocery = require('./grocery');
 
-  mouseClicks.onValue(function() {
-    console.log("Mouse clicked");
-  });
-}
-  
-baconExample();
+Grocery.render();
 
-console.log("JavaScript loaded");

@@ -23,13 +23,13 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['src/client/**/*.js'],
+        files: ['src/client/client.js', 'src/client/grocery.js'],
         tasks: ['jshint', 'browserify'],
         options: {
-          spawn: false,
-        },
-      },
-    },
+          spawn: false
+        }
+      }
+    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
