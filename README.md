@@ -9,15 +9,10 @@ npm install -g grunt-cli
 npm install -g browserify
 ```
 
-Run jshint and build client-side script:
+Start Grunt and development server. The grunt task will rebuild client source code when changes are made and the server will restart when changes are made.
 
 ```
 grunt
-```
-
-Start development server:
-
-```
 npm run-script dev
 ```
 
