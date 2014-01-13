@@ -39,12 +39,22 @@ var GroceryItem = React.createClass({
 
 var GroceryList = React.createClass({
   getInitialState: function() {
+    var localStorageItemsJson = localStorage.getItem("items");
+    if(localStorageItemsJson !== null) {
+      try {
+        var localStorageItems = JSON.parse(localStorageItemsJson);
+        return {items: _.js_to_clj(localStorageItems)};
+      } catch(e) {
+        console.log("invalid localStorage contents, resetting");
+      }
+    }
     return {items: this.props.initialItems};
   },
   addItem: function(item){
     var items = this.state.items;
     var updatedItems = _.conj(items, item);
     this.setState({items: updatedItems});
+    localStorage.setItem("items", JSON.stringify(_.clj_to_js(updatedItems)));
   },
   render: function() {
     var items = this.state.items;
