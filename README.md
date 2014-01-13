@@ -7,6 +7,14 @@ Install NodeJS and the Node Package Manager (npm) via your package manager e.g.
 sudo apt-get install nodejs
 sudo apt-get install npm
 ```
+Install testing tools:
+
+```
+npm install -g mocha
+npm install -g dalek-cli
+npm install grunt-dalek --save-dev
+npm install dalekjs --save-dev
+```
 
 Use npm to install the other dependencies:
 

@@ -27,7 +27,11 @@ module.exports = function(grunt) {
         tasks: ['jshint', 'browserify'],
         options: {
           spawn: false
-        }
+        }}},
+    dalek: {
+      dist: {
+        src: ['test/test.js'],
+        reporter: ['html']
       }
     }
   });
@@ -36,7 +40,21 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
+  grunt.loadNpmTasks('grunt-dalek');
+
+
+  grunt.registerTask('mocha', 'run mocha', function () {
+    var done = this.async();
+    require('child_process').exec('mocha ./test/unittests/unittests.js', function (err, stdout) {
+      grunt.log.write(stdout);
+      done(err);
+    });
+  });
+
+
   grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('default', ['browserify', 'test', 'watch']);
+  grunt.registerTask('default', ['browserify', 'test', 'watch', 'dalek', 'mocha']);
+
+
 
 };
