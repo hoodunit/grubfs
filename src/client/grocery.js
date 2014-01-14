@@ -92,6 +92,7 @@ var GroceryList = React.createClass({
       }
       updatedItems = _.conj(updatedItems, item);
     });
+    localStorage.setItem("items", JSON.stringify(_.clj_to_js(updatedItems)));
     this.setState({
       items: updatedItems
     });
