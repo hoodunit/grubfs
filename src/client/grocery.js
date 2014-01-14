@@ -1,7 +1,6 @@
 var React = require('react');
 var _ = require('mori');
-
-var sid = 0;
+var crypto = require('crypto');
 
 var AddGroceryItemInput = React.createClass({
   render: function() {
@@ -31,7 +30,7 @@ var AddGroceryItemInput = React.createClass({
     var itemName = this.refs.name.getDOMNode().value.trim();
     if (itemName) {
       this.refs.name.getDOMNode().value = '';
-      var groceryItem = _.hash_map('itemId', sid++, 'name', itemName,
+      var groceryItem = _.hash_map('itemId', sid(), 'name', itemName,
         'completed', false);
       this.props.onAddItem(groceryItem);
     }
@@ -120,11 +119,18 @@ var GroceryList = React.createClass({
   }
 });
 
+var sid = function() {
+    var current_date = (new Date()).valueOf().toString();
+    var random = Math.random().toString();
+    var num = crypto.createHash('sha1').update(current_date + random).digest('hex');
+    return num;
+};
+
 function render() {
   var initialItems = _.vector(
-    _.hash_map('itemId', sid++, 'name', '1 packages of tomato puree', 'completed', false),
-    _.hash_map('itemId', sid++, 'name', '4 yellow onions', 'completed', true),
-    _.hash_map('itemId', sid++, 'name', '2 dl cream', 'completed', false));
+    _.hash_map('itemId', sid(), 'name', '1 packages of tomato puree', 'completed', false),
+    _.hash_map('itemId', sid(), 'name', '4 yellow onions', 'completed', true),
+    _.hash_map('itemId', sid(), 'name', '2 dl cream', 'completed', false));
 
   var groceryListInitialState = {
     initialItems: initialItems
