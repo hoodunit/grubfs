@@ -20,11 +20,21 @@ var AddGroceryItemInput = React.createClass({
         className: 'input-group-btn'
       },
       addItemInnerBtn);
+
+    /* Works in the same way as addItem */
+    var deleteItemInnerBtn = React.DOM.button({className: 'btn btn-primary',
+      type: 'button',
+      onClick: this.handleDeleteClick},
+      'Delete');
+    var deleteItemBtn = React.DOM.span({className: 'input-group-btn'},
+     deleteItemInnerBtn);
+
     return React.DOM.div({
         className: 'input-group'
       },
       itemNameInput,
-      addItemBtn);
+      addItemBtn,
+      deleteItemBtn);
   },
   handleAddClick: function() {
     var itemName = this.refs.name.getDOMNode().value.trim();
@@ -34,7 +44,9 @@ var AddGroceryItemInput = React.createClass({
         'completed', false);
       this.props.onAddItem(groceryItem);
     }
-  }
+  },
+  handleDeleteClick: function() {
+    this.props.onDeleteItem();}
 });
 
 var GroceryItem = React.createClass({
@@ -45,16 +57,31 @@ var GroceryItem = React.createClass({
       onClick: this.handleCompletedClick
     });
 
+    /* this was needed, otherwise 'select' overwrites 'checkbox' */
+    var text = React.DOM.span({
+      type: 'text',
+      onClick: this.handleSelectedClick,
+      ref: 'gitem'
+    }, this.props.name);
+
     return React.DOM.div({
-        className: 'groceryItem'
-      },
-      checkbox,
-      this.props.name);
+        className: 'groceryItem',
+      }, checkbox, text);
   },
   handleCompletedClick: function() {
     var itemId = this.props.itemId;
     this.props.onCompleteItem(itemId);
     this.props.completed = !this.props.completed;
+  },
+  handleSelectedClick: function() {
+    console.log(this.props.selected);
+    /* This is only to show it works... */
+    if (!this.props.selected)
+      this.refs.gitem.getDOMNode().style.background = 'yellow';
+    else
+      this.refs.gitem.getDOMNode().style.background = 'white';
+
+    this.props.onSelectItem(this.props.itemId);
   }
 });
 
@@ -96,15 +123,37 @@ var GroceryList = React.createClass({
       items: updatedItems
     });
   },
+  deleteItem: function() {
+    var items = this.state.items;
+    var updatedItems = _.remove(function(x) {return _.get(x,'selected');},
+      items);
+    this.setState({items: updatedItems});
+  },
+  selectItem: function(id) {
+    var items = this.state.items;
+    var updatedItems = _.vector();
+    _.each(items, function(item) {
+      if (_.get(item, 'itemId') === id) {
+        item = _.update_in(item, ['selected'], function() {
+          return !_.get(item, 'selected');
+        });
+      }
+      updatedItems = _.conj(updatedItems, item);
+    });
+    this.setState({items: updatedItems});
+  },
   render: function() {
     var items = this.state.items;
     var completeItemFunc = this.completeItem;
+    var selectItemFunc = this.selectItem;
     var itemNodes = _.into_array(_.map(function(item) {
       return GroceryItem({
         name: _.get(item, 'name'),
         completed: _.get(item, 'completed'),
         itemId: _.get(item, "itemId"),
-        onCompleteItem: completeItemFunc
+        onCompleteItem: completeItemFunc,
+        onSelectItem: selectItemFunc,
+        selected: _.get(item, 'selected'),
       });
     }, items));
 
@@ -112,7 +161,8 @@ var GroceryList = React.createClass({
         className: 'groceryList'
       },
       AddGroceryItemInput({
-        onAddItem: this.addItem
+        onAddItem: this.addItem,
+        onDeleteItem: this.deleteItem
       }),
       itemNodes
     );
@@ -128,9 +178,12 @@ var sid = function() {
 
 function render() {
   var initialItems = _.vector(
-    _.hash_map('itemId', sid(), 'name', '1 packages of tomato puree', 'completed', false),
-    _.hash_map('itemId', sid(), 'name', '4 yellow onions', 'completed', true),
-    _.hash_map('itemId', sid(), 'name', '2 dl cream', 'completed', false));
+    _.hash_map('itemId', sid(), 'name', '1 packages of tomato puree', 'completed', false,
+      'selected', false),
+    _.hash_map('itemId', sid(), 'name', '4 yellow onions', 'completed', true,
+      'selected', false),
+    _.hash_map('itemId', sid(), 'name', '2 dl cream', 'completed', false,
+      'selected', false));
 
   var groceryListInitialState = {
     initialItems: initialItems
