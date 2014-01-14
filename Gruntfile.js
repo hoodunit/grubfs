@@ -51,10 +51,6 @@ module.exports = function(grunt) {
     });
   });
 
-
-  grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('default', ['browserify', 'test', 'watch', 'dalek', 'mocha']);
-
-
+  grunt.registerTask('default', ['browserify', 'jshint', 'watch']);
 
 };
