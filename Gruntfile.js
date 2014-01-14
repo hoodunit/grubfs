@@ -23,7 +23,7 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['src/client/client.js', 'src/client/grocery.js'],
+        files: ['src/client/**/*.js'],
         tasks: ['jshint', 'browserify'],
         options: {
           spawn: false
@@ -51,10 +51,6 @@ module.exports = function(grunt) {
     });
   });
 
-
-  grunt.registerTask('test', ['jshint']);
-  grunt.registerTask('default', ['browserify', 'test', 'watch', 'dalek', 'mocha']);
-
-
+  grunt.registerTask('default', ['browserify', 'jshint', 'watch']);
 
 };
