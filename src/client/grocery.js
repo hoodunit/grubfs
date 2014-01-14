@@ -71,7 +71,8 @@ var GroceryList = React.createClass({
       return GroceryItem({
         name: _.get(item, 'name'),
         completed: _.get(item, 'completed'),
-        id: _.get(item, 'id')
+        id: _.get(item, 'id'),
+        key: _.get(item, 'id')
       });
     }, this.props.items));
 
