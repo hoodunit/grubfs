@@ -23,7 +23,7 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['src/client/client.js', 'src/client/grocery.js'],
+        files: ['src/client/**/*.js'],
         tasks: ['jshint', 'browserify'],
         options: {
           spawn: false
