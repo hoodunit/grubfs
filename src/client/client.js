@@ -23,10 +23,10 @@ function saveStateLocally(state){
   var stateJson = JSON.stringify(_.clj_to_js(state));
   localStorage.setItem('state', stateJson);
 }
- 
-function getDefaultState(){ 
+
+function getDefaultState(){
   var initialItems = _.vector(
-    _.hash_map('id', Util.generateUUID(), 
+    _.hash_map('id', Util.generateUUID(),
                'name', '1 packages of tomato puree',
                'completed', false),
     _.hash_map('id', Util.generateUUID(),
@@ -40,7 +40,7 @@ function getDefaultState(){
 
 function getInitialState(){
   var initialState = getLocalState();
-  
+
   if(initialState === null){
     initialState = getDefaultState();
   }
@@ -54,7 +54,7 @@ function render(state) {
 }
 
 function handleAddItem(oldState, event){
-  var newItem = _.hash_map('id', _.get(event, 'id'), 
+  var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
                            'completed', false);
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
@@ -77,9 +77,14 @@ function handleCompleteItem(oldState, event){
   return newState;
 }
 
+function handleEmptyList() {
+  return _.hash_map('items', _.vector());
+}
+
 function handleGroceryEvent(oldState, event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
-                                 'completeItem', handleCompleteItem);
+                                 'completeItem', handleCompleteItem,
+                                 'emptyList', handleEmptyList);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
 

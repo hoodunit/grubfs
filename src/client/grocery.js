@@ -4,6 +4,25 @@ var Bacon = require('baconjs');
 
 var Util = require('./util.js');
 
+var TopBar = React.createClass({
+    render: function() {
+        var emptyButton = React.DOM.button({
+            className: 'btn btn-danger empty-btn',
+            type: 'button',
+            onClick: this.handleEmptyClick
+        }, 'Dele');
+
+        return React.DOM.div({
+            className: 'top-bar clearfix'
+        }, emptyButton);
+    },
+
+    handleEmptyClick: function() {
+      var emptyEvent = _.hash_map('eventType', 'emptyList');
+      outgoingEvents.push(emptyEvent);
+    }
+});
+
 var AddGroceryItemInput = React.createClass({
   render: function() {
     var itemNameInput = React.DOM.input({
@@ -32,7 +51,7 @@ var AddGroceryItemInput = React.createClass({
     var itemName = this.refs.name.getDOMNode().value.trim();
     if (itemName) {
       this.refs.name.getDOMNode().value = '';
-      var addItemEvent = _.hash_map('eventType', 'addItem', 
+      var addItemEvent = _.hash_map('eventType', 'addItem',
                                     'id', Util.generateUUID(),
                                     'name', itemName);
       outgoingEvents.push(addItemEvent);
@@ -79,8 +98,9 @@ var GroceryList = React.createClass({
     return React.DOM.div({
         className: 'groceryList'
       },
+      TopBar(),
       AddGroceryItemInput({
-        onAddItem: this.addItem
+//        onAddItem: this.addItem
       }),
       itemNodes
     );
