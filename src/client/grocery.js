@@ -63,7 +63,7 @@ var GroceryItem = React.createClass({
   render: function() {
     var checkbox = React.DOM.input({
       type: 'checkbox',
-      checked: this.props.data.completed,
+      checked: _.get(this.props.data, 'completed'),
       onClick: this.handleCompletedClick
     });
 
