@@ -44,19 +44,17 @@ var GroceryItem = React.createClass({
   render: function() {
     var checkbox = React.DOM.input({
       type: 'checkbox',
-      checked: this.props.completed,
+      checked: this.props.data.completed,
       onClick: this.handleCompletedClick
     });
 
-    return React.DOM.div({
-        className: 'groceryItem'
-      },
-      checkbox,
-      this.props.name);
+    return React.DOM.div({className: 'groceryItem'},
+                         checkbox,
+                         _.get(this.props.data, 'name'));
   },
   handleCompletedClick: function() {
-    var id = this.props.id;
-    var completed = this.props.completed;
+    var id = _.get(this.props.data, 'id');
+    var completed = _.get(this.props.data, 'completed');
     var eventType = 'completeItem';
     var event = _.hash_map('eventType', eventType,
                            'id', id,
@@ -68,12 +66,8 @@ var GroceryItem = React.createClass({
 var GroceryList = React.createClass({
   render: function() {
     var itemNodes = _.into_array(_.map(function(item) {
-      return GroceryItem({
-        name: _.get(item, 'name'),
-        completed: _.get(item, 'completed'),
-        id: _.get(item, 'id'),
-        key: _.get(item, 'id')
-      });
+      return GroceryItem({data: item,
+                          key: _.get(item, 'id')});
     }, this.props.items));
 
     return React.DOM.div({
