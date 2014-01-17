@@ -1,7 +1,9 @@
 var _ = require('mori');
 var React = require('react');
+var Bacon = require('baconjs');
+var $ = require('jquery-browserify');
 
-var Grocery = require('./grocery');
+var View = require('./view');
 var Util = require('./util.js');
 
 function getLocalState(){
@@ -48,11 +50,6 @@ function getInitialState(){
   return initialState;
 }
 
-function render(state) {
-  var groceryState = {items: _.get(state, 'items')};
-  React.renderComponent(Grocery.GroceryList(groceryState), document.getElementById('content'));
-}
-
 function handleAddItem(oldState, event){
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
@@ -81,10 +78,25 @@ function handleEmptyList() {
   return _.hash_map('items', _.vector());
 }
 
-function handleGroceryEvent(oldState, event){
+function handleSignUp(oldState, event){
+  var jsonEvent = JSON.stringify(_.clj_to_js(event));
+  console.log('Received event:', event);
+  console.log('Sending to server:', jsonEvent);
+  var serverUrl = document.location.origin;
+  var eventUrl = serverUrl + '/event';
+  var response = Bacon.fromPromise($.ajax(eventUrl, {type: 'POST', data: jsonEvent}));
+  response.onValue(function(value){
+    console.log('Received response:', arguments);
+  });
+
+  return oldState;
+}
+
+function handleEvent(oldState, event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
-                                 'emptyList', handleEmptyList);
+                                 'emptyList', handleEmptyList,
+                                 'signUp', handleSignUp);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
 
@@ -97,18 +109,18 @@ function handleGroceryEvent(oldState, event){
   }
 }
 
-function handleGroceryEvents(state){
-  Grocery.outgoingEvents.onValue(function(event){
-    state = handleGroceryEvent(state, event);
+function handleEvents(state){
+  View.outgoingEvents.onValue(function(event){
+    state = handleEvent(state, event);
     saveStateLocally(state);
-    render(state);
+    View.render(state);
   });
 }
 
 function initialize(){
   var initialState = getInitialState();
-  render(initialState);
-  handleGroceryEvents(initialState);
+  View.render(initialState);
+  handleEvents(initialState);
 }
 
 initialize();
