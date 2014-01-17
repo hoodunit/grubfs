@@ -1,17 +1,13 @@
 grubfs
 ======
 
-Install NodeJS and the Node Package Manager (npm) via your package manager e.g.
+Install NodeJS and the Node Package Manager from the nodejs site: http://nodejs.org/download/. I.e. download the appropriate binaries and add the bin directory to your path. The version in your package manager may be out of date so it's better to grab it directly.
+
+Clone the repo and use npm to install the other dependencies:
 
 ```
-sudo apt-get install nodejs npm
-```
-
-If you have problems you may want to install it directly from the NodeJS site instead.
-
-Use npm to install the other dependencies:
-
-```
+git clone <repo url>
+cd grubfs
 npm install
 npm install -g grunt-cli browserify mocha dalek-cli
 ```
