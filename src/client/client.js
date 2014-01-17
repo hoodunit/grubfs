@@ -92,35 +92,37 @@ function handleSignUp(oldState, event){
   return oldState;
 }
 
-function handleEvent(oldState, event){
+function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'emptyList', handleEmptyList,
                                  'signUp', handleSignUp);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
+  return handler;
+}
 
-  if(handler !== null){
+function updateStateFromEvent(oldState, event){
+  var eventHandler = getEventHandler(event);
+
+  if(eventHandler){
     console.log('Handle event:', _.clj_to_js(event));
-    return handler(oldState, event);
+    var newState = eventHandler(oldState, event);
+    return newState;
   } else {
     console.log('Ignoring unhandled event:', _.clj_to_js(event));
     return oldState;
   }
 }
 
-function handleEvents(state){
-  View.outgoingEvents.onValue(function(event){
-    state = handleEvent(state, event);
-    saveStateLocally(state);
-    View.render(state);
-  });
-}
-
 function initialize(){
   var initialState = getInitialState();
   View.render(initialState);
-  handleEvents(initialState);
+
+  var currentState = View.outgoingEvents.scan(initialState, updateStateFromEvent);
+  var changedStates = currentState.changes();
+  changedStates.onValue(saveStateLocally);
+  changedStates.onValue(View.render);
 }
 
 initialize();
