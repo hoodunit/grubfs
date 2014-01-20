@@ -29,7 +29,8 @@ var AddGroceryItemInput = React.createClass({
       className: 'form-control',
       type: 'text',
       placeholder: '2 tomatoes',
-      ref: 'name'
+      ref: 'name',
+      onKeyPress: this.handleAddEnter
     });
     var addItemInnerBtn = React.DOM.button({
         className: 'btn btn-primary',
@@ -56,6 +57,10 @@ var AddGroceryItemInput = React.createClass({
                                     'name', itemName);
       outgoingEvents.push(addItemEvent);
     }
+  },
+  handleAddEnter: function(e) {
+    //13: Enter key
+    if (e.keyCode==13) {this.handleAddClick();}
   }
 });
 
