@@ -28,13 +28,16 @@ function getDefaultState(){
   var initialItems = _.vector(
     _.hash_map('id', Util.generateUUID(),
                'name', '1 packages of tomato puree',
-               'completed', false),
+               'completed', false,
+               'touched', false),
     _.hash_map('id', Util.generateUUID(),
                'name', '4 yellow onions',
-               'completed', true),
+               'completed', true,
+               'touched', false),
     _.hash_map('id', Util.generateUUID(),
                'name', '2 dl cream',
-               'completed', false));
+               'completed', false,
+               'touched', false));
   return _.hash_map('items', initialItems);
 }
 
@@ -56,7 +59,8 @@ function render(state) {
 function handleAddItem(oldState, event){
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
-                           'completed', false);
+                           'completed', false,
+                           'touched', false);
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
   return newState;
@@ -81,10 +85,42 @@ function handleEmptyList() {
   return _.hash_map('items', _.vector());
 }
 
+function handleHoldItem(oldState, event) {
+  var id = _.get(event, 'id');
+  var items = _.get(oldState, 'items');
+
+  /* Not inventing the wheel again.. */
+  var updatedItems = _.map(function(item) {
+    if (_.get(item, 'touched'))
+      return _.assoc(item, 'touched', false);    
+    else if (_.get(item, 'id') == id)
+      return _.assoc(item, 'touched', true);
+    else
+      return item;
+  }, items);
+
+  var newState = _.assoc(oldState, 'items', updatedItems);
+  return newState;
+}
+
+function handleDeleteItem(oldState, event) {
+  var id = _.get(event, 'id');
+  var items = _.get(oldState, 'items');
+
+  var updatedItems = _.remove(function(item) {
+    return _.get(item, 'touched');},
+    items);
+
+  var newState = _.assoc(oldState, 'items', updatedItems);
+  return newState;
+}
+
 function handleGroceryEvent(oldState, event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
-                                 'emptyList', handleEmptyList);
+                                 'emptyList', handleEmptyList,
+                                 'holdItem', handleHoldItem,
+                                 'deleteItem', handleDeleteItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
 

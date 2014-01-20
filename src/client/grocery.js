@@ -72,9 +72,22 @@ var GroceryItem = React.createClass({
       onClick: this.handleCompletedClick
     });
 
+    var deleteButton = React.DOM.button({
+      className: 'btn btn-danger',
+      type: 'button',
+      onClick: this.handleDeleteClick
+    }, 'Delete');
+
+    var text = React.DOM.span({className: 'groceryText',
+                               onClick: this.handleHold}, //wrong event! change to taphold
+                               _.get(this.props.data, 'name')+' ');
+
+    var touched = _.get(this.props.data, 'touched');
+
     return React.DOM.div({className: 'groceryItem'},
                          checkbox,
-                         _.get(this.props.data, 'name'));
+                         text,
+                         touched ? deleteButton : null);
   },
   handleCompletedClick: function() {
     var id = _.get(this.props.data, 'id');
@@ -83,6 +96,18 @@ var GroceryItem = React.createClass({
     var event = _.hash_map('eventType', eventType,
                            'id', id,
                            'completed', completed);
+    outgoingEvents.push(event);
+  },
+  handleHold: function() {
+    var event = _.hash_map('eventType', 'holdItem',
+                           'id', _.get(this.props.data, 'id'),
+                           'touched', _.get(this.props.data, 'touched'));
+
+    outgoingEvents.push(event);
+  },
+  handleDeleteClick: function() {
+    var event = _.hash_map('eventType', 'deleteItem',
+                          'id', _.get(this.props.data, 'id'));
     outgoingEvents.push(event);
   }
 });
