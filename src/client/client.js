@@ -79,12 +79,17 @@ function handleEmptyList() {
 }
 
 function handleSignUp(oldState, event){
-  var jsonEvent = JSON.stringify(_.clj_to_js(event));
-  console.log('Received event:', event);
-  console.log('Sending to server:', jsonEvent);
+  var requestEvent = _.dissoc(event, 'eventType');
+  var jsonEvent = JSON.stringify(_.clj_to_js(requestEvent));
+  console.log('sending to server:', jsonEvent);
+
   var serverUrl = document.location.origin;
   var eventUrl = serverUrl + '/event';
-  var response = Bacon.fromPromise($.ajax(eventUrl, {type: 'POST', data: jsonEvent}));
+  var options = {type: 'POST', 
+                 data: jsonEvent, 
+                 dataType: 'json',
+                 contentType: 'application/json; charset=utf-8'};
+  var response = Bacon.fromPromise($.ajax(eventUrl, options));
   response.onValue(function(value){
     console.log('Received response:', arguments);
   });
@@ -119,7 +124,9 @@ function initialize(){
   var initialState = getInitialState();
   View.render(initialState);
 
-  var currentState = View.outgoingEvents.scan(initialState, updateStateFromEvent);
+  var viewEvents = View.outgoingEvents;
+  
+  var currentState = viewEvents.scan(initialState, updateStateFromEvent);
   var changedStates = currentState.changes();
   changedStates.onValue(saveStateLocally);
   changedStates.onValue(View.render);
