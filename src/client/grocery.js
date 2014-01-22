@@ -29,6 +29,7 @@ var TopBar = React.createClass({
 var AddGroceryItemInput = React.createClass({
   render: function() {
     var itemNameInput = React.DOM.input({
+      id: 'name',
       className: 'form-control',
       type: 'text',
       placeholder: '2 tomatoes',
@@ -36,6 +37,7 @@ var AddGroceryItemInput = React.createClass({
       onKeyPress: this.handleAddEnter
     });
     var addItemInnerBtn = React.DOM.button({
+        id: 'add',
         className: 'btn btn-primary',
         type: 'button',
         onClick: this.handleAddClick

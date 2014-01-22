@@ -35,6 +35,9 @@ module.exports = function(grunt) {
           spawn: false
         }}},
     dalek: {
+      options: {
+        browser: ['chrome']
+      },
       dist: {
         src: ['test/test.js'],
         reporter: ['html']
