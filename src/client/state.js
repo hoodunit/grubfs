@@ -143,5 +143,6 @@ function handleStateChanges(initialState, events){
 
 module.exports = {
   handleStateChanges: handleStateChanges,
-  getInitialState: getInitialState
+  getInitialState: getInitialState,
+  handleAddItem: handleAddItem,
 };
