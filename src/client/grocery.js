@@ -10,7 +10,7 @@ var TopBar = React.createClass({
             className: 'btn btn-danger empty-btn',
             type: 'button',
             onClick: this.handleEmptyClick
-        }, 'Dele');
+        }, 'Clear');
 
         return React.DOM.div({
             className: 'top-bar clearfix'
