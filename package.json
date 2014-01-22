@@ -34,6 +34,7 @@
     "grunt-browserify": "~1.2.11",
     "grunt-contrib-watch": "~0.5.3",
     "dalekjs": "0.0.8",
-    "grunt-dalek": "~0.2.0"
+    "grunt-dalek": "~0.2.0",
+    "grunt-mocha-phantomjs": "~0.3.1"
   }
 }

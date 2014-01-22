@@ -9,7 +9,8 @@ Clone the repo and use npm to install the other dependencies:
 git clone <repo url>
 cd grubfs
 npm install
-npm install -g grunt-cli browserify mocha dalek-cli
+npm install -g grunt-cli browserify dalek-cli mocha-phantomjs
+npm install mocha grunt-mocha-phantomjs
 ```
 
 Start Grunt and the development server. The grunt task will rebuild client source code when changes are made and the server will restart when changes are made.
