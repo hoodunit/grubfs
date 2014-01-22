@@ -81,8 +81,15 @@ var GroceryItem = React.createClass({
       onClick: this.handleDeleteClick
     }, 'Delete');
 
+    var itemInput = React.DOM.input({
+        className: 'itemInput display-none',
+        onBlur: this.handleInputBlur,
+        onKeyPress: this.handleEditEnter,
+        ref: 'iteminput'
+    });
+
     var text = React.DOM.span({className: _.get(this.props.data, 'completed') ? 'groceryTextComplete' : 'groceryText',
-                               onClick: this.handleHold}, //wrong event! change to taphold
+                               onClick: this.handleInputClick}, //wrong event! change to taphold
                                _.get(this.props.data, 'name')+' ');
 
     var touched = _.get(this.props.data, 'touched');
@@ -90,7 +97,23 @@ var GroceryItem = React.createClass({
     return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item'},
                          checkbox,
                          text,
-                         touched ? deleteButton : null);
+                         touched ? deleteButton : null,
+                         itemInput);
+  },
+  handleInputClick : function() {
+    this.refs.iteminput.getDOMNode().className = 'itemInput';
+    this.refs.iteminput.getDOMNode().value = _.get(this.props.data, 'name');
+    this.refs.iteminput.getDOMNode().focus();
+  },
+  handleInputBlur : function() {
+    var id = _.get(this.props.data, 'id');
+    var name = this.refs.iteminput.getDOMNode().value.trim();
+    var eventType = 'editItem';
+    var event = _.hash_map('eventType', eventType,
+                           'id', id,
+                           'name', name);
+    outgoingEvents.push(event);
+    this.refs.iteminput.getDOMNode().className = 'itemInput display-none';
   },
   handleCompletedClick: function() {
     var id = _.get(this.props.data, 'id');
@@ -112,6 +135,9 @@ var GroceryItem = React.createClass({
     var event = _.hash_map('eventType', 'deleteItem',
                           'id', _.get(this.props.data, 'id'));
     outgoingEvents.push(event);
+  },
+  handleEditEnter : function(e) {
+    if(e.keyCode == 13) {this.refs.iteminput.getDOMNode().blur();}
   }
 });
 
