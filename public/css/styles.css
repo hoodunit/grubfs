@@ -15,3 +15,18 @@
 .clearfix{
     zoom:1;
 }
+.groceryList {
+    margin-top: 15px;
+}
+.groceryText {
+    color: #5c5c5c;
+}
+.groceryItem span {
+    font-size: 16px;
+}
+.groceryItemComplete {
+    background-color:#f3f3f3;
+}
+.groceryTextComplete {
+    color: #9c9c9c;
+}

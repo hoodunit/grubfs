@@ -81,13 +81,13 @@ var GroceryItem = React.createClass({
       onClick: this.handleDeleteClick
     }, 'Delete');
 
-    var text = React.DOM.span({className: 'groceryText',
+    var text = React.DOM.span({className: _.get(this.props.data, 'completed') ? 'groceryTextComplete' : 'groceryText',
                                onClick: this.handleHold}, //wrong event! change to taphold
                                _.get(this.props.data, 'name')+' ');
 
     var touched = _.get(this.props.data, 'touched');
 
-    return React.DOM.div({className: 'groceryItem'},
+    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item'},
                          checkbox,
                          text,
                          touched ? deleteButton : null);
@@ -122,14 +122,18 @@ var GroceryList = React.createClass({
                           key: _.get(item, 'id')});
     }, this.props.items));
 
+    var groceryList = React.DOM.div({
+        className: "groceryList list-group"
+    },itemNodes);
+
     return React.DOM.div({
-        className: 'groceryList'
+        className: 'groceryMain'
       },
       TopBar(),
       AddGroceryItemInput({
 //        onAddItem: this.addItem
       }),
-      itemNodes
+      groceryList
     );
   }
 });
