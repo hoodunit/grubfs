@@ -15,7 +15,7 @@ function initialize(){
 
   var viewEvents = Grocery.outgoingEvents;
   var changedStates = State.handleStateChanges(initialState, viewEvents);
-  
+
   changedStates.onValue(render);
 }
 

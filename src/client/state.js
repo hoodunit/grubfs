@@ -110,12 +110,28 @@ function handleDeleteItem(oldState, event) {
   return newState;
 }
 
+function handleEditItem(oldState, event) {
+  var id = _.get(event, 'id');
+  var items = _.get(oldState, 'items');
+  var name = _.get(event, 'name');
+  var updatedItems = _.map(function(item){
+    if(_.get(item, 'id') == id){
+      return _.assoc(item, 'name', name);
+    } else {
+      return item;
+    }
+  }, items);
+  var newState = _.assoc(oldState, 'items', updatedItems);
+  return newState;
+}
+
 function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'emptyList', handleEmptyList,
                                  'holdItem', handleHoldItem,
-                                 'deleteItem', handleDeleteItem);
+                                 'deleteItem', handleDeleteItem,
+                                 'editItem', handleEditItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
