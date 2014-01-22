@@ -6,11 +6,14 @@ var Util = require('./util.js');
 
 var TopBar = React.createClass({
     render: function() {
+        var emptyButtonIcon = React.DOM.span({
+            className: 'glyphicon glyphicon-trash'
+        });
         var emptyButton = React.DOM.button({
-            className: 'btn btn-danger empty-btn',
+            className: 'btn btn-default empty-btn',
             type: 'button',
             onClick: this.handleEmptyClick
-        }, 'Clear');
+        },emptyButtonIcon);
 
         return React.DOM.div({
             className: 'top-bar clearfix'
