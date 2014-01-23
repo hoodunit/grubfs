@@ -1,9 +1,8 @@
 var express = require('express');
-var server = express();
-var Bacon = require('baconjs');
 
 var Fsio = require('./fsio');
   
+var server = express();
 var serverPath = __dirname;
 var rootPath = serverPath + '/../..';
 
@@ -24,7 +23,6 @@ function respond(response, stream){
 
 server.post('/event', function(request, response){
   var requestData = request.body;
-  console.log('request data:', requestData);
   var result = Fsio.signUp(requestData);
   respond(response, result);
 });

@@ -1,8 +1,9 @@
-var querystring = require('querystring');
 var Bacon = require('baconjs');
-var request = require('request');
+var $ = require('jquery-node-browserify');
 var sys = require('sys');
 var exec = require('child_process').exec;
+
+require('./bacon.ajax');
 
 var constants = {
   FSIO_BASE_URL: process.env.FSIO_API_URL + '/v2',
@@ -14,38 +15,38 @@ var constants = {
   CRAM_CHALLENGE_RESP_URL: '/token/cram/admin_l2'
 };
 
-function signUp(data){
-  var email = data.email;
-  var password = data.password;
-  console.log('Received email:', email, 'pass:', password);
+function signUp(user){
+  var adminCreds = signInAsAdmin();
+  var adminToken = adminCreds.map('.token');
+  var newUserStatus = createUser(adminToken, user);
 
-  return signInAsAdmin();
+  return newUserStatus;
 }
 
 function signInAsAdmin(){
   var challenge = sendChallengeRequest();
-  challenge.log();
   var response = challenge.flatMap(makeChallengeResponse);
-  response.log();
-  var signInData = response.flatMap(sendChallengeResponse);
-  signInData.log();
-  return signInData.map(function(){ return {}; });
+  var signInData = response.map(makeChallengeResponseRequest).ajax();
+
+  challenge.log('challenge:');
+  response.log('challenge response:');
+  signInData.log('signInData:');
+
+  return signInData;
 }
 
 function sendChallengeRequest(){
+  var challengeRequest = makeChallengeRequest();
+  var response = Bacon.$.ajax(challengeRequest);
+  var challenge = response.map('.challenge');
+  return challenge;
+}
+
+function makeChallengeRequest(){
+  var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: constants.USER_NAME};
-  var requestDataStr = querystring.stringify(requestData);
-
-  var options = {
-    url: constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL,
-    method: 'POST',
-    json: requestData
-  };
-
-  var response = Bacon.fromNodeCallback(request.post, options);
-  var challenge = response.map(function(response){ return response.body.challenge; });
-  return challenge;
+  return makeRequest(url, requestData);
 }
 
 function makeChallengeResponse(challenge){
@@ -54,7 +55,9 @@ function makeChallengeResponse(challenge){
     constants.PASSWORD;
 
   var response = Bacon.fromNodeCallback(exec, command);
-  var parsedResponse = response.map(function(val){ return val.split(' ')[1].replace('\n', ''); });
+  var parsedResponse = response.map(function(val){
+    return val.split(' ')[1].replace('\n', '');
+  });
 
   var finalResponse = parsedResponse.map(function(challengeResponse){
     return {challenge: challenge, response: challengeResponse};
@@ -63,25 +66,73 @@ function makeChallengeResponse(challenge){
   return finalResponse;
 }
 
-function sendChallengeResponse(data){
+function makeChallengeResponseRequest(data){
+  var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: constants.USER_NAME,
                      challenge: data.challenge,
                      response: data.response};
 
-  var requestDataStr = querystring.stringify(requestData);
+  return makeRequest(url, requestData);
+}
 
-  var options = {
-    url: constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL,
-    method: 'POST',
-    json: requestData
-  };
+function createUser(adminToken, user){
+  var newUserData = adminToken.map(makeCreateUserRequest).ajax();
+  var newUserKey = newUserData.map('.key');
+  newUserKey.log('newUserKey:');
 
-  return Bacon.fromCallback(function(callback){
-    request.post(options, function(e, r, body){
-      callback(body);
-    });
+  var newUserInfo = Bacon.combineTemplate({
+    email: user.email,
+    password: user.password,
+    adminToken: adminToken,
+    userKey: newUserKey
   });
+
+  var newUserAuthKey = newUserInfo.map(makeAddAuthRequest).ajax().map('.key');
+
+  newUserAuthKey.log('newUserAuthKey:');
+  return newUserAuthKey;
+}
+
+function makeCreateUserRequest(adminToken){
+  var url = constants.FSIO_BASE_URL + 
+    '/admin/operators/' + 
+    constants.OPERATOR_ID + 
+    '/users';
+
+  // var requestData = {quota: 10485760,
+  //                    state: 'active'};
+  var requestData = {quota: 0};
+  
+  return makeAuthorizedRequest(url, requestData, adminToken);
+}
+
+function makeAddAuthRequest(data){
+  var url = constants.FSIO_BASE_URL + 
+    '/admin' +
+    data.userKey +
+    '/authentications';
+
+  var requestData = {mechanism: 'cram',
+                     role: 'user',
+                     user_name: data.email,
+                     password: data.password};
+
+  return makeAuthorizedRequest(url, requestData, data.adminToken);
+}
+
+function makeRequest(url, data){
+  return {url: url,
+          type: 'POST',
+          contentType: 'application/json; charset=utf-8',
+          data: JSON.stringify(data)};
+          
+}
+
+function makeAuthorizedRequest(url, data, adminToken){
+  var request = makeRequest(url, data);
+  request.headers = {authorization: 'FsioToken ' + adminToken};
+  return request;
 }
 
 module.exports = {
