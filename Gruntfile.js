@@ -19,7 +19,13 @@ module.exports = function(grunt) {
         files: {
           'public/js/client.js': ['src/client/*.js']
         }
-      }
+      },
+      tests: {
+        src: [ 'test/unittests/unittests.js' ],
+        dest: './browsertest/browserified_tests.js',
+        options: {
+          debug: true
+        }}
     },
     watch: {
       scripts: {
@@ -29,9 +35,29 @@ module.exports = function(grunt) {
           spawn: false
         }}},
     dalek: {
+      options: {
+        browser: ['chrome']
+      },
       dist: {
         src: ['test/test.js'],
         reporter: ['html']
+      }
+    },
+    mochaTest: {
+      test: {
+        options: {
+          reporter: 'spec'
+        },
+        src: ['test/unittests/*.js']
+      }
+    },
+    'mocha_phantomjs': {
+      all: {
+        options: {
+          urls: [
+            './browsertest/index.html'
+          ]
+        }
       }
     }
   });
@@ -40,17 +66,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
+  grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-dalek');
+  grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
-
-  grunt.registerTask('mocha', 'run mocha', function () {
-    var done = this.async();
-    require('child_process').exec('mocha ./test/unittests/unittests.js', function (err, stdout) {
-      grunt.log.write(stdout);
-      done(err);
-    });
-  });
-
-  grunt.registerTask('default', ['browserify', 'jshint', 'watch']);
+  grunt.registerTask('default', ['browserify', 'jshint', 'mochaTest', 'mocha_phantomjs']);
 
 };

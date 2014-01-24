@@ -21,7 +21,6 @@
     "node-static": "~0.7.2",
     "express": "~3.4.6",
     "baconjs": "~0.7.0-rc5",
-    "jquery-browserify": "~1.8.1",
     "envify": "~0.2.0",
     "react": "~0.8.0",
     "mori": "~0.2.4",
@@ -35,6 +34,11 @@
     "grunt-browserify": "~1.2.11",
     "grunt-contrib-watch": "~0.5.3",
     "dalekjs": "0.0.8",
-    "grunt-dalek": "~0.2.0"
+    "dalek-browser-firefox": "0.0.5",
+    "dalek-browser-chrome": "0.0.9",
+    "grunt-dalek": "~0.2.0",
+    "grunt-mocha-test": "~0.8.2",
+    "grunt-mocha-phantomjs": "~0.3.1",
+    "mocha": "~1.17.1"
   }
 }

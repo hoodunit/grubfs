@@ -6,11 +6,14 @@ var Util = require('./util.js');
 
 var TopBar = React.createClass({
     render: function() {
+        var emptyButtonIcon = React.DOM.span({
+            className: 'glyphicon glyphicon-trash'
+        });
         var emptyButton = React.DOM.button({
-            className: 'btn btn-danger empty-btn',
+            className: 'btn btn-default empty-btn',
             type: 'button',
             onClick: this.handleEmptyClick
-        }, 'Dele');
+        },emptyButtonIcon);
 
         return React.DOM.div({
             className: 'top-bar clearfix'
@@ -26,12 +29,15 @@ var TopBar = React.createClass({
 var AddGroceryItemInput = React.createClass({
   render: function() {
     var itemNameInput = React.DOM.input({
+      id: 'name',
       className: 'form-control',
       type: 'text',
       placeholder: '2 tomatoes',
-      ref: 'name'
+      ref: 'name',
+      onKeyPress: this.handleAddEnter
     });
     var addItemInnerBtn = React.DOM.button({
+        id: 'add',
         className: 'btn btn-primary',
         type: 'button',
         onClick: this.handleAddClick
@@ -56,6 +62,10 @@ var AddGroceryItemInput = React.createClass({
                                     'name', itemName);
       outgoingEvents.push(addItemEvent);
     }
+  },
+  handleAddEnter: function(e) {
+    //13: Enter key
+    if (e.keyCode==13) {this.handleAddClick();}
   }
 });
 
@@ -67,9 +77,45 @@ var GroceryItem = React.createClass({
       onClick: this.handleCompletedClick
     });
 
-    return React.DOM.div({className: 'groceryItem'},
+    var deleteButton = React.DOM.button({
+      className: 'btn btn-danger',
+      type: 'button',
+      onClick: this.handleDeleteClick
+    }, 'Delete');
+
+    var itemInput = React.DOM.input({
+        className: 'itemInput display-none',
+        onBlur: this.handleInputBlur,
+        onKeyPress: this.handleEditEnter,
+        ref: 'iteminput'
+    });
+
+    var text = React.DOM.span({className: _.get(this.props.data, 'completed') ? 'groceryTextComplete' : 'groceryText',
+                               onClick: this.handleInputClick}, //wrong event! change to taphold
+                               _.get(this.props.data, 'name')+' ');
+
+    var touched = _.get(this.props.data, 'touched');
+
+    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item'},
                          checkbox,
-                         _.get(this.props.data, 'name'));
+                         text,
+                         touched ? deleteButton : null,
+                         itemInput);
+  },
+  handleInputClick : function() {
+    this.refs.iteminput.getDOMNode().className = 'itemInput';
+    this.refs.iteminput.getDOMNode().value = _.get(this.props.data, 'name');
+    this.refs.iteminput.getDOMNode().focus();
+  },
+  handleInputBlur : function() {
+    var id = _.get(this.props.data, 'id');
+    var name = this.refs.iteminput.getDOMNode().value.trim();
+    var eventType = 'editItem';
+    var event = _.hash_map('eventType', eventType,
+                           'id', id,
+                           'name', name);
+    outgoingEvents.push(event);
+    this.refs.iteminput.getDOMNode().className = 'itemInput display-none';
   },
   handleCompletedClick: function() {
     var id = _.get(this.props.data, 'id');
@@ -79,6 +125,21 @@ var GroceryItem = React.createClass({
                            'id', id,
                            'completed', completed);
     outgoingEvents.push(event);
+  },
+  handleHold: function() {
+    var event = _.hash_map('eventType', 'holdItem',
+                           'id', _.get(this.props.data, 'id'),
+                           'touched', _.get(this.props.data, 'touched'));
+
+    outgoingEvents.push(event);
+  },
+  handleDeleteClick: function() {
+    var event = _.hash_map('eventType', 'deleteItem',
+                          'id', _.get(this.props.data, 'id'));
+    outgoingEvents.push(event);
+  },
+  handleEditEnter : function(e) {
+    if(e.keyCode == 13) {this.refs.iteminput.getDOMNode().blur();}
   }
 });
 
@@ -89,14 +150,18 @@ var GroceryList = React.createClass({
                           key: _.get(item, 'id')});
     }, this.props.items));
 
+    var groceryList = React.DOM.div({
+        className: "groceryList list-group"
+    },itemNodes);
+
     return React.DOM.div({
-        className: 'groceryList'
+        className: 'groceryMain'
       },
       TopBar(),
       AddGroceryItemInput({
 //        onAddItem: this.addItem
       }),
-      itemNodes
+      groceryList
     );
   }
 });
