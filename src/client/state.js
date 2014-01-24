@@ -3,6 +3,7 @@ var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
 
 var Util = require('./util');
+var Fsio = require('./fsio');
 
 function getLocalState(){
   var localState = null;
@@ -126,23 +127,8 @@ function handleEditItem(oldState, event) {
   return newState;
 }
 
-function handleSignUp(oldState, event){
-  var requestEvent = _.dissoc(event, 'eventType');
-  var jsonEvent = JSON.stringify(_.clj_to_js(requestEvent));
-  console.log('sending to server:', jsonEvent);
-
-  var serverUrl = document.location.origin;
-  var eventUrl = serverUrl + '/event';
-  var options = {type: 'POST', 
-                 data: jsonEvent, 
-                 dataType: 'json',
-                 contentType: 'application/json; charset=utf-8'};
-  var response = Bacon.fromPromise($.ajax(eventUrl, options));
-  response.onValue(function(value){
-    console.log('Received response:', arguments);
-  });
-
-  return oldState;
+function handleSignIn(oldState, event){
+  return _.assoc(oldState, 'credentials', _.get(event, 'credentials'));
 }
 
 function getEventHandler(event){
@@ -152,7 +138,7 @@ function getEventHandler(event){
                                  'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
                                  'editItem', handleEditItem,
-                                 'signUp', handleSignUp);
+                                 'signIn', handleSignIn);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -178,8 +164,13 @@ function handleStateChanges(initialState, events){
   return changedStates;
 }
 
+function signedIn(state){
+  return _.get(state, 'credentials');
+}
+
 module.exports = {
   handleStateChanges: handleStateChanges,
   getInitialState: getInitialState,
   handleAddItem: handleAddItem,
+  signedIn: signedIn
 };

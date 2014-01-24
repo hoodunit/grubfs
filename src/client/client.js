@@ -5,9 +5,14 @@ var Bacon = require('baconjs');
 var View = require('./view');
 var Util = require('./util.js');
 var State = require('./state');
+var Fsio = require('./fsio');
 
 function render(state){
   View.render(state);
+}
+
+function isEventType(eventType, event){
+  return _.equals(_.get(event, 'eventType'), eventType);
 }
 
 function initialize(){
@@ -15,7 +20,12 @@ function initialize(){
   render(initialState);
 
   var viewEvents = View.outgoingEvents;
-  var changedStates = State.handleStateChanges(initialState, viewEvents);
+
+  var signUpEvents = viewEvents.filter(isEventType, 'signUp');
+  var signInEvents = signUpEvents.flatMap(Fsio.signUp);
+
+  var stateEvents = viewEvents.filter(isEventType, 'signUp').not().merge(signInEvents);
+  var changedStates = State.handleStateChanges(initialState, stateEvents);
 
   changedStates.onValue(render);
 }
