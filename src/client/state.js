@@ -130,8 +130,20 @@ function handleEditItem(oldState, event) {
   return newState;
 }
 
+function handleSignedUp(oldState, event){
+  var newState = handleSignIn(oldState, event);
+
+  var stateUploadResponse = Fsio.uploadCompleteState(newState);
+  stateUploadResponse.log('upload state response:');
+  
+  return newState;
+}
+
 function handleSignIn(oldState, event){
-  return _.assoc(oldState, 'credentials', _.get(event, 'credentials'));
+  var credentials = _.get(event, 'credentials');
+  var newState = _.assoc(oldState, 'credentials', credentials);
+  
+  return newState;
 }
 
 function handleSignOut(oldState, event){
@@ -149,6 +161,7 @@ function getEventHandler(event){
                                  'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
                                  'editItem', handleEditItem,
+                                 'signedUp', handleSignedUp,
                                  'signIn', handleSignIn,
                                  'signOut', handleSignOut);
   var eventType = _.get(event, 'eventType');

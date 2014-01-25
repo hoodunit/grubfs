@@ -28,13 +28,13 @@ function signUp(event){
   var password = _.get(event, 'password');
   // var authCredentials = response.flatMap(signIn, email, password);
   var authCredentials = signIn(email, password);
-  var signInEvents = authCredentials.map(_.js_to_clj)
+  var signedUpEvents = authCredentials.map(_.js_to_clj)
     .map(_.hash_map, 
-         'eventType', 'signIn', 
+         'eventType', 'signedUp', 
          'email', email,
          'credentials');
 
-  return signInEvents;
+  return signedUpEvents;
 }
 
 function signIn(email, password){
@@ -89,7 +89,57 @@ function makeRequest(url, data){
           
 }
 
+function makeAuthorizedRequest(url, data, token){
+  var request = makeRequest(url, data);
+  request.headers = {authorization: 'FsioToken ' + adminToken};
+  return request;
+}
+
+function uploadCompleteState(state){
+  console.log('upload state');
+  var credentials = _.get(state, 'credentials');
+  var token = _.get(credentials, 'token');
+
+  var itemArray = _.clj_to_js(_.get(state, 'items'));
+  var items = Bacon.fromArray(itemArray);
+  var requests = items.map(makeUploadItemRequest, token);
+  var responses = requests.ajax();
+  return responses;
+}
+
+function makeUploadItemRequest(token, item){
+  console.log('item:', item);
+  // var url = constants.FSIO_BASE_URL + '/data/me';
+  // var data = {
+  //   authorization: 'FsioToken ' + token,
+  //   error_redirect: 'http://example.com/upload_error',
+  //   success_redirect: 'http://example.com/upload_success'
+  // };
+  var url = constants.FSIO_BASE_URL + '/data/me' +
+    '?success_redirect=http://example.com/upload_success' +
+    '&authorization=FsioToken ' + token +
+    '&error_redirect=http://example.com/upload_error';
+
+  var formData = new FormData();
+  formData.append('object-name', 'item/' + item.id);
+  formData.append('file', JSON.stringify(item), item.id);
+
+  //var headers = {authorization: 'FsioToken ' + token};
+  var request = {
+    url: url,
+    data: formData,
+    type: 'POST',
+    async: false,
+    cache: false,
+    contentType: false,
+    processData: false
+  };
+ 
+  return request;
+}
+
 module.exports = {
   signIn: signIn,
-  signUp: signUp
+  signUp: signUp,
+  uploadCompleteState: uploadCompleteState
 };
