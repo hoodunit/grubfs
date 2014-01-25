@@ -5,6 +5,21 @@ var Bacon = require('baconjs');
 var Util = require('./util.js');
 
 var TopBar = React.createClass({
+    getSignOutButton: function(){
+      console.log('this.props.signedIn:', this.props.signedIn);
+      if(!this.props.signedIn){
+        return null;
+      }
+      var icon = React.DOM.span({
+        className: 'glyphicon glyphicon-log-out'
+      });
+      var button = React.DOM.button({
+        className: 'btn btn-default',
+        type: 'button',
+        onClick: this.handleSignOut
+      }, icon);
+      return button;
+    },
     render: function() {
         var emptyButtonIcon = React.DOM.span({
             className: 'glyphicon glyphicon-trash'
@@ -15,14 +30,20 @@ var TopBar = React.createClass({
             onClick: this.handleEmptyClick
         },emptyButtonIcon);
 
+        var signOutButton = this.getSignOutButton();
+
         return React.DOM.div({
             className: 'top-bar clearfix'
-        }, emptyButton);
+            }, emptyButton, signOutButton);
     },
-
     handleEmptyClick: function() {
       var emptyEvent = _.hash_map('eventType', 'emptyList');
       outgoingEvents.push(emptyEvent);
+    },
+    handleSignOut: function() {
+      console.log('signing out');
+      var event = _.hash_map('eventType', 'signOut');
+      outgoingEvents.push(event);
     }
 });
 
@@ -157,7 +178,7 @@ var GroceryList = React.createClass({
     return React.DOM.div({
         className: 'groceryMain'
       },
-      TopBar(),
+      TopBar({signedIn: this.props.signedIn}),
       AddGroceryItemInput({
 //        onAddItem: this.addItem
       }),

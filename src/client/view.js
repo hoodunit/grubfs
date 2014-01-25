@@ -8,9 +8,11 @@ var State = require('./state');
 
 var GrubView = React.createClass({
   render: function() {
-    var groceryState = {items: _.get(this.props, 'items')};
+    var signedIn = State.signedIn(this.props);
+    var groceryState = {items: _.get(this.props, 'items'),
+                        signedIn: signedIn};
     var dom;
-    if(State.signedIn(this.props)){
+    if(signedIn){
       dom = React.DOM.div({}, Grocery.GroceryList(groceryState));
     } else {
       dom = React.DOM.div({}, Grocery.GroceryList(groceryState),

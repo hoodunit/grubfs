@@ -26,7 +26,11 @@ function saveStateLocally(state){
 }
 
 function getDefaultState(){
-  var initialItems = _.vector(
+  return _.hash_map('items', getDefaultItems);
+}
+
+function getDefaultItems(){
+  return _.vector(
     _.hash_map('id', Util.generateUUID(),
                'name', '1 packages of tomato puree',
                'completed', false,
@@ -39,7 +43,6 @@ function getDefaultState(){
                'name', '2 dl cream',
                'completed', false,
                'touched', false));
-  return _.hash_map('items', initialItems);
 }
 
 
@@ -131,6 +134,14 @@ function handleSignIn(oldState, event){
   return _.assoc(oldState, 'credentials', _.get(event, 'credentials'));
 }
 
+function handleSignOut(oldState, event){
+  console.log('handlesignout:', _.clj_to_js(event));
+  var newState = _.dissoc(oldState, 'credentials');
+  // also remove items
+  console.log('newState:', _.clj_to_js(newState));
+  return newState;
+}
+
 function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
@@ -138,7 +149,8 @@ function getEventHandler(event){
                                  'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
                                  'editItem', handleEditItem,
-                                 'signIn', handleSignIn);
+                                 'signIn', handleSignIn,
+                                 'signOut', handleSignOut);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -165,7 +177,8 @@ function handleStateChanges(initialState, events){
 }
 
 function signedIn(state){
-  return _.get(state, 'credentials');
+  console.log('signedIn:', (_.get(state, 'credentials') !== null));
+  return _.get(state, 'credentials') !== null;
 }
 
 module.exports = {

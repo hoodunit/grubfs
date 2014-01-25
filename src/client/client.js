@@ -24,7 +24,7 @@ function initialize(){
   var signUpEvents = viewEvents.filter(isEventType, 'signUp');
   var signInEvents = signUpEvents.flatMap(Fsio.signUp);
 
-  var stateEvents = viewEvents.filter(isEventType, 'signUp').not().merge(signInEvents);
+  var stateEvents = viewEvents.merge(signInEvents);
   var changedStates = State.handleStateChanges(initialState, stateEvents);
 
   changedStates.onValue(render);
