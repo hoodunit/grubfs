@@ -108,25 +108,24 @@ var GroceryItem = React.createClass({
                          itemInput);
   },
   handleTouchStart : function(e) {
+      this.startx = 0;
+      this.dist = 0;
       var touchedItem = e.changedTouches[0];
       this.startx = parseInt(touchedItem.clientX);
-      console.log(this.startx);
+      e.preventDefault();
   },
   handleTouchMove : function(e) {
       var touchedItem = e.changedTouches[0];
       this.dist = parseInt(touchedItem.clientX) - this.startx;
-      e.target.style.left = this.dist + 'px';
+      this.getDOMNode().style.left = this.dist + 'px';
       e.preventDefault();
-      console.log(this.dist);
   },
   handleTouchEnd : function(e) {
-      console.log("aaaa");
-      var targetWidth = e.target.offsetWidth;
-      console.log(targetWidth);
+      var targetWidth = document.getElementById('content').offsetWidth;
       if(this.dist > targetWidth/2) {
         this.handleDeleteClick();
       } else {
-        e.target.style.left = 0;
+        this.getDOMNode().style.left = 0 + 'px';
       }
       e.preventDefault();
   },
