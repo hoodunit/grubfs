@@ -119,7 +119,6 @@ var GroceryItem = React.createClass({
       this.dist = parseInt(touchedItem.clientX) - this.startx;
       this.getDOMNode().style.left = this.dist + 'px';
       e.preventDefault();
-      console.log(this.dist);
   },
   handleTouchEnd : function(e) {
       var targetWidth = document.getElementById('content').offsetWidth;
