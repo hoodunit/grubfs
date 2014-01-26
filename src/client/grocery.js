@@ -70,6 +70,8 @@ var AddGroceryItemInput = React.createClass({
 });
 
 var GroceryItem = React.createClass({
+  startx : 0,
+  dist : 0,
   render: function() {
     var checkbox = React.DOM.input({
       type: 'checkbox',
@@ -96,11 +98,37 @@ var GroceryItem = React.createClass({
 
     var touched = _.get(this.props.data, 'touched');
 
-    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item'},
+    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item',
+                         onTouchStart: this.handleTouchStart,
+                         onTouchEnd: this.handleTouchEnd,
+                         onTouchMove: this.handleTouchMove},
                          checkbox,
                          text,
                          touched ? deleteButton : null,
                          itemInput);
+  },
+  handleTouchStart : function(e) {
+      var touchedItem = e.changedTouches[0];
+      this.startx = parseInt(touchedItem.clientX);
+      console.log(this.startx);
+  },
+  handleTouchMove : function(e) {
+      var touchedItem = e.changedTouches[0];
+      this.dist = parseInt(touchedItem.clientX) - this.startx;
+      e.target.style.left = this.dist + 'px';
+      e.preventDefault();
+      console.log(this.dist);
+  },
+  handleTouchEnd : function(e) {
+      console.log("aaaa");
+      var targetWidth = e.target.offsetWidth;
+      console.log(targetWidth);
+      if(this.dist > targetWidth/2) {
+        this.handleDeleteClick();
+      } else {
+        e.target.style.left = 0;
+      }
+      e.preventDefault();
   },
   handleInputClick : function() {
     this.refs.iteminput.getDOMNode().className = 'itemInput';
@@ -136,6 +164,7 @@ var GroceryItem = React.createClass({
   handleDeleteClick: function() {
     var event = _.hash_map('eventType', 'deleteItem',
                           'id', _.get(this.props.data, 'id'));
+    console.log(_.get(this.props.data, 'id'));
     outgoingEvents.push(event);
   },
   handleEditEnter : function(e) {
