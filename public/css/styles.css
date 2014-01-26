@@ -16,6 +16,8 @@
     zoom:1;
 }
 .groceryList {
+    position: relative;
+    overflow-x: hidden;
     margin-top: 15px;
 }
 .groceryText {

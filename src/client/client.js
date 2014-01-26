@@ -6,6 +6,7 @@ var Grocery = require('./grocery');
 
 function render(state) {
   var groceryState = {items: _.get(state, 'items')};
+  React.initializeTouchEvents(true);
   React.renderComponent(Grocery.GroceryList(groceryState), document.getElementById('content'));
 }
 
