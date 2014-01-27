@@ -72,6 +72,7 @@ var AddGroceryItemInput = React.createClass({
 var GroceryItem = React.createClass({
   startx : 0,
   dist : 0,
+  tapped : 0,
   render: function() {
     var checkbox = React.DOM.input({
       type: 'checkbox',
@@ -110,11 +111,13 @@ var GroceryItem = React.createClass({
   handleTouchStart : function(e) {
       this.startx = 0;
       this.dist = 0;
+      this.tapped = 1;
       var touchedItem = e.changedTouches[0];
       this.startx = parseInt(touchedItem.clientX);
       e.preventDefault();
   },
   handleTouchMove : function(e) {
+      this.tapped = 0;
       var touchedItem = e.changedTouches[0];
       this.dist = parseInt(touchedItem.clientX) - this.startx;
       this.getDOMNode().style.left = this.dist + 'px';
@@ -126,6 +129,9 @@ var GroceryItem = React.createClass({
         this.handleDeleteClick();
       } else {
         this.getDOMNode().style.left = 0 + 'px';
+      }
+      if(this.tapped) {
+        this.handleInputClick();
       }
       e.preventDefault();
   },
