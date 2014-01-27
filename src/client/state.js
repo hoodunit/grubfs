@@ -161,4 +161,9 @@ module.exports = {
   handleStateChanges: handleStateChanges,
   getInitialState: getInitialState,
   handleAddItem: handleAddItem,
+  handleCompleteItem: handleCompleteItem,
+  handleEmptyList: handleEmptyList,
+  handleHoldItem: handleHoldItem,
+  handleDeleteItem: handleDeleteItem,
+  handleEditItem: handleEditItem,
 };
