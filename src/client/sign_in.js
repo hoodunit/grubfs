@@ -2,28 +2,62 @@ var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
 
+var Validate = require('../shared/validate');
+
 var SignInForm = React.createClass({
-  getInputForm: function(type, ref, placeholder){
-    return React.DOM.div({className: 'form-group',
-                          onKeyPress: this.onInputKeyUp},
-                         React.DOM.input({className: 'form-control',
-                                          type: type,
-                                          ref: ref,
-                                          placeholder: placeholder}));
-  }, 
+  getInitialState: function(){
+    return {signingUp: false, 
+            emailError: null,
+            passwordError: null,
+            confirmError: null};
+  },
+  componentDidUpdate: function(prevProps, prevState, rootNode){
+    if(prevState.signingUp === false && this.state.signingUp === true){
+      this.refs.confirmPass.getDOMNode().focus();
+    }
+  },
+  render: function(){
+    var signingUp = this.state.signingUp;
+    return React.DOM.form({className: 'sign-in-form well well-lg clearfix'},
+                          this.getEmailForm(),
+                          this.getPasswordForm(),
+                          this.getConfirmPassForm(signingUp),
+                          this.getButtons(signingUp));
+  },
   getEmailForm: function(){
-    return this.getInputForm('email', 'email', 'Email address');
+    return this.getInputForm('email', 'email', 'Email address', this.state.emailError);
   },
   getPasswordForm: function(){
-    return this.getInputForm('password', 'password', 'Password');
+    return this.getInputForm('password', 'password', 'Password', this.state.passwordError);
   },
   getConfirmPassForm: function(signingUp){
     if(signingUp){
-      return this.getInputForm('password', 'confirmPass', 'Confirm Password');
+      return this.getInputForm('password', 'confirmPass', 'Confirm Password', this.state.confirmError);
     } else {
       return null;
     }
   },
+  getInputForm: function(type, ref, placeholder, errorMsg){
+    var hasErrorClass;
+    var label;
+    if(errorMsg){
+      hasErrorClass = 'has-error';
+      label = React.DOM.label({className: 'control-label',
+                               htmlFor: ref},
+                              errorMsg);
+    } else {
+      hasErrorClass = '';
+      label = null;
+    }
+    return React.DOM.div({className: 'form-group ' + hasErrorClass,
+                          onKeyPress: this.onInputKeyUp},
+                         label,
+                         React.DOM.input({className: 'form-control',
+                                          type: type,
+                                          ref: ref,
+                                          id: ref,
+                                          placeholder: placeholder}));
+  }, 
   getSignUpButton: function(){
     return React.DOM.button({className: 'btn btn-success',
                              type: 'button',
@@ -53,21 +87,10 @@ var SignInForm = React.createClass({
                            this.getSignInButton());
     }
   },
-  getInitialState: function(){
-    return {signingUp: false};
-  },
-  render: function(){
-    var signingUp = this.state.signingUp;
-    return React.DOM.form({className: 'sign-in-form well well-lg clearfix'},
-                          this.getEmailForm(),
-                          this.getPasswordForm(),
-                          this.getConfirmPassForm(signingUp),
-                          this.getButtons(signingUp));
-  },
   onInputKeyUp: function(event){
     if(this.enterWasPressed(event)){
       if(this.state.signingUp){
-        this.sendSignUpEvent();
+        this.validateInputAndSignUp();
       } else {
         this.sendSignInEvent();
       }
@@ -79,17 +102,45 @@ var SignInForm = React.createClass({
   },
   onSignUpClick: function(){
     if(this.state.signingUp){
-      this.sendSignUpEvent();
+        this.validateInputAndSignUp();
     } else {
       this.setState({signingUp: true});
     }
   },
-  sendSignUpEvent: function(){
+  validateInputAndSignUp: function(){
     var email = this.refs.email.getDOMNode().value.trim();
     var password = this.refs.password.getDOMNode().value.trim();
     var confirmPass = this.refs.confirmPass.getDOMNode().value.trim();
-    console.log('Sign up email:', email, 'pass:', password, 'confirm:', confirmPass);
-
+    
+    if(this.validateSignUpInput(email, password, confirmPass)){
+      this.sendSignUpEvent(email, password, confirmPass);
+    }
+  },
+  validateSignUpInput: function(email, password, confirmPass){
+    var valid = true;
+    var passwordError = null;
+    var confirmError = null;
+    var emailError = null;
+    if(Validate.validPasswordLength(password)){
+      valid = false;
+      passwordError = 'Length: ' + 
+        Validate.PASSWORD_MIN_LEN + '-' +
+        Validate.PASSWORD_MAX_LEN + ' characters';
+    }
+    if(password !== confirmPass){
+      valid = false;
+      confirmError = 'Must match password.';
+    }
+    if(!Validate.validEmail(email)){
+      valid = false;
+      emailError = 'Invalid email address.';
+    }
+    this.setState({passwordError: passwordError,
+                   confirmError: confirmError,
+                   emailError: emailError});
+    return valid;
+  },
+  sendSignUpEvent: function(email, password, confirmPass){
     var event = _.hash_map('eventType', 'signUp', 
                            'email', email,
                            'password', password);
@@ -105,13 +156,11 @@ var SignInForm = React.createClass({
                            'password', password);
     outgoingEvents.push(event);
   },
-  componentDidUpdate: function(prevProps, prevState, rootNode){
-    if(prevState.signingUp === false && this.state.signingUp === true){
-      this.refs.confirmPass.getDOMNode().focus();
-    }
-  },
   onCancelClick: function(){
-    this.setState({signingUp: false});
+    this.setState({signingUp: false,
+                   emailError: null,
+                   passwordError: null,
+                   confirmError: null});
   }
 });
 
