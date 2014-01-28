@@ -4,14 +4,16 @@ var Bacon = require('baconjs');
 
 var SignInForm = React.createClass({
   getEmailForm: function(){
-    return React.DOM.div({className: 'form-group'},
+    return React.DOM.div({className: 'form-group',
+                          onKeyPress: this.onInputKeyUp},
                          React.DOM.input({className: 'form-control',
                                           type: 'email',
                                           ref: 'email',
                                           placeholder: 'Email address'}));
   },
   getPasswordForm: function(){
-    return React.DOM.div({className: 'form-group'},
+    return React.DOM.div({className: 'form-group',
+                          onKeyPress: this.onInputKeyUp},
                          React.DOM.input({className: 'form-control',
                                           type: 'password',
                                           ref: 'password',
@@ -19,7 +21,8 @@ var SignInForm = React.createClass({
   },
   getConfirmPassForm: function(signingUp){
     if(signingUp){
-      return React.DOM.div({className: 'form-group'},
+      return React.DOM.div({className: 'form-group',
+                            onKeyPress: this.onInputKeyUp},
                            React.DOM.input({className: 'form-control',
                                             type: 'password',
                                             ref: 'confirmPass',
@@ -62,26 +65,52 @@ var SignInForm = React.createClass({
   },
   render: function(){
     var signingUp = this.state.signingUp;
-    return React.DOM.form({className: 'sign-in-form well well-lg clearfix'}, 
+    return React.DOM.form({className: 'sign-in-form well well-lg clearfix'},
                           this.getEmailForm(),
                           this.getPasswordForm(),
                           this.getConfirmPassForm(signingUp),
                           this.getButtons(signingUp));
   },
+  onInputKeyUp: function(event){
+    if(this.enterWasPressed(event)){
+      if(this.state.signingUp){
+        this.sendSignUpEvent();
+      } else {
+        this.sendSignInEvent();
+      }
+    }
+  },
+  enterWasPressed: function(event){
+    var ENTER_KEYCODE = 13;
+    return event.keyCode === ENTER_KEYCODE;
+  },
   onSignUpClick: function(){
     if(this.state.signingUp){
-      var email = this.refs.email.getDOMNode().value.trim();
-      var password = this.refs.password.getDOMNode().value.trim();
-      var confirmPass = this.refs.confirmPass.getDOMNode().value.trim();
-      console.log('Sign up email:', email, 'pass:', password, 'confirm:', confirmPass);
-
-      var event = _.hash_map('eventType', 'signUp', 
-                             'email', email,
-                             'password', password);
-      outgoingEvents.push(event);
+      this.sendSignUpEvent();
     } else {
       this.setState({signingUp: true});
     }
+  },
+  sendSignUpEvent: function(){
+    var email = this.refs.email.getDOMNode().value.trim();
+    var password = this.refs.password.getDOMNode().value.trim();
+    var confirmPass = this.refs.confirmPass.getDOMNode().value.trim();
+    console.log('Sign up email:', email, 'pass:', password, 'confirm:', confirmPass);
+
+    var event = _.hash_map('eventType', 'signUp', 
+                           'email', email,
+                           'password', password);
+    outgoingEvents.push(event);
+  },
+  sendSignInEvent: function(){
+    var email = this.refs.email.getDOMNode().value.trim();
+    var password = this.refs.password.getDOMNode().value.trim();
+    console.log('Sign in email:', email, 'pass:', password);
+
+    var event = _.hash_map('eventType', 'signIn', 
+                           'email', email,
+                           'password', password);
+    outgoingEvents.push(event);
   },
   componentDidUpdate: function(prevProps, prevState, rootNode){
     if(prevState.signingUp === false && this.state.signingUp === true){
