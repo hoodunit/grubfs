@@ -108,7 +108,7 @@ function handleDeleteItem(oldState, event) {
   var items = _.get(oldState, 'items');
 
   var updatedItems = _.remove(function(item) {
-    return _.get(item, 'touched');},
+    return _.get(item, 'id') == id;},
     items);
 
   var newState = _.assoc(oldState, 'items', updatedItems);

@@ -32,6 +32,7 @@ var GrubView = React.createClass({
 var outgoingEvents = Bacon.mergeAll(Grocery.outgoingEvents, SignIn.outgoingEvents);
 
 function render(state) {
+  React.initializeTouchEvents(true);
   React.renderComponent(GrubView(state), document.getElementById('content'));
 }
 

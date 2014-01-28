@@ -89,6 +89,9 @@ var AddGroceryItemInput = React.createClass({
 });
 
 var GroceryItem = React.createClass({
+  startx : 0,
+  dist : 0,
+  tapped : 0,
   render: function() {
     var checkbox = React.DOM.input({
       type: 'checkbox',
@@ -115,11 +118,41 @@ var GroceryItem = React.createClass({
 
     var touched = _.get(this.props.data, 'touched');
 
-    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item'},
+    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item',
+                         onTouchStart: this.handleTouchStart,
+                         onTouchEnd: this.handleTouchEnd,
+                         onTouchMove: this.handleTouchMove},
                          checkbox,
                          text,
                          touched ? deleteButton : null,
                          itemInput);
+  },
+  handleTouchStart : function(e) {
+      this.startx = 0;
+      this.dist = 0;
+      this.tapped = 1;
+      var touchedItem = e.changedTouches[0];
+      this.startx = parseInt(touchedItem.clientX);
+      e.preventDefault();
+  },
+  handleTouchMove : function(e) {
+      this.tapped = 0;
+      var touchedItem = e.changedTouches[0];
+      this.dist = parseInt(touchedItem.clientX) - this.startx;
+      this.getDOMNode().style.left = this.dist + 'px';
+      e.preventDefault();
+  },
+  handleTouchEnd : function(e) {
+      var targetWidth = document.getElementById('content').offsetWidth;
+      if(this.dist > targetWidth/2) {
+        this.handleDeleteClick();
+      } else {
+        this.getDOMNode().style.left = 0 + 'px';
+      }
+      if(this.tapped) {
+        this.handleInputClick();
+      }
+      e.preventDefault();
   },
   handleInputClick : function() {
     this.refs.iteminput.getDOMNode().className = 'itemInput';
@@ -155,6 +188,7 @@ var GroceryItem = React.createClass({
   handleDeleteClick: function() {
     var event = _.hash_map('eventType', 'deleteItem',
                           'id', _.get(this.props.data, 'id'));
+    console.log(_.get(this.props.data, 'id'));
     outgoingEvents.push(event);
   },
   handleEditEnter : function(e) {
