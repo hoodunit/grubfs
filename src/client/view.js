@@ -7,18 +7,25 @@ var SignIn = require('./sign_in');
 var State = require('./state');
 
 var GrubView = React.createClass({
+  getSignInForm: function(signedIn){
+    if(signedIn){
+      return null;
+    } else {
+      return SignIn.SignInForm({});
+    }
+  },
   render: function() {
     var signedIn = State.signedIn(this.props);
     var groceryState = {items: _.get(this.props, 'items'),
                         signedIn: signedIn};
-    var dom;
-    if(signedIn){
-      dom = React.DOM.div({}, Grocery.GroceryList(groceryState));
-    } else {
-      dom = React.DOM.div({}, Grocery.GroceryList(groceryState),
-                          SignIn.SignInForm({}));
-    }
-    return dom;
+
+    return React.DOM.div({}, 
+                         React.DOM.div({className: 'col-sm-2'}),
+                         React.DOM.div({className: 'col-sm-5'},
+                                       Grocery.GroceryList(groceryState)),
+                         React.DOM.div({className: 'col-sm-3'},
+                                       this.getSignInForm(signedIn)),
+                         React.DOM.div({className: 'col-sm-2'}));
   }
 });
 
