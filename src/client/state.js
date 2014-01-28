@@ -26,7 +26,7 @@ function saveStateLocally(state){
 }
 
 function getDefaultState(){
-  return _.hash_map('items', getDefaultItems);
+  return _.hash_map('items', getDefaultItems());
 }
 
 function getDefaultItems(){
