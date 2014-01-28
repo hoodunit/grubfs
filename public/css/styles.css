@@ -38,3 +38,15 @@
     top:8px;
     left:5px;
 }
+
+.sign-in-form {
+    padding: 10px;
+}
+
+.sign-in-form div.form-group{
+    margin-bottom: 10px;
+}
+
+.sign-in-form button{
+    margin-left: 5px;
+}
