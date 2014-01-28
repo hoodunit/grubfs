@@ -30,7 +30,7 @@ function signInAsAdmin(){
 
   challenge.log('challenge:');
   response.log('challenge response:');
-  signInData.log('signInData:');
+  signInData.map(JSON.stringify).log('signInData:');
 
   return signInData;
 }
@@ -99,10 +99,11 @@ function makeCreateUserRequest(adminToken){
     '/admin/operators/' + 
     constants.OPERATOR_ID + 
     '/users';
-
-  // var requestData = {quota: 10485760,
-  //                    state: 'active'};
-  var requestData = {quota: 0};
+ 
+  var quotaInMegabytes = 0.5;
+  var quotaInBytes = quotaInMegabytes * 1024 * 1024;
+  var requestData = {quota: quotaInBytes,
+                     state: 'active'};
   
   return makeAuthorizedRequest(url, requestData, adminToken);
 }
