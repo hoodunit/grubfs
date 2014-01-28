@@ -3,30 +3,23 @@ var _ = require('mori');
 var Bacon = require('baconjs');
 
 var SignInForm = React.createClass({
-  getEmailForm: function(){
+  getInputForm: function(type, ref, placeholder){
     return React.DOM.div({className: 'form-group',
                           onKeyPress: this.onInputKeyUp},
                          React.DOM.input({className: 'form-control',
-                                          type: 'email',
-                                          ref: 'email',
-                                          placeholder: 'Email address'}));
+                                          type: type,
+                                          ref: ref,
+                                          placeholder: placeholder}));
+  }, 
+  getEmailForm: function(){
+    return this.getInputForm('email', 'email', 'Email address');
   },
   getPasswordForm: function(){
-    return React.DOM.div({className: 'form-group',
-                          onKeyPress: this.onInputKeyUp},
-                         React.DOM.input({className: 'form-control',
-                                          type: 'password',
-                                          ref: 'password',
-                                          placeholder: 'Password'}));
+    return this.getInputForm('password', 'password', 'Password');
   },
   getConfirmPassForm: function(signingUp){
     if(signingUp){
-      return React.DOM.div({className: 'form-group',
-                            onKeyPress: this.onInputKeyUp},
-                           React.DOM.input({className: 'form-control',
-                                            type: 'password',
-                                            ref: 'confirmPass',
-                                            placeholder: 'Confirm Password'}));
+      return this.getInputForm('password', 'confirmPass', 'Confirm Password');
     } else {
       return null;
     }
