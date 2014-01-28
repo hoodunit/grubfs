@@ -12,22 +12,15 @@ var constants = {
 };
 
 function signUp(event){
-  // var requestEvent = _.dissoc(event, 'eventType');
-  // var jsonEvent = JSON.stringify(_.clj_to_js(requestEvent));
-  // console.log('sending to server:', jsonEvent);
+  var signUpRequest = makeSignUpRequest(event);
+  var response = Bacon.fromPromise($.ajax(signUpRequest));
+  response.log('Sign up response:');
 
-  // var serverUrl = document.location.origin;
-  // var eventUrl = serverUrl + '/event';
-  // var options = {type: 'POST', 
-  //                data: jsonEvent, 
-  //                dataType: 'json',
-  //                contentType: 'application/json; charset=utf-8'};
-  // var response = Bacon.fromPromise($.ajax(eventUrl, options));
-  // response.log('response:');
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
-  // var authCredentials = response.flatMap(signIn, email, password);
-  var authCredentials = signIn(email, password);
+
+  var authCredentials = response.flatMap(signIn, email, password);
+
   var signedUpEvents = authCredentials.map(_.js_to_clj)
     .map(_.hash_map, 
          'eventType', 'signedUp', 
@@ -37,12 +30,29 @@ function signUp(event){
   return signedUpEvents;
 }
 
+function makeSignUpRequest(event){
+  var requestEvent = _.dissoc(event, 'eventType');
+  var jsonEvent = JSON.stringify(_.clj_to_js(requestEvent));
+  console.log('sending to server:', jsonEvent);
+
+  var serverUrl = document.location.origin;
+  var eventUrl = serverUrl + '/event';
+  var options = {type: 'POST', 
+                 data: jsonEvent, 
+                 dataType: 'json',
+                 contentType: 'application/json; charset=utf-8', 
+                 url: eventUrl};
+  return options;
+}
+
 function signIn(email, password){
   var challenge = sendChallengeRequest(email);
   var challengeResponse = challenge.map(hashChallenge, password);
   var signInData = Bacon.combineWith(makeChallengeResponseRequest, 
                                      email, challenge, challengeResponse).ajax();
 
+  console.log('signIn args:', arguments);
+  console.log('signInPassword:', password);
   challenge.log('challenge:');
   challengeResponse.log('challenge response:');
   signInData.log('signInData:');
@@ -65,6 +75,8 @@ function makeChallengeRequest(email){
 }
 
 function hashChallenge(password, challenge){
+  console.log('hash challenge:', challenge, 'password:', password);
+  console.log('arguments:', arguments);
   var shaObj = new jsSHA(challenge, "B64");
   var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
 
@@ -109,30 +121,18 @@ function uploadCompleteState(state){
 
 function makeUploadItemRequest(token, item){
   console.log('item:', item);
-  // var url = constants.FSIO_BASE_URL + '/data/me';
-  // var data = {
-  //   authorization: 'FsioToken ' + token,
-  //   error_redirect: 'http://example.com/upload_error',
-  //   success_redirect: 'http://example.com/upload_success'
-  // };
-  var url = constants.FSIO_BASE_URL + '/data/me' +
-    '?success_redirect=http://example.com/upload_success' +
-    '&authorization=FsioToken ' + token +
-    '&error_redirect=http://example.com/upload_error';
+  var url = constants.FSIO_BASE_URL + '/data/me/files/items/' + item.id;
+  var headers = {
+    authorization: 'FsioToken ' + token,
+    'x-appearance': 'normal'
+  };
 
-  var formData = new FormData();
-  formData.append('object-name', 'item/' + item.id);
-  formData.append('file', JSON.stringify(item), item.id);
-
-  //var headers = {authorization: 'FsioToken ' + token};
   var request = {
     url: url,
-    data: formData,
-    type: 'POST',
-    async: false,
-    cache: false,
-    contentType: false,
-    processData: false
+    data: JSON.stringify(item),
+    contentType: 'application/json; charset=utf-8',
+    headers: headers,
+    type: 'PUT'
   };
  
   return request;
