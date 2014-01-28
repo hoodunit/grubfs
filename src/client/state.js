@@ -131,7 +131,7 @@ function handleEditItem(oldState, event) {
 }
 
 function handleSignedUp(oldState, event){
-  var newState = handleSignIn(oldState, event);
+  var newState = handleSignedIn(oldState, event);
 
   var stateUploadResponse = Fsio.uploadCompleteState(newState);
   stateUploadResponse.log('upload state response:');
@@ -139,7 +139,7 @@ function handleSignedUp(oldState, event){
   return newState;
 }
 
-function handleSignIn(oldState, event){
+function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
   var newState = _.assoc(oldState, 'credentials', credentials);
   
@@ -147,10 +147,8 @@ function handleSignIn(oldState, event){
 }
 
 function handleSignOut(oldState, event){
-  console.log('handlesignout:', _.clj_to_js(event));
   var newState = _.dissoc(oldState, 'credentials');
   // also remove items
-  console.log('newState:', _.clj_to_js(newState));
   return newState;
 }
 
@@ -162,7 +160,7 @@ function getEventHandler(event){
                                  'deleteItem', handleDeleteItem,
                                  'editItem', handleEditItem,
                                  'signedUp', handleSignedUp,
-                                 'signIn', handleSignIn,
+                                 'signedIn', handleSignedIn,
                                  'signOut', handleSignOut);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
@@ -190,7 +188,6 @@ function handleStateChanges(initialState, events){
 }
 
 function signedIn(state){
-  console.log('signedIn:', (_.get(state, 'credentials') !== null));
   return _.get(state, 'credentials') !== null;
 }
 

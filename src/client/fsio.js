@@ -12,14 +12,10 @@ var constants = {
 };
 
 function signUp(event){
-  var signUpRequest = makeSignUpRequest(event);
-  var response = Bacon.fromPromise($.ajax(signUpRequest));
-  response.log('Sign up response:');
-
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
-
-  var authCredentials = response.flatMap(signIn, email, password);
+  
+  var authCredentials = _signUp(email, password);
 
   var signedUpEvents = authCredentials.map(_.js_to_clj)
     .map(_.hash_map, 
@@ -30,10 +26,20 @@ function signUp(event){
   return signedUpEvents;
 }
 
-function makeSignUpRequest(event){
-  var requestEvent = _.dissoc(event, 'eventType');
-  var jsonEvent = JSON.stringify(_.clj_to_js(requestEvent));
-  console.log('sending to server:', jsonEvent);
+function _signUp(email, password){
+  var signUpRequest = makeSignUpRequest(email, password);
+  var response = Bacon.fromPromise($.ajax(signUpRequest));
+  response.log('Sign up response:');
+
+  var authCredentials = response.flatMap(function(signUpResponse){
+    return _signIn(email, password);
+  });
+  return authCredentials;
+}
+
+function makeSignUpRequest(email, password){
+  var requestEvent = {email: email, password: password};
+  var jsonEvent = JSON.stringify(requestEvent);
 
   var serverUrl = document.location.origin;
   var eventUrl = serverUrl + '/event';
@@ -45,14 +51,25 @@ function makeSignUpRequest(event){
   return options;
 }
 
-function signIn(email, password){
+function signIn(event){
+  var email = _.get(event, 'email');
+  var password = _.get(event, 'password');
+
+  var authCredentials = _signIn(email, password);
+  var signedInEvents = authCredentials.map(_.js_to_clj)
+    .map(_.hash_map, 
+         'eventType', 'signedIn', 
+         'email', email,
+         'credentials');
+  return signedInEvents;
+}
+
+function _signIn(email, password){
   var challenge = sendChallengeRequest(email);
   var challengeResponse = challenge.map(hashChallenge, password);
   var signInData = Bacon.combineWith(makeChallengeResponseRequest, 
                                      email, challenge, challengeResponse).ajax();
 
-  console.log('signIn args:', arguments);
-  console.log('signInPassword:', password);
   challenge.log('challenge:');
   challengeResponse.log('challenge response:');
   signInData.log('signInData:');

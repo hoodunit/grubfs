@@ -6,7 +6,6 @@ var Util = require('./util.js');
 
 var TopBar = React.createClass({
     getSignOutButton: function(){
-      console.log('this.props.signedIn:', this.props.signedIn);
       if(!this.props.signedIn){
         return null;
       }
@@ -41,7 +40,6 @@ var TopBar = React.createClass({
       outgoingEvents.push(emptyEvent);
     },
     handleSignOut: function() {
-      console.log('signing out');
       var event = _.hash_map('eventType', 'signOut');
       outgoingEvents.push(event);
     }
