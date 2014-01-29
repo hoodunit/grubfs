@@ -10,6 +10,7 @@ var TopBar = React.createClass({
             className: 'glyphicon glyphicon-trash'
         });
         var emptyButton = React.DOM.button({
+            id: 'clearlist',
             className: 'btn btn-default empty-btn',
             type: 'button',
             onClick: this.handleEmptyClick
