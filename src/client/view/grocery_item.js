@@ -140,7 +140,8 @@ var GroceryItem = React.createClass({
     });
   },
   setEditing: function(){
-    this.setState({editing: true});
+    this.setState({editing: true,
+                   tapped: false});
   },
   handleInputBlur : function() {
     console.log('handleInputBlur');
