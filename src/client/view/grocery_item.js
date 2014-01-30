@@ -43,7 +43,7 @@ var GroceryItem = React.createClass({
                           onMouseDown: this.handleMouseDown,
                           onMouseUp: this.handleMouseUp},
                          this.getCheckbox(isCompleted),
-                         this.getText(isCompleted, name),
+                         this.getText(isCompleted, name, this.state.editing),
                          touched ? this.getDeleteButton() : null,
                          this.getItemInput(this.state.editing));
   },
@@ -73,11 +73,14 @@ var GroceryItem = React.createClass({
         value: value
     });
   }, 
-  getText: function(isCompleted, name){
-    var textClass = isCompleted ? 'groceryTextComplete' : 'groceryText';
+  getText: function(isCompleted, name, editing){
+    if(editing){
+      return null;
+    } else {
+      var textClass = isCompleted ? 'groceryTextComplete' : 'groceryText';
 
-    return React.DOM.span({className: textClass},
-                          name);
+      return React.DOM.span({className: textClass}, name);
+    }
   },
   handleMouseDown: function(event){
     console.log('handleMouseDown');
