@@ -23,11 +23,17 @@
 .groceryText {
     color: #5c5c5c;
 }
+.groceryItem.pressed .groceryText {
+    color: #ffffff;
+}
 .groceryItem span {
     font-size: 16px;
 }
 .groceryItemComplete {
-    background-color:#f3f3f3;
+    background-color: #f3f3f3;
+}
+.groceryItem.pressed {
+    background-color: #545454;
 }
 .groceryTextComplete {
     color: #9c9c9c;

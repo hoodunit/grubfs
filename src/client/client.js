@@ -2,7 +2,7 @@ var _ = require('mori');
 var React = require('react');
 
 var State = require('./state');
-var Grocery = require('./grocery');
+var Grocery = require('./view/grocery');
 
 function render(state) {
   var groceryState = {items: _.get(state, 'items')};

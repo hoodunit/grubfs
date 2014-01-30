@@ -170,7 +170,7 @@ describe('handleDeleteItem', function(){
 });
 
 
-describe('handleEditItem', function(){
+describe('handleUpdateItem', function(){
   it('should update item description', function(){
     var initialState = _.hash_map('items', _.vector(
             _.hash_map('id', 0,
@@ -184,7 +184,7 @@ describe('handleEditItem', function(){
 
         //edit cream to vanilla cream
         var newEvent = _.hash_map('id',1,'name','2 dl of vanilla cream');
-        var newState = client.handleEditItem(initialState, newEvent);
+        var newState = client.handleUpdateItem(initialState, newEvent);
 
         //check that editing worked
         var measuredItem = _.nth(_.get(newState,'items'),1);
