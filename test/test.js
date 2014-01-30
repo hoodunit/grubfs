@@ -21,5 +21,17 @@ module.exports = {
     .open(baseUrl)
     .assert.numberOfElements('.groceryList .groceryItem', 3, '3 items are visible after localStorage is cleared and page realoaded')
     .done();
+},
+'list can be cleared and a new item added': function (page) {
+  page
+  .open(baseUrl)
+  .waitForElement('.groceryItem')
+  .assert.numberOfElements('.groceryList .groceryItem', 3, '3 items are visible at first')
+  .click('#clearlist')
+  .assert.numberOfElements('.groceryList .groceryItem', 0, 'no items are visible after clearing list')
+  .type('#name', 'chocolate box')
+  .click('#add')
+  .assert.numberOfElements('.groceryList .groceryItem', 1, 'one item are visible after one item is added to the cleared list')
+  .done();
 }
 };
