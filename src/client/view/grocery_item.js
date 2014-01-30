@@ -143,12 +143,12 @@ var GroceryItem = React.createClass({
   },
   handleInputBlur : function() {
     this.setState({editing: false});
-    this.sendEditEvent();
+    this.sendUpdateEvent();
   },
   sendEditEvent: function(){
     var id = _.get(this.props.data, 'id');
     var name = this.refs.iteminput.getDOMNode().value.trim();
-    var eventType = 'editItem';
+    var eventType = 'updateItem';
     var event = _.hash_map('eventType', eventType,
                            'id', id,
                            'name', name);

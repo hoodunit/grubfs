@@ -110,7 +110,7 @@ function handleDeleteItem(oldState, event) {
   return newState;
 }
 
-function handleEditItem(oldState, event) {
+function handleUpdateItem(oldState, event) {
   var id = _.get(event, 'id');
   var items = _.get(oldState, 'items');
   var name = _.get(event, 'name');
@@ -131,7 +131,7 @@ function getEventHandler(event){
                                  'emptyList', handleEmptyList,
                                  'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
-                                 'editItem', handleEditItem);
+                                 'updateItem', handleUpdateItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -165,5 +165,5 @@ module.exports = {
   handleEmptyList: handleEmptyList,
   handleHoldItem: handleHoldItem,
   handleDeleteItem: handleDeleteItem,
-  handleEditItem: handleEditItem,
+  handleUpdateItem: handleUpdateItem,
 };
