@@ -83,14 +83,12 @@ var GroceryItem = React.createClass({
     }
   },
   handleMouseDown: function(event){
-    console.log('handleMouseDown');
     event.preventDefault();
     var mouseX = parseInt(event.pageX);
     this.setSwipeStartPosition(mouseX);
   },
   handleTouchStart : function(event) {
     event.preventDefault();
-    console.log('handle touch start:', event);
     var touchedItem = event.changedTouches[0];
     var startx = parseInt(touchedItem.pageX);
     this.setSwipeStartPosition(startx);
@@ -118,7 +116,6 @@ var GroceryItem = React.createClass({
     });
   },
   handleMouseUp: function(event){
-    console.log('handleMouseUp');
     event.preventDefault();
     this.handleSwipeEnd();
   },
@@ -144,7 +141,6 @@ var GroceryItem = React.createClass({
                    tapped: false});
   },
   handleInputBlur : function() {
-    console.log('handleInputBlur');
     this.setState({editing: false});
     this.sendEditEvent();
   },
@@ -182,7 +178,6 @@ var GroceryItem = React.createClass({
   sendDeleteEvent: function(){
     var event = _.hash_map('eventType', 'deleteItem',
                           'id', _.get(this.props.data, 'id'));
-    console.log(_.get(this.props.data, 'id'));
     outgoingEvents.push(event);
   },
   handleEditEnter : function(event) {
