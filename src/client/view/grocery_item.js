@@ -28,11 +28,12 @@ var GroceryItem = React.createClass({
     var isCompleted = _.get(this.props.data, 'completed');
     var touched = _.get(this.props.data, 'touched');
 
-    var itemClass;
+    var itemClass = 'groceryItem list-group-item';
     if(isCompleted){
-      itemClass = 'groceryItem list-group-item groceryItemComplete';
-    } else {
-      itemClass = 'groceryItem list-group-item';
+      itemClass += ' groceryItemComplete';
+    }
+    if(this.state.tapped){
+      itemClass += ' pressed';
     }
 
     return React.DOM.div({className: itemClass,
@@ -133,7 +134,8 @@ var GroceryItem = React.createClass({
     }
     clearTimeout(this.state.pressTimer);
     this.setState({
-      dist: 0
+      dist: 0,
+      tapped: false
     });
   },
   setEditing: function(){
