@@ -64,14 +64,13 @@ var GroceryItem = React.createClass({
   },
   getItemInput: function(editing){
     var className = editing ? 'itemInput' : 'itemInput display-none';
-    var value = editing ? null : _.get(this.props.data, 'name');
 
     return React.DOM.input({
         className: className,
         onBlur: this.handleInputBlur,
         onKeyPress: this.handleEditEnter,
         ref: 'iteminput',
-        value: value
+        defaultValue: _.get(this.props.data, 'name')
     });
   }, 
   getText: function(isCompleted, name, editing){
