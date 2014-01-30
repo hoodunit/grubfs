@@ -83,7 +83,7 @@ describe('handleCompleteItem', function(){
         assert.equal(_.get(measuredItem,'completed'),false);
 
         //check that tomato puree is completed
-        var measuredItem = _.nth(_.get(newState,'items'),0);
+        measuredItem = _.nth(_.get(newState,'items'),0);
         assert.equal(_.get(measuredItem,'id'),'0');
         assert.equal(_.get(measuredItem,'completed'),true);
 
