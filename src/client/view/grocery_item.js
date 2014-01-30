@@ -83,15 +83,19 @@ var GroceryItem = React.createClass({
     }
   },
   handleMouseDown: function(event){
-    event.preventDefault();
-    var mouseX = parseInt(event.pageX);
-    this.setSwipeStartPosition(mouseX);
+    if(!this.state.editing){
+      event.preventDefault();
+      var mouseX = parseInt(event.pageX);
+      this.setSwipeStartPosition(mouseX);
+    }
   },
   handleTouchStart : function(event) {
-    event.preventDefault();
-    var touchedItem = event.changedTouches[0];
-    var startx = parseInt(touchedItem.pageX);
-    this.setSwipeStartPosition(startx);
+    if(!this.state.editing){
+      event.preventDefault();
+      var touchedItem = event.changedTouches[0];
+      var startx = parseInt(touchedItem.pageX);
+      this.setSwipeStartPosition(startx);
+    }
   },
   setSwipeStartPosition: function(startx){
     this.setState({
@@ -102,10 +106,12 @@ var GroceryItem = React.createClass({
     });
   },
   handleTouchMove : function(event) {
-    event.preventDefault();
-    var touchedItem = event.changedTouches[0];
-    var touchX = touchedItem.pageX;
-    this.updateSwipePosition(touchX);
+    if(!this.state.editing){
+      event.preventDefault();
+      var touchedItem = event.changedTouches[0];
+      var touchX = touchedItem.pageX;
+      this.updateSwipePosition(touchX);
+    }
   },
   updateSwipePosition: function(eventX){
     clearTimeout(this.state.pressTimer);
@@ -116,12 +122,16 @@ var GroceryItem = React.createClass({
     });
   },
   handleMouseUp: function(event){
-    event.preventDefault();
-    this.handleSwipeEnd();
+    if(!this.state.editing){
+      event.preventDefault();
+      this.handleSwipeEnd();
+    }
   },
   handleTouchEnd: function(event){
-    event.preventDefault();
-    this.handleSwipeEnd();
+    if(!this.state.editing){
+      event.preventDefault();
+      this.handleSwipeEnd();
+    }
   },
   handleSwipeEnd: function(event){
     var targetWidth = document.getElementById('content').offsetWidth;
