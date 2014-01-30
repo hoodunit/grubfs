@@ -41,7 +41,6 @@ var GroceryItem = React.createClass({
                           onTouchEnd: this.handleTouchEnd,
                           onTouchMove: this.handleTouchMove,
                           onMouseDown: this.handleMouseDown,
-                          onMouseMove: this.handleMouseMove,
                           onMouseUp: this.handleMouseUp},
                          this.getCheckbox(isCompleted),
                          this.getText(isCompleted, name),
@@ -64,7 +63,7 @@ var GroceryItem = React.createClass({
   },
   getItemInput: function(editing){
     var className = editing ? 'itemInput' : 'itemInput display-none';
-    var value = editing ? _.get(this.props.data, 'name') : '';
+    var value = editing ? null : _.get(this.props.data, 'name');
 
     return React.DOM.input({
         className: className,
@@ -77,16 +76,15 @@ var GroceryItem = React.createClass({
   getText: function(isCompleted, name){
     var textClass = isCompleted ? 'groceryTextComplete' : 'groceryText';
 
-    return React.DOM.span({className: textClass,
-                           onClick: this.handleTouchStart},
+    return React.DOM.span({className: textClass},
                           name);
   },
-  // handleMouseDown: function(event){
-  //   console.log('handleMouseDown');
-  //   event.preventDefault();
-  //   var mouseX = parseInt(event.pageX);
-  //   this.setStartPosition(mouseX);
-  // },
+  handleMouseDown: function(event){
+    console.log('handleMouseDown');
+    event.preventDefault();
+    var mouseX = parseInt(event.pageX);
+    this.setSwipeStartPosition(mouseX);
+  },
   handleTouchStart : function(event) {
     event.preventDefault();
     console.log('handle touch start:', event);
@@ -102,19 +100,13 @@ var GroceryItem = React.createClass({
       pressTimer: window.setTimeout(this.setEditing, 750)
     });
   },
-  // handleMouseMove: function(event){
-  //   console.log('handleMouseMove');
-  //   event.preventDefault();
-  //   var mouseX = parseInt(event.pageX);
-  //   this.updatePosition(mouseX);
-  // },
   handleTouchMove : function(event) {
     event.preventDefault();
     var touchedItem = event.changedTouches[0];
     var touchX = touchedItem.pageX;
-    this.setSwipePosition(touchX);
+    this.updateSwipePosition(touchX);
   },
-  setSwipePosition: function(eventX){
+  updateSwipePosition: function(eventX){
     clearTimeout(this.state.pressTimer);
     var dist = eventX - this.state.startx;
     this.setState({
@@ -122,11 +114,11 @@ var GroceryItem = React.createClass({
       tapped: false
     });
   },
-  // handleMouseUp: function(event){
-  //   console.log('handleMouseUp');
-  //   event.preventDefault();
-  //   this.handleSwipeEnd();
-  // },
+  handleMouseUp: function(event){
+    console.log('handleMouseUp');
+    event.preventDefault();
+    this.handleSwipeEnd();
+  },
   handleTouchEnd: function(event){
     event.preventDefault();
     this.handleSwipeEnd();
@@ -135,8 +127,6 @@ var GroceryItem = React.createClass({
     var targetWidth = document.getElementById('content').offsetWidth;
     if(this.state.dist > targetWidth/2) {
       this.sendDeleteEvent();
-    } else {
-      dist = 0;
     }
     if(this.state.tapped) {
       this.sendCompletedEvent();
@@ -150,6 +140,8 @@ var GroceryItem = React.createClass({
     this.setState({editing: true});
   },
   handleInputBlur : function() {
+    console.log('handleInputBlur');
+    this.setState({editing: false});
     this.sendEditEvent();
   },
   sendEditEvent: function(){
@@ -195,7 +187,7 @@ var GroceryItem = React.createClass({
     }
   },
   enterWasPressed: function(event){
-    return event.keyCode === 13;
+    return (event.keyCode === 13);
   }
 });
 
