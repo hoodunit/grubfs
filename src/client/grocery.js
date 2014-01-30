@@ -71,79 +71,115 @@ var AddGroceryItemInput = React.createClass({
 });
 
 var GroceryItem = React.createClass({
-  startx : 0,
-  dist : 0,
-  tapped : 0,
-  pressTimer : null,
+  getInitialState: function(){
+    return {
+      startx : 0,
+      dist : 0,
+      tapped : false,
+      pressTimer : null,
+      editing: false};
+  },
+  componentDidUpdate: function(prevProps, prevState, rootNode){
+    if(this.state.editing && !prevState.editing){
+      this.refs.iteminput.getDOMNode().focus();
+    }
+  },
   render: function() {
-    var checkbox = React.DOM.input({
+    var name = _.get(this.props.data, 'name');
+    var isCompleted = _.get(this.props.data, 'completed');
+    var touched = _.get(this.props.data, 'touched');
+
+    var itemClass;
+    if(isCompleted){
+      itemClass = 'groceryItem list-group-item groceryItemComplete';
+    } else {
+      itemClass = 'groceryItem list-group-item';
+    }
+
+    return React.DOM.div({className: itemClass,
+                          style: {left: this.state.dist + 'px'},
+                          onTouchStart: this.handleTouchStart,
+                          onTouchEnd: this.handleTouchEnd,
+                          onTouchMove: this.handleTouchMove},
+                         this.getCheckbox(isCompleted),
+                         this.getText(isCompleted, name),
+                         touched ? this.getDeleteButton() : null,
+                         this.getItemInput(this.state.editing));
+  },
+  getCheckbox: function(isCompleted){
+    return React.DOM.input({
       type: 'checkbox',
-      checked: _.get(this.props.data, 'completed'),
+      checked: isCompleted,
       onClick: this.handleCompletedClick
     });
-
-    var deleteButton = React.DOM.button({
+  },
+  getDeleteButton: function(){
+    return React.DOM.button({
       className: 'btn btn-danger',
       type: 'button',
       onClick: this.handleDeleteClick
     }, 'Delete');
+  },
+  getItemInput: function(editing){
+    var className = editing ? 'itemInput' : 'itemInput display-none';
+    var value = editing ? _.get(this.props.data, 'name') : '';
 
-    var itemInput = React.DOM.input({
-        className: 'itemInput display-none',
+    return React.DOM.input({
+        className: className,
         onBlur: this.handleInputBlur,
         onKeyPress: this.handleEditEnter,
-        ref: 'iteminput'
+        ref: 'iteminput',
+        value: value
     });
+  }, 
+  getText: function(isCompleted, name){
+    var textClass = isCompleted ? 'groceryTextComplete' : 'groceryText';
 
-    var text = React.DOM.span({className: _.get(this.props.data, 'completed') ? 'groceryTextComplete' : 'groceryText',
-                               onClick: this.handleInputClick}, //wrong event! change to taphold
-                               _.get(this.props.data, 'name')+' ');
-
-    var touched = _.get(this.props.data, 'touched');
-
-    return React.DOM.div({className: _.get(this.props.data, 'completed') ? 'groceryItem list-group-item groceryItemComplete' : 'groceryItem list-group-item',
-                         onTouchStart: this.handleTouchStart,
-                         onTouchEnd: this.handleTouchEnd,
-                         onTouchMove: this.handleTouchMove},
-                         checkbox,
-                         text,
-                         touched ? deleteButton : null,
-                         itemInput);
+    return React.DOM.span({className: textClass,
+                           onClick: this.handleTouchStart},
+                          name);
   },
-  handleTouchStart : function(e) {
-      this.startx = 0;
-      this.dist = 0;
-      this.tapped = 1;
-      var touchedItem = e.changedTouches[0];
-      this.startx = parseInt(touchedItem.clientX);
-      this.pressTimer = window.setTimeout(this.handleInputClick, 750);
-      e.preventDefault();
+  handleTouchStart : function(event) {
+    event.preventDefault();
+    console.log('handle touch start:', event);
+    var touchedItem = event.changedTouches[0];
+    this.setState({
+      startx: parseInt(touchedItem.clientX),
+      dist: 0,
+      tapped: true,
+      pressTimer: window.setTimeout(this.setEditing, 750)
+    });
   },
-  handleTouchMove : function(e) {
-      clearTimeout(this.pressTimer);
-      this.tapped = 0;
-      var touchedItem = e.changedTouches[0];
-      this.dist = parseInt(touchedItem.clientX) - this.startx;
-      this.getDOMNode().style.left = this.dist + 'px';
-      e.preventDefault();
+  handleTouchMove : function(event) {
+    event.preventDefault();
+    clearTimeout(this.state.pressTimer);
+    var touchedItem = event.changedTouches[0];
+    var dist = parseInt(touchedItem.clientX) - this.state.startx;
+    this.setState({
+      tapped: false,
+      dist: dist
+    });
   },
-  handleTouchEnd : function(e) {
-      var targetWidth = document.getElementById('content').offsetWidth;
-      if(this.dist > targetWidth/2) {
-        this.handleDeleteClick();
-      } else {
-        this.getDOMNode().style.left = 0 + 'px';
-      }
-      if(this.tapped) {
-        this.handleCompletedClick();
-      }
-      clearTimeout(this.pressTimer);
-      e.preventDefault();
+  handleTouchEnd : function(event) {
+    event.preventDefault();
+    var targetWidth = document.getElementById('content').offsetWidth;
+    var dist = this.state.dist;
+    if(this.state.dist > targetWidth/2) {
+      this.sendDeleteEvent();
+    } else {
+      dist = 0;
+      this.getDOMNode().style.left = 0 + 'px';
+    }
+    if(this.state.tapped) {
+      this.sendCompletedEvent();
+    }
+    clearTimeout(this.state.pressTimer);
+    this.setState({
+      dist: 0
+    });
   },
-  handleInputClick : function() {
-    this.refs.iteminput.getDOMNode().className = 'itemInput';
-    this.refs.iteminput.getDOMNode().value = _.get(this.props.data, 'name');
-    this.refs.iteminput.getDOMNode().focus();
+  setEditing : function() {
+    this.setState({editing: true});
   },
   handleInputBlur : function() {
     var id = _.get(this.props.data, 'id');
@@ -156,6 +192,9 @@ var GroceryItem = React.createClass({
     this.refs.iteminput.getDOMNode().className = 'itemInput display-none';
   },
   handleCompletedClick: function() {
+    this.sendCompletedEvent();
+  },
+  sendCompletedEvent: function(){
     var id = _.get(this.props.data, 'id');
     var completed = _.get(this.props.data, 'completed');
     var eventType = 'completeItem';
@@ -172,6 +211,9 @@ var GroceryItem = React.createClass({
     outgoingEvents.push(event);
   },
   handleDeleteClick: function() {
+    sendDeleteEvent();
+  },
+  sendDeleteEvent: function(){
     var event = _.hash_map('eventType', 'deleteItem',
                           'id', _.get(this.props.data, 'id'));
     console.log(_.get(this.props.data, 'id'));
