@@ -9,12 +9,19 @@ var GroceryItem = React.createClass({
       dist : 0,
       tapped : false,
       pressTimer : null,
-      editing: false};
+      editing: false
+    };
   },
   componentDidUpdate: function(prevProps, prevState, rootNode){
-    if(this.state.editing && !prevState.editing){
+    if(this.enteringEditState){
       this.refs.iteminput.getDOMNode().focus();
     }
+  },
+  enteringEditState: function(prevState){
+    return (this.state.editing && !prevState.editing);
+  },
+  exitingEditState: function(prevState){
+    return (!this.state.editing && prevState.editing);
   },
   render: function() {
     var name = _.get(this.props.data, 'name');
@@ -32,7 +39,10 @@ var GroceryItem = React.createClass({
                           style: {left: this.state.dist + 'px'},
                           onTouchStart: this.handleTouchStart,
                           onTouchEnd: this.handleTouchEnd,
-                          onTouchMove: this.handleTouchMove},
+                          onTouchMove: this.handleTouchMove,
+                          onMouseDown: this.handleMouseDown,
+                          onMouseMove: this.handleMouseMove,
+                          onMouseUp: this.handleMouseUp},
                          this.getCheckbox(isCompleted),
                          this.getText(isCompleted, name),
                          touched ? this.getDeleteButton() : null,
@@ -71,36 +81,62 @@ var GroceryItem = React.createClass({
                            onClick: this.handleTouchStart},
                           name);
   },
+  // handleMouseDown: function(event){
+  //   console.log('handleMouseDown');
+  //   event.preventDefault();
+  //   var mouseX = parseInt(event.pageX);
+  //   this.setStartPosition(mouseX);
+  // },
   handleTouchStart : function(event) {
     event.preventDefault();
     console.log('handle touch start:', event);
     var touchedItem = event.changedTouches[0];
+    var startx = parseInt(touchedItem.pageX);
+    this.setSwipeStartPosition(startx);
+  },
+  setSwipeStartPosition: function(startx){
     this.setState({
-      startx: parseInt(touchedItem.clientX),
+      startx: startx,
       dist: 0,
       tapped: true,
       pressTimer: window.setTimeout(this.setEditing, 750)
     });
   },
+  // handleMouseMove: function(event){
+  //   console.log('handleMouseMove');
+  //   event.preventDefault();
+  //   var mouseX = parseInt(event.pageX);
+  //   this.updatePosition(mouseX);
+  // },
   handleTouchMove : function(event) {
     event.preventDefault();
-    clearTimeout(this.state.pressTimer);
     var touchedItem = event.changedTouches[0];
-    var dist = parseInt(touchedItem.clientX) - this.state.startx;
+    var touchX = touchedItem.pageX;
+    this.setSwipePosition(touchX);
+  },
+  setSwipePosition: function(eventX){
+    clearTimeout(this.state.pressTimer);
+    var dist = eventX - this.state.startx;
     this.setState({
-      tapped: false,
-      dist: dist
+      dist: dist,
+      tapped: false
     });
   },
-  handleTouchEnd : function(event) {
+  // handleMouseUp: function(event){
+  //   console.log('handleMouseUp');
+  //   event.preventDefault();
+  //   this.handleSwipeEnd();
+  // },
+  handleTouchEnd: function(event){
     event.preventDefault();
+    this.handleSwipeEnd();
+  },
+  handleSwipeEnd: function(event){
     var targetWidth = document.getElementById('content').offsetWidth;
-    var dist = this.state.dist;
     if(this.state.dist > targetWidth/2) {
       this.sendDeleteEvent();
     } else {
       dist = 0;
-      this.getDOMNode().style.left = 0 + 'px';
     }
     if(this.state.tapped) {
       this.sendCompletedEvent();
@@ -110,10 +146,13 @@ var GroceryItem = React.createClass({
       dist: 0
     });
   },
-  setEditing : function() {
+  setEditing: function(){
     this.setState({editing: true});
   },
   handleInputBlur : function() {
+    this.sendEditEvent();
+  },
+  sendEditEvent: function(){
     var id = _.get(this.props.data, 'id');
     var name = this.refs.iteminput.getDOMNode().value.trim();
     var eventType = 'editItem';
@@ -121,7 +160,6 @@ var GroceryItem = React.createClass({
                            'id', id,
                            'name', name);
     outgoingEvents.push(event);
-    this.refs.iteminput.getDOMNode().className = 'itemInput display-none';
   },
   handleCompletedClick: function() {
     this.sendCompletedEvent();
@@ -151,8 +189,13 @@ var GroceryItem = React.createClass({
     console.log(_.get(this.props.data, 'id'));
     outgoingEvents.push(event);
   },
-  handleEditEnter : function(e) {
-    if(e.keyCode == 13) {this.refs.iteminput.getDOMNode().blur();}
+  handleEditEnter : function(event) {
+    if(this.enterWasPressed(event)){
+      this.refs.iteminput.getDOMNode().blur();
+    }
+  },
+  enterWasPressed: function(event){
+    return event.keyCode === 13;
   }
 });
 
