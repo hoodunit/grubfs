@@ -155,7 +155,7 @@ var GroceryItem = React.createClass({
     this.setState({editing: false});
     this.sendUpdateEvent();
   },
-  sendEditEvent: function(){
+  sendUpdateEvent: function(){
     var id = _.get(this.props.data, 'id');
     var name = this.refs.iteminput.getDOMNode().value.trim();
     var eventType = 'updateItem';
