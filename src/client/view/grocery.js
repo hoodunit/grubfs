@@ -34,7 +34,7 @@ var AddGroceryItemInput = React.createClass({
       id: 'name',
       className: 'form-control',
       type: 'text',
-      placeholder: '2 tomatoes',
+      placeholder: 'What do you need?',
       ref: 'name',
       onKeyPress: this.handleAddEnter
     });
