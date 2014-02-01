@@ -38,6 +38,7 @@
 }
 .groceryTextComplete {
     color: #9c9c9c;
+    text-decoration: line-through;
 }
 .display-none {
     display: none;
