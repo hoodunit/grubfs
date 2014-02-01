@@ -28,6 +28,7 @@
 }
 .groceryItem span {
     font-size: 16px;
+    cursor: default;
 }
 .groceryItemComplete {
     background-color: #f3f3f3;
