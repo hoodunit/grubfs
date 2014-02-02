@@ -1,15 +1,13 @@
-.top-bar {
-    margin-bottom: 10px;
-}
 .empty-btn {
     float: right;
+    margin-left:10px;
 }
 .clearfix:before, .clearfix:after {
     content:"";
     display:table;
 }
 .clearfix:after{
-    clear:both;
+    clear:left;
     overflow:hidden;
 }
 .clearfix{
