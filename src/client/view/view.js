@@ -4,7 +4,7 @@ var _ = require('mori');
 
 var Grocery = require('./grocery');
 var SignIn = require('./sign_in');
-var State = require('./state');
+var State = require('../state');
 
 var GrubView = React.createClass({
   getSignInForm: function(signedIn){

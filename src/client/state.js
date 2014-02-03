@@ -115,7 +115,7 @@ function handleDeleteItem(oldState, event) {
   return newState;
 }
 
-function handleEditItem(oldState, event) {
+function handleUpdateItem(oldState, event) {
   var id = _.get(event, 'id');
   var items = _.get(oldState, 'items');
   var name = _.get(event, 'name');
@@ -148,7 +148,6 @@ function handleSignedIn(oldState, event){
 
 function handleSignOut(oldState, event){
   var newState = _.dissoc(oldState, 'credentials');
-  // also remove items
   return newState;
 }
 
@@ -158,7 +157,7 @@ function getEventHandler(event){
                                  'emptyList', handleEmptyList,
                                  'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
-                                 'editItem', handleEditItem,
+                                 'updateItem', handleUpdateItem,
                                  'signedUp', handleSignedUp,
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut);
@@ -195,5 +194,10 @@ module.exports = {
   handleStateChanges: handleStateChanges,
   getInitialState: getInitialState,
   handleAddItem: handleAddItem,
-  signedIn: signedIn
+  signedIn: signedIn,
+  handleCompleteItem: handleCompleteItem,
+  handleEmptyList: handleEmptyList,
+  handleHoldItem: handleHoldItem,
+  handleDeleteItem: handleDeleteItem,
+  handleUpdateItem: handleUpdateItem,
 };

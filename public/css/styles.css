@@ -4,15 +4,16 @@
 .top-bar {
     margin-bottom: 10px;
 }
-.empty-btn {
-    float: right;
+.top-bar .nav-btn{
+    float: left;
+    margin-right: 10px;
 }
 .clearfix:before, .clearfix:after {
     content:"";
     display:table;
 }
 .clearfix:after{
-    clear:both;
+    clear:left;
     overflow:hidden;
 }
 .clearfix{
@@ -26,25 +27,33 @@
 .groceryText {
     color: #5c5c5c;
 }
+.groceryItem.pressed .groceryText {
+    color: #ffffff;
+}
 .groceryItem span {
     font-size: 16px;
+    cursor: default;
 }
 .groceryItemComplete {
-    background-color:#f3f3f3;
+    background-color: #f3f3f3;
+}
+.groceryItem.pressed {
+    background-color: #545454;
 }
 .groceryTextComplete {
     color: #9c9c9c;
+    text-decoration: line-through;
 }
 .display-none {
     display: none;
 }
 .itemInput {
-    position: absolute;
     top:8px;
     left:5px;
 }
 .sign-in-form {
     padding: 10px;
+    overflow: hidden;
 }
 .sign-in-form div.form-group{
     margin-bottom: 10px;

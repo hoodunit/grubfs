@@ -2,7 +2,7 @@ var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
 
-var Validate = require('../shared/validate');
+var Validate = require('../../shared/validate');
 
 var SignInForm = React.createClass({
   getInitialState: function(){

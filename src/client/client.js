@@ -2,7 +2,7 @@ var _ = require('mori');
 var React = require('react');
 var Bacon = require('baconjs');
 
-var View = require('./view');
+var View = require('./view/view');
 var Util = require('./util.js');
 var State = require('./state');
 var Fsio = require('./fsio');
