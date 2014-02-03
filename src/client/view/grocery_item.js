@@ -43,18 +43,12 @@ var GroceryItem = React.createClass({
                           onTouchMove: this.handleTouchMove,
                           onMouseDown: this.handleMouseDown,
                           onMouseUp: this.handleMouseUp},
-                         this.getCheckbox(isCompleted),
+
                          this.getText(isCompleted, name, this.state.editing),
                          touched ? this.getDeleteButton() : null,
                          this.getItemInput(this.state.editing));
   },
-  getCheckbox: function(isCompleted){
-    return React.DOM.input({
-      type: 'checkbox',
-      checked: isCompleted,
-      onClick: this.handleCompletedClick
-    });
-  },
+ 
   getDeleteButton: function(){
     return React.DOM.button({
       className: 'btn btn-danger',
