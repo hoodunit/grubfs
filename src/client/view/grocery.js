@@ -63,6 +63,7 @@ var AddGroceryItemInput = React.createClass({
                                     'id', Util.generateUUID(),
                                     'name', itemName);
       outgoingEvents.push(addItemEvent);
+      this.refs.name.getDOMNode().focus();
     }
   },
   handleAddEnter: function(e) {
