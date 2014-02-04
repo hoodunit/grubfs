@@ -17,8 +17,31 @@ function spoofAjaxResponses(responses){
 }
 
 describe('Fsio', function(){
-  describe('signUp', function(){
-    it('should hash challenges correctly', function(){
+  describe('signInAsAdmin', function(){
+    it('makeChallengeRequest should create request properly', function(){
+      var constants = {
+        FSIO_BASE_URL: 'http://example.com/testurl',
+        CRAM_CHALLENGE_URL: '/token/cram/challenge',
+        USER_NAME: 'testadminuser',
+        OPERATOR_ID: '000000'
+      };
+
+      var data = {operator_id: constants.OPERATOR_ID,
+                  user_name: constants.USER_NAME};
+
+      var expected = _.hash_map(
+        'url', constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL,
+        'type', 'POST',
+        'contentType', 'application/json; charset=utf-8',
+        'data', JSON.stringify(data)
+      );
+
+      var actual = Fsio.test.makeChallengeRequest(constants);
+
+      assert(_.equals(_.js_to_clj(actual), expected));
+    });
+
+    it('hashChallenge should hash challenges correctly', function(){
       var testPassword = 'testkey';
       var testInput = 'testinput';
       var expectedHash = 'eab3c01601aef3d3a806360d8ae33144d50056b53048446e67b8a7409232433d';

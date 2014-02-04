@@ -33,13 +33,13 @@ function signInAsAdmin(){
 }
 
 function sendChallengeRequest(){
-  var challengeRequest = makeChallengeRequest();
+  var challengeRequest = makeChallengeRequest(constants);
   var response = Bacon.$.ajax(challengeRequest);
   var challenge = response.map('.challenge');
   return challenge;
 }
 
-function makeChallengeRequest(){
+function makeChallengeRequest(constants){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: constants.USER_NAME};
@@ -131,7 +131,8 @@ module.exports = {
   constants: constants,
   signUp: signUp,
   test: {
-    hashChallenge: hashChallenge
+    hashChallenge: hashChallenge,
+    makeChallengeRequest: makeChallengeRequest
   }
 };
 
