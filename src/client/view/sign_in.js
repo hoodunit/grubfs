@@ -124,7 +124,7 @@ var SignInForm = React.createClass({
     var passwordError = null;
     var confirmError = null;
     var emailError = null;
-    if(Validate.validPasswordLength(password)){
+    if(!Validate.validPasswordLength(password)){
       valid = false;
       passwordError = 'Length: ' + 
         Validate.PASSWORD_MIN_LEN + '-' +

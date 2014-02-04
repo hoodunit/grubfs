@@ -2,7 +2,7 @@ var PASSWORD_MIN_LEN = 10;
 var PASSWORD_MAX_LEN = 128;
 
 function validPasswordLength(password){
-    return (password.length < 10 || password.length > 128);
+    return (password.length >= 10 && password.length <= 128);
 }
 
 function validEmail(email){
@@ -15,5 +15,5 @@ module.exports = {
   PASSWORD_MIN_LEN: PASSWORD_MIN_LEN,
   PASSWORD_MAX_LEN: PASSWORD_MAX_LEN,
   validPasswordLength: validPasswordLength,
-  validEmail: validEmail,
+  validEmail: validEmail
 };
