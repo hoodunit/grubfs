@@ -27,7 +27,7 @@ function signUp(user){
 function signInAsAdmin(){
   var challenge = sendChallengeRequest();
   var response = challenge.map(makeChallengeResponse, constants.PASSWORD);
-  var signInData = response.map(makeChallengeResponseRequest).ajax();
+  var signInData = response.map(makeChallengeResponseRequest, constants).ajax();
 
   return signInData;
 }
@@ -60,7 +60,7 @@ function hashChallenge(challenge, password){
 }
 
 
-function makeChallengeResponseRequest(data){
+function makeChallengeResponseRequest(data, constants){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: constants.USER_NAME,
@@ -134,7 +134,8 @@ module.exports = {
   test: {
     makeChallengeRequest: makeChallengeRequest,
     makeChallengeResponse: makeChallengeResponse,
-    hashChallenge: hashChallenge
+    hashChallenge: hashChallenge,
+    makeChallengeResponseRequest: makeChallengeResponseRequest
   }
 };
 

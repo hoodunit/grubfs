@@ -67,5 +67,30 @@ describe('Fsio', function(){
       
       assert.equal(challengeHash, expectedHash);
     });
+
+    it('makeChallengeResponseRequest should create request properly', function(){
+      var constants = {
+        FSIO_BASE_URL: 'http://example.com/testurl',
+        CRAM_CHALLENGE_RESP_URL: '/token/cram/admin_l2',
+        USER_NAME: 'testadminuser',
+        OPERATOR_ID: '000000'
+      };
+      
+      var data = {operator_id: constants.OPERATOR_ID,
+                  user_name: constants.USER_NAME,
+                  challenge: 'testChallenge',
+                  response: 'testResponse'};
+
+      var expected = _.hash_map(
+        'url', constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL,
+        'type', 'POST',
+        'contentType', 'application/json; charset=utf-8',
+        'data', JSON.stringify(data)
+      );
+
+      var actual = Fsio.test.makeChallengeResponseRequest(data, constants);
+
+      assert(_.equals(_.js_to_clj(actual), expected));
+    });
   });
 });
