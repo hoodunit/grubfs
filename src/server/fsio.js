@@ -2,6 +2,7 @@ var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
 var sys = require('sys');
 var exec = require('child_process').exec;
+var jsSHA = require('jssha');
 
 require('./bacon.ajax');
 
@@ -25,12 +26,8 @@ function signUp(user){
 
 function signInAsAdmin(){
   var challenge = sendChallengeRequest();
-  var response = challenge.flatMap(makeChallengeResponse);
+  var response = challenge.map(makeChallengeResponse);
   var signInData = response.map(makeChallengeResponseRequest).ajax();
-
-  challenge.log('challenge:');
-  response.log('challenge response:');
-  signInData.map(JSON.stringify).log('signInData:');
 
   return signInData;
 }
@@ -50,21 +47,17 @@ function makeChallengeRequest(){
 }
 
 function makeChallengeResponse(challenge){
-  var command = 'echo ' + challenge + 
-    ' | base64 --decode | openssl sha256 -hmac ' +
-    constants.PASSWORD;
-
-  var response = Bacon.fromNodeCallback(exec, command);
-  var parsedResponse = response.map(function(val){
-    return val.split(' ')[1].replace('\n', '');
-  });
-
-  var finalResponse = parsedResponse.map(function(challengeResponse){
-    return {challenge: challenge, response: challengeResponse};
-  });
-
-  return finalResponse;
+  var response = {challenge: challenge, response: hashChallenge(challenge, constants.PASSWORD)};
+  return response;
 }
+
+function hashChallenge(challenge, password){
+  var shaObj = new jsSHA(challenge, "B64");
+  var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
+
+  return hmac;
+}
+
 
 function makeChallengeResponseRequest(data){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL;
@@ -79,7 +72,6 @@ function makeChallengeResponseRequest(data){
 function createUser(adminToken, user){
   var newUserData = adminToken.map(makeCreateUserRequest).ajax();
   var newUserKey = newUserData.map('.key');
-  newUserKey.log('newUserKey:');
 
   var newUserInfo = Bacon.combineTemplate({
     email: user.email,
@@ -90,7 +82,6 @@ function createUser(adminToken, user){
 
   var newUserAuthKey = newUserInfo.map(makeAddAuthRequest).ajax().map('.key');
 
-  newUserAuthKey.log('newUserAuthKey:');
   return newUserAuthKey;
 }
 
@@ -138,7 +129,10 @@ function makeAuthorizedRequest(url, data, adminToken){
 
 module.exports = {
   constants: constants,
-  signUp: signUp
+  signUp: signUp,
+  test: {
+    hashChallenge: hashChallenge
+  }
 };
 
 
