@@ -166,7 +166,6 @@ function updateStateFromEvent(oldState, event){
   var eventHandler = getEventHandler(event);
 
   if(eventHandler){
-    console.log('Handle event:', _.clj_to_js(event));
     var newState = eventHandler(oldState, event);
     return newState;
   } else {
@@ -196,4 +195,5 @@ module.exports = {
   handleHoldItem: handleHoldItem,
   handleDeleteItem: handleDeleteItem,
   handleUpdateItem: handleUpdateItem,
+  updateStateFromEvent: updateStateFromEvent
 };
