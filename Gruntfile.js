@@ -29,7 +29,7 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['src/**/*.js'],
+        files: ['src/**/*.js', 'test/**/*.js'],
         tasks: ['jshint', 'browserify', 'mochaTest', 'mocha_phantomjs'],
         options: {
           spawn: false
