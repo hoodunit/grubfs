@@ -28,12 +28,10 @@ describe('Fsio', function(){
       assert(_.equals(_.js_to_clj(actual), expected));
     });
 
-    it('makeChallengeRequest should create request properly', function(){
+    it('makeChallengeResponse should create request properly', function(){
       var testChallenge = 'testinput';
       var testPassword = 'testkey';
       var expectedResponse = 'eab3c01601aef3d3a806360d8ae33144d50056b53048446e67b8a7409232433d';
-      
-      var challengeHash = Fsio.test.hashChallenge(testChallenge, testPassword);
 
       var expected = _.hash_map(
         'challenge', testChallenge,
@@ -47,10 +45,10 @@ describe('Fsio', function(){
 
     it('hashChallenge should hash challenges correctly', function(){
       var testPassword = 'testkey';
-      var testInput = 'testinput';
+      var testChallenge = 'testinput';
       var expectedHash = 'eab3c01601aef3d3a806360d8ae33144d50056b53048446e67b8a7409232433d';
       
-      var challengeHash = Fsio.test.hashChallenge(testInput, testPassword);
+      var challengeHash = Fsio.test.hashChallenge(testPassword, testChallenge);
       
       assert.equal(challengeHash, expectedHash);
     });

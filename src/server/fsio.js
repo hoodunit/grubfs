@@ -48,11 +48,11 @@ function makeChallengeRequest(constants){
 
 function makeChallengeResponse(challenge, password){
   var response = {challenge: challenge, 
-                  response: hashChallenge(challenge, password)};
+                  response: hashChallenge(password, challenge)};
   return response;
 }
 
-function hashChallenge(challenge, password){
+function hashChallenge(password, challenge){
   var shaObj = new jsSHA(challenge, "B64");
   var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
 
