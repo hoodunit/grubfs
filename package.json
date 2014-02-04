@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server/server.js",
     "dev": "node node_modules/nodemon/nodemon.js src/server/server.js",
+    "test-server": "node node_modules/nodemon/nodemon.js src/server/server.js test-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

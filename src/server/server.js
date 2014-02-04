@@ -6,6 +6,19 @@ var server = express();
 var serverPath = __dirname;
 var rootPath = serverPath + '/../..';
 
+function useMockAPIIfTestServer(){
+  var commandLineArgs = process.argv;
+  for(var i = 0; i < commandLineArgs.length; i++){
+    if(commandLineArgs[i] === 'test-server'){
+      Fsio = require('./fsio_mock');
+      console.log('Using mock FSIO API for testing');
+      return;
+    }
+  }
+}
+
+useMockAPIIfTestServer();
+
 server.configure(function(){
   server.use(express.static(rootPath + '/public'));
   server.use(express.bodyParser());
