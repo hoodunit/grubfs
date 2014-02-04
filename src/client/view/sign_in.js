@@ -67,6 +67,7 @@ var SignInForm = React.createClass({
   },
   getSignInButton: function(){
     return React.DOM.button({className: 'btn btn-primary',
+                             id: 'signIn',
                              type: 'button',
                              onClick: this.onSignInClick},
                             "Sign In");
@@ -154,7 +155,6 @@ var SignInForm = React.createClass({
   sendSignInEvent: function(){
     var email = this.refs.email.getDOMNode().value.trim();
     var password = this.refs.password.getDOMNode().value.trim();
-    console.log('Sign in email:', email, 'pass:', password);
 
     var event = _.hash_map('eventType', 'signIn', 
                            'email', email,
