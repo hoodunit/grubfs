@@ -152,6 +152,7 @@ module.exports = {
   signUp: signUp,
   uploadCompleteState: uploadCompleteState,
   test: {
+    makeSignUpRequest: makeSignUpRequest,
     makeChallengeRequest: makeChallengeRequest,
     hashChallenge: hashChallenge,
     makeChallengeResponseRequest: makeChallengeResponseRequest

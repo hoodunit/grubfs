@@ -4,6 +4,25 @@ var _ = require('mori');
 var Fsio = require('../../src/client/fsio.js');
 
 describe('Fsio', function(){
+  describe('signUp', function(){
+    it('makeSignUpRequest should create request for signing up', function(){
+      var data = {email: 'testemail',
+                  password: 'testpassword'};
+
+      var expected = _.hash_map(
+        'url', document.location.origin + '/event',
+        'type', 'POST',
+        'contentType', 'application/json; charset=utf-8',
+        'data', JSON.stringify(data),
+        'dataType', 'json'
+      );
+
+      var actual = Fsio.test.makeSignUpRequest(data.email, data.password);
+
+      assert(_.equals(_.js_to_clj(actual), expected));
+    });
+  });
+
   describe('signIn', function(){
     it('makeChallengeRequest should create request properly', function(){
       var constants = {
