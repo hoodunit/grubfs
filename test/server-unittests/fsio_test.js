@@ -38,7 +38,7 @@ describe('Fsio', function(){
         'response', expectedResponse
       );
 
-      var actual = Fsio.test.makeChallengeResponse(testChallenge, testPassword);
+      var actual = Fsio.test.makeChallengeResponse(testPassword, testChallenge);
 
       assert(_.equals(_.js_to_clj(actual), expected));
     });

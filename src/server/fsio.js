@@ -17,9 +17,14 @@ var constants = {
 };
 
 function signUp(user){
+  console.log('signUp:', user);
   var adminCreds = signInAsAdmin();
   var adminToken = adminCreds.map('.token');
   var newUserStatus = createUser(adminToken, user);
+
+  adminCreds.log('adminCreds:');
+  adminToken.log('adminToken:');
+  newUserStatus.log('newUserStatus:');
 
   return newUserStatus;
 }
@@ -28,6 +33,10 @@ function signInAsAdmin(){
   var challenge = sendChallengeRequest();
   var response = challenge.map(makeChallengeResponse, constants.PASSWORD);
   var signInData = response.map(makeChallengeResponseRequest, constants).ajax();
+
+  challenge.log('challenge:');
+  response.log('response:');
+  signInData.log('signInData:');
 
   return signInData;
 }
@@ -46,7 +55,7 @@ function makeChallengeRequest(constants){
   return makeRequest(url, requestData);
 }
 
-function makeChallengeResponse(challenge, password){
+function makeChallengeResponse(password, challenge){
   var response = {challenge: challenge, 
                   response: hashChallenge(password, challenge)};
   return response;

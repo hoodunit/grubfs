@@ -15,6 +15,7 @@ var TopBar = React.createClass({
     });
     var button = React.DOM.button({
       className: 'btn btn-default nav-btn',
+      id: 'signOut',
       type: 'button',
       onClick: this.handleSignOut
     }, icon);

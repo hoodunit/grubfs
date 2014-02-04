@@ -60,6 +60,7 @@ var SignInForm = React.createClass({
   }, 
   getSignUpButton: function(){
     return React.DOM.button({className: 'btn btn-success',
+                             id: 'signUp',
                              type: 'button',
                              onClick: this.onSignUpClick},
                             "Sign Up");
@@ -72,6 +73,7 @@ var SignInForm = React.createClass({
   },
   getCancelButton: function(){
     return React.DOM.button({className: 'btn btn-default',
+                             id: 'cancelSignUp',
                              type: 'button',
                              onClick: this.onCancelClick},
                             "Cancel");
@@ -145,6 +147,9 @@ var SignInForm = React.createClass({
                            'email', email,
                            'password', password);
     outgoingEvents.push(event);
+  },
+  onSignInClick: function(){
+    this.sendSignInEvent();
   },
   sendSignInEvent: function(){
     var email = this.refs.email.getDOMNode().value.trim();

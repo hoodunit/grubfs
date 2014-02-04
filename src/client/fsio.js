@@ -29,7 +29,6 @@ function signUp(event){
 function _signUp(email, password){
   var signUpRequest = makeSignUpRequest(email, password);
   var response = Bacon.fromPromise($.ajax(signUpRequest));
-  response.log('Sign up response:');
 
   var authCredentials = response.flatMap(function(signUpResponse){
     return _signIn(email, password);
@@ -68,17 +67,17 @@ function _signIn(email, password){
   var challenge = sendChallengeRequest(email);
   var challengeResponse = challenge.map(hashChallenge, password);
   var signInData = Bacon.combineWith(makeChallengeResponseRequest, 
-                                     email, challenge, challengeResponse).ajax();
+                                     constants, email, challenge, challengeResponse).ajax();
 
-  challenge.log('challenge:');
-  challengeResponse.log('challenge response:');
-  signInData.log('signInData:');
+  // challenge.log('challenge:');
+  // challengeResponse.log('challenge response:');
+  // signInData.log('signInData:');
 
   return signInData;
 }
 
 function sendChallengeRequest(email){
-  var challengeRequest = makeChallengeRequest(email, constants);
+  var challengeRequest = makeChallengeRequest(constants, email);
   var response = Bacon.$.ajax(challengeRequest);
   var challenge = response.map('.challenge');
   return challenge;
