@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         }
       },
       tests: {
-        src: [ 'test/unittests/unittests.js' ],
+        src: [ 'test/unittests/**/*.js' ],
         dest: './browsertest/browserified_tests.js',
         options: {
           debug: true

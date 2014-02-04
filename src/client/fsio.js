@@ -78,13 +78,13 @@ function _signIn(email, password){
 }
 
 function sendChallengeRequest(email){
-  var challengeRequest = makeChallengeRequest(email);
+  var challengeRequest = makeChallengeRequest(email, constants);
   var response = Bacon.$.ajax(challengeRequest);
   var challenge = response.map('.challenge');
   return challenge;
 }
 
-function makeChallengeRequest(email){
+function makeChallengeRequest(constants, email){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: email};
@@ -92,15 +92,13 @@ function makeChallengeRequest(email){
 }
 
 function hashChallenge(password, challenge){
-  console.log('hash challenge:', challenge, 'password:', password);
-  console.log('arguments:', arguments);
   var shaObj = new jsSHA(challenge, "B64");
   var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
 
   return hmac;
 }
 
-function makeChallengeResponseRequest(email, challenge, challengeResponse){
+function makeChallengeResponseRequest(constants, email, challenge, challengeResponse){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: email,
@@ -116,12 +114,6 @@ function makeRequest(url, data){
           contentType: 'application/json; charset=utf-8',
           data: JSON.stringify(data)};
           
-}
-
-function makeAuthorizedRequest(url, data, token){
-  var request = makeRequest(url, data);
-  request.headers = {authorization: 'FsioToken ' + adminToken};
-  return request;
 }
 
 function uploadCompleteState(state){
@@ -158,5 +150,10 @@ function makeUploadItemRequest(token, item){
 module.exports = {
   signIn: signIn,
   signUp: signUp,
-  uploadCompleteState: uploadCompleteState
+  uploadCompleteState: uploadCompleteState,
+  test: {
+    makeChallengeRequest: makeChallengeRequest,
+    hashChallenge: hashChallenge,
+    makeChallengeResponseRequest: makeChallengeResponseRequest
+  }
 };
