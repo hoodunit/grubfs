@@ -118,5 +118,37 @@ describe('Fsio', function(){
 
       assert(_.equals(_.js_to_clj(actual), expected));
     });
+
+    it('makeAddAuthRequest should create request properly', function(){
+      var constants = {
+        FSIO_BASE_URL: 'http://example.com/testurl'
+      };
+
+      var data = {
+        email: 'testemail',
+        password: 'testpassword',
+        userKey: '/users/usertestkey',
+        adminToken: 'testadmintoken'
+      };
+      
+      var requestData = {
+        mechanism: 'cram',
+        role: 'user',
+        user_name: data.email,
+        password: data.password
+      };
+
+      var expected = _.hash_map(
+        'url', constants.FSIO_BASE_URL + '/admin' + data.userKey + '/authentications',
+        'type', 'POST',
+        'contentType', 'application/json; charset=utf-8',
+        'data', JSON.stringify(requestData),
+        'headers', _.hash_map('authorization', 'FsioToken ' + data.adminToken)
+      );
+
+      var actual = Fsio.test.makeAddAuthRequest(constants, data);
+
+      assert(_.equals(_.js_to_clj(actual), expected));
+    });
   });
 });

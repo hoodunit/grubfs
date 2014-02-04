@@ -81,7 +81,7 @@ function createUser(adminToken, user){
     userKey: newUserKey
   });
 
-  var newUserAuthKey = newUserInfo.map(makeAddAuthRequest).ajax().map('.key');
+  var newUserAuthKey = newUserInfo.map(makeAddAuthRequest, constants).ajax().map('.key');
 
   return newUserAuthKey;
 }
@@ -100,7 +100,7 @@ function makeCreateUserRequest(constants, adminToken){
   return makeAuthorizedRequest(url, requestData, adminToken);
 }
 
-function makeAddAuthRequest(data){
+function makeAddAuthRequest(constants, data){
   var url = constants.FSIO_BASE_URL + 
     '/admin' +
     data.userKey +
@@ -136,7 +136,8 @@ module.exports = {
     makeChallengeResponse: makeChallengeResponse,
     hashChallenge: hashChallenge,
     makeChallengeResponseRequest: makeChallengeResponseRequest,
-    makeCreateUserRequest: makeCreateUserRequest
+    makeCreateUserRequest: makeCreateUserRequest,
+    makeAddAuthRequest: makeAddAuthRequest
   }
 };
 
