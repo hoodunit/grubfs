@@ -60,7 +60,7 @@ function hashChallenge(challenge, password){
 }
 
 
-function makeChallengeResponseRequest(data, constants){
+function makeChallengeResponseRequest(constants, data){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: constants.USER_NAME,
@@ -71,7 +71,7 @@ function makeChallengeResponseRequest(data, constants){
 }
 
 function createUser(adminToken, user){
-  var newUserData = adminToken.map(makeCreateUserRequest).ajax();
+  var newUserData = adminToken.map(makeCreateUserRequest, constants).ajax();
   var newUserKey = newUserData.map('.key');
 
   var newUserInfo = Bacon.combineTemplate({
@@ -86,7 +86,7 @@ function createUser(adminToken, user){
   return newUserAuthKey;
 }
 
-function makeCreateUserRequest(adminToken){
+function makeCreateUserRequest(constants, adminToken){
   var url = constants.FSIO_BASE_URL + 
     '/admin/operators/' + 
     constants.OPERATOR_ID + 
@@ -135,7 +135,8 @@ module.exports = {
     makeChallengeRequest: makeChallengeRequest,
     makeChallengeResponse: makeChallengeResponse,
     hashChallenge: hashChallenge,
-    makeChallengeResponseRequest: makeChallengeResponseRequest
+    makeChallengeResponseRequest: makeChallengeResponseRequest,
+    makeCreateUserRequest: makeCreateUserRequest
   }
 };
 

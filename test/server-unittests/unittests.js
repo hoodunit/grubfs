@@ -88,7 +88,33 @@ describe('Fsio', function(){
         'data', JSON.stringify(data)
       );
 
-      var actual = Fsio.test.makeChallengeResponseRequest(data, constants);
+      var actual = Fsio.test.makeChallengeResponseRequest(constants, data);
+
+      assert(_.equals(_.js_to_clj(actual), expected));
+    });
+
+    it('makeCreateUserRequest should create request properly', function(){
+      var constants = {
+        FSIO_BASE_URL: 'http://example.com/testurl',
+        OPERATOR_ID: '000000'
+      };
+      
+      var adminToken = 'testadmintoken';
+
+      var data = {
+        quota: 524288, // 0.5 MB
+        state: 'active'
+      };
+
+      var expected = _.hash_map(
+        'url', constants.FSIO_BASE_URL + '/admin/operators/' + constants.OPERATOR_ID + '/users',
+        'type', 'POST',
+        'contentType', 'application/json; charset=utf-8',
+        'data', JSON.stringify(data),
+        'headers', _.hash_map('authorization', 'FsioToken ' + adminToken)
+      );
+
+      var actual = Fsio.test.makeCreateUserRequest(constants, adminToken);
 
       assert(_.equals(_.js_to_clj(actual), expected));
     });
