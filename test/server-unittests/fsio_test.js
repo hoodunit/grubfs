@@ -79,7 +79,9 @@ describe('Fsio', function(){
 
       assert(_.equals(_.js_to_clj(actual), expected));
     });
+  });
 
+  describe('signUp', function(){
     it('makeCreateUserRequest should create request properly', function(){
       var constants = {
         FSIO_BASE_URL: 'http://example.com/testurl',
