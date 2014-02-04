@@ -26,7 +26,7 @@ function signUp(user){
 
 function signInAsAdmin(){
   var challenge = sendChallengeRequest();
-  var response = challenge.map(makeChallengeResponse);
+  var response = challenge.map(makeChallengeResponse, constants.PASSWORD);
   var signInData = response.map(makeChallengeResponseRequest).ajax();
 
   return signInData;
@@ -46,8 +46,9 @@ function makeChallengeRequest(constants){
   return makeRequest(url, requestData);
 }
 
-function makeChallengeResponse(challenge){
-  var response = {challenge: challenge, response: hashChallenge(challenge, constants.PASSWORD)};
+function makeChallengeResponse(challenge, password){
+  var response = {challenge: challenge, 
+                  response: hashChallenge(challenge, password)};
   return response;
 }
 
@@ -131,8 +132,9 @@ module.exports = {
   constants: constants,
   signUp: signUp,
   test: {
-    hashChallenge: hashChallenge,
-    makeChallengeRequest: makeChallengeRequest
+    makeChallengeRequest: makeChallengeRequest,
+    makeChallengeResponse: makeChallengeResponse,
+    hashChallenge: hashChallenge
   }
 };
 
