@@ -1,20 +1,7 @@
 var assert = require('assert');
 var _ = require('mori');
-var Bacon = require('baconjs');
-var $ = require('jquery-node-browserify');
 
 var Fsio = require('../../src/server/fsio.js');
-
-function spoofAjaxResponses(responses){
-  var count = 0;
-  Bacon.$.ajax = function(params, abort){
-    console.log('my ajax called count', count);
-    console.log(params);
-    var response = responses[count];
-    count += 1;
-    return Bacon.once(response);
-  };
-}
 
 describe('Fsio', function(){
   describe('signInAsAdmin', function(){
