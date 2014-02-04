@@ -3,7 +3,6 @@ var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
 
 var Util = require('./util');
-var Fsio = require('./fsio');
 
 function getLocalState(){
   var localState = null;
@@ -132,9 +131,6 @@ function handleUpdateItem(oldState, event) {
 
 function handleSignedUp(oldState, event){
   var newState = handleSignedIn(oldState, event);
-
-  var stateUploadResponse = Fsio.uploadCompleteState(newState);
-  stateUploadResponse.log('upload state response:');
   
   return newState;
 }

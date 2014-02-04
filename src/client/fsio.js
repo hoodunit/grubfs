@@ -116,41 +116,9 @@ function makeRequest(url, data){
           
 }
 
-function uploadCompleteState(state){
-  console.log('upload state');
-  var credentials = _.get(state, 'credentials');
-  var token = _.get(credentials, 'token');
-
-  var itemArray = _.clj_to_js(_.get(state, 'items'));
-  var items = Bacon.fromArray(itemArray);
-  var requests = items.map(makeUploadItemRequest, token);
-  var responses = requests.ajax();
-  return responses;
-}
-
-function makeUploadItemRequest(token, item){
-  console.log('item:', item);
-  var url = constants.FSIO_BASE_URL + '/data/me/files/items/' + item.id;
-  var headers = {
-    authorization: 'FsioToken ' + token,
-    'x-appearance': 'normal'
-  };
-
-  var request = {
-    url: url,
-    data: JSON.stringify(item),
-    contentType: 'application/json; charset=utf-8',
-    headers: headers,
-    type: 'PUT'
-  };
- 
-  return request;
-}
-
 module.exports = {
   signIn: signIn,
   signUp: signUp,
-  uploadCompleteState: uploadCompleteState,
   test: {
     makeSignUpRequest: makeSignUpRequest,
     makeChallengeRequest: makeChallengeRequest,
