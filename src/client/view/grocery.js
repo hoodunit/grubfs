@@ -26,6 +26,7 @@ var TopBar = React.createClass({
     });
     var emptyButton = React.DOM.button({
       className: 'btn btn-default empty-btn nav-btn',
+      id: 'clearList',
       type: 'button',
       onClick: this.handleEmptyClick
     },emptyButtonIcon);

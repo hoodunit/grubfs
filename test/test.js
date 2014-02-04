@@ -27,11 +27,11 @@ module.exports = {
   .open(baseUrl)
   .waitForElement('.groceryItem')
   .assert.numberOfElements('.groceryList .groceryItem', 3, '3 items are visible at first')
-  .click('#clearlist')
+  .click('#clearList')
   .assert.numberOfElements('.groceryList .groceryItem', 0, 'no items are visible after clearing list')
   .type('#name', 'chocolate box')
   .click('#add')
-  .assert.numberOfElements('.groceryList .groceryItem', 1, 'one item are visible after one item is added to the cleared list')
+  .assert.numberOfElements('.groceryList .groceryItem', 1, 'one item is visible after one item is added to the cleared list')
   .done();
 }
 };
