@@ -18,15 +18,21 @@
     overflow-x: hidden;
     margin-top: 15px;
 }
-.groceryText {
+.groceryItem {
+    font-size: 16px;
+    cursor: default;
     color: #5c5c5c;
 }
 .groceryItem.pressed .groceryText {
     color: #ffffff;
 }
-.groceryItem span {
-    font-size: 16px;
-    cursor: default;
+.groceryItem input {
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: #5c5c5c;
+    width: 100%;
+    outline: none;
 }
 .groceryItemComplete {
     background-color: #f3f3f3;
