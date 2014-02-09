@@ -54,9 +54,9 @@ function testSignIn(page){
   .done();
 }
 
-module.exports = {
 
-'State is persisted in localStorage': function (page) {
+
+function localStorage(page) {
   page
     .open(baseUrl)
     .assert.title().is('Grub', 'Title works')
@@ -76,9 +76,9 @@ module.exports = {
     .open(baseUrl)
     .assert.numberOfElements('.groceryList .groceryItem', 3, '3 items are visible after localStorage is cleared and page realoaded')
     .done();
-},
+}
 
-'list can be cleared and a new item added': function (page) {
+function clearNAdd(page) {
   page
   .open(baseUrl)
   .waitForElement('.groceryItem')
@@ -89,8 +89,11 @@ module.exports = {
   .click('#add')
   .assert.numberOfElements('.groceryList .groceryItem', 1, 'one item is visible after one item is added to the cleared list')
   .done();
-}, 
+}
 
+module.exports = {
+'list can be cleared and a new item added': clearNAdd,
+'State is persisted in localStorage': localStorage,
 'User can sign up with a new email address': testSignUp,
 'User can sign in with an existing email address': testSignIn
 };
