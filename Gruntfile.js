@@ -21,7 +21,7 @@ module.exports = function(grunt) {
         }
       },
       tests: {
-        src: [ 'test/unittests/unittests.js' ],
+        src: [ 'test/unittests/**/*.js' ],
         dest: './browsertest/browserified_tests.js',
         options: {
           debug: true
@@ -29,8 +29,8 @@ module.exports = function(grunt) {
     },
     watch: {
       scripts: {
-        files: ['src/client/**/*.js'],
-        tasks: ['jshint', 'browserify'],
+        files: ['src/**/*.js', 'test/**/*.js'],
+        tasks: ['jshint', 'browserify', 'mochaTest', 'mocha_phantomjs'],
         options: {
           spawn: false
         }}},

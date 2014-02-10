@@ -1,5 +1,6 @@
 var _ = require('mori');
 var Bacon = require('baconjs');
+var $ = require('jquery-node-browserify');
 
 var Util = require('./util');
 
@@ -24,7 +25,11 @@ function saveStateLocally(state){
 }
 
 function getDefaultState(){
-  var initialItems = _.vector(
+  return _.hash_map('items', getDefaultItems());
+}
+
+function getDefaultItems(){
+  return _.vector(
     _.hash_map('id', Util.generateUUID(),
                'name', '1 packages of tomato puree',
                'completed', false,
@@ -37,7 +42,6 @@ function getDefaultState(){
                'name', '2 dl cream',
                'completed', false,
                'touched', false));
-  return _.hash_map('items', initialItems);
 }
 
 
@@ -125,13 +129,34 @@ function handleUpdateItem(oldState, event) {
   return newState;
 }
 
+function handleSignedUp(oldState, event){
+  var newState = handleSignedIn(oldState, event);
+  
+  return newState;
+}
+
+function handleSignedIn(oldState, event){
+  var credentials = _.get(event, 'credentials');
+  var newState = _.assoc(oldState, 'credentials', credentials);
+  
+  return newState;
+}
+
+function handleSignOut(oldState, event){
+  var newState = _.dissoc(oldState, 'credentials');
+  return newState;
+}
+
 function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'emptyList', handleEmptyList,
                                  'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
-                                 'updateItem', handleUpdateItem);
+                                 'updateItem', handleUpdateItem,
+                                 'signedUp', handleSignedUp,
+                                 'signedIn', handleSignedIn,
+                                 'signOut', handleSignOut);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -141,7 +166,6 @@ function updateStateFromEvent(oldState, event){
   var eventHandler = getEventHandler(event);
 
   if(eventHandler){
-    console.log('Handle event:', _.clj_to_js(event));
     var newState = eventHandler(oldState, event);
     return newState;
   } else {
@@ -157,13 +181,19 @@ function handleStateChanges(initialState, events){
   return changedStates;
 }
 
+function signedIn(state){
+  return _.get(state, 'credentials') !== null;
+}
+
 module.exports = {
   handleStateChanges: handleStateChanges,
   getInitialState: getInitialState,
   handleAddItem: handleAddItem,
+  signedIn: signedIn,
   handleCompleteItem: handleCompleteItem,
   handleEmptyList: handleEmptyList,
   handleHoldItem: handleHoldItem,
   handleDeleteItem: handleDeleteItem,
   handleUpdateItem: handleUpdateItem,
+  updateStateFromEvent: updateStateFromEvent
 };
