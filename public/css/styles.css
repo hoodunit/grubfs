@@ -46,3 +46,7 @@
     top:8px;
     left:5px;
 }
+.del-btn {
+    float: right;
+    margin-top: -4px;
+}
