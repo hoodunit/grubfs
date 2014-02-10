@@ -98,6 +98,8 @@ var GroceryItem = React.createClass({
       event.preventDefault();
       var mouseX = parseInt(event.pageX);
       this.setSwipeStartPosition(mouseX);
+    } else {
+        event.preventDefault();
     }
   },
   handleTouchStart : function(event) {

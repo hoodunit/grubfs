@@ -59,7 +59,8 @@
     left:5px;
 }
 .del-btn {
-    float: right;
+    position: absolute;
+    right: 5px;
     margin-top: -4px;
 .sign-in-form {
     padding: 10px;
