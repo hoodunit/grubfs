@@ -43,8 +43,9 @@ var GroceryItem = React.createClass({
                           onTouchEnd: this.handleTouchEnd,
                           onTouchMove: this.handleTouchMove,
                           onMouseDown: this.handleMouseDown,
+                          onMouseLeave: this.handleMouseLeave,
                           onMouseUp: this.handleMouseUp},
-                         this.getCheckbox(isCompleted),
+
                          this.getText(isCompleted, name, this.state.editing),
                          this.getDeleteButton(this.state.isDelBtnShowed),
                          this.getItemInput(this.state.editing));
@@ -85,6 +86,13 @@ var GroceryItem = React.createClass({
       return React.DOM.span({className: textClass}, name);
     }
   },
+  handleMouseLeave: function(){
+    clearTimeout(this.state.pressTimer);
+    this.setState({
+      dist: 0,
+      tapped: false
+    });
+  }, 
   handleMouseDown: function(event){
     if(!this.state.editing){
       event.preventDefault();

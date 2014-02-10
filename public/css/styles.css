@@ -1,15 +1,19 @@
+.container {
+    margin-top: 40px;
+}
 .top-bar {
     margin-bottom: 10px;
 }
-.empty-btn {
-    float: right;
+.top-bar .nav-btn{
+    float: left;
+    margin-right: 10px;
 }
 .clearfix:before, .clearfix:after {
     content:"";
     display:table;
 }
 .clearfix:after{
-    clear:both;
+    clear:left;
     overflow:hidden;
 }
 .clearfix{
@@ -20,14 +24,22 @@
     overflow-x: hidden;
     margin-top: 15px;
 }
-.groceryText {
+.groceryItem {
+    font-size: 16px;
+    cursor: default;
     color: #5c5c5c;
 }
 .groceryItem.pressed .groceryText {
     color: #ffffff;
 }
-.groceryItem span {
-    font-size: 16px;
+.groceryItem input {
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: #5c5c5c;
+    background-color: inherit;
+    width: 100%;
+    outline: none;
 }
 .groceryItemComplete {
     background-color: #f3f3f3;
@@ -37,16 +49,25 @@
 }
 .groceryTextComplete {
     color: #9c9c9c;
+    text-decoration: line-through;
 }
 .display-none {
     display: none;
 }
 .itemInput {
-    position: absolute;
     top:8px;
     left:5px;
 }
 .del-btn {
     float: right;
     margin-top: -4px;
+.sign-in-form {
+    padding: 10px;
+    overflow: hidden;
+}
+.sign-in-form div.form-group{
+    margin-bottom: 10px;
+}
+.sign-in-form button{
+    margin-left: 5px;
 }

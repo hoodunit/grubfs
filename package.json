@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server/server.js",
     "dev": "node node_modules/nodemon/nodemon.js src/server/server.js",
+    "test-server": "node node_modules/nodemon/nodemon.js src/server/server.js test-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,10 +22,11 @@
     "node-static": "~0.7.2",
     "express": "~3.4.6",
     "baconjs": "~0.7.0-rc5",
-    "jquery-browserify": "~1.8.1",
     "envify": "~0.2.0",
     "react": "~0.8.0",
-    "mori": "~0.2.4"
+    "mori": "~0.2.4",
+    "jquery-node-browserify": "~1.7.2",
+    "jssha": "~1.5.0"
   },
   "devDependencies": {
     "nodemon": "~0.7.10",

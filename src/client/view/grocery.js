@@ -6,26 +6,45 @@ var Util = require('../util');
 var GroceryItem = require('./grocery_item');
 
 var TopBar = React.createClass({
-    render: function() {
-        var emptyButtonIcon = React.DOM.span({
-            className: 'glyphicon glyphicon-trash'
-        });
-        var emptyButton = React.DOM.button({
-            id: 'clearlist',
-            className: 'btn btn-default empty-btn',
-            type: 'button',
-            onClick: this.handleEmptyClick
-        },emptyButtonIcon);
-
-        return React.DOM.div({
-            className: 'top-bar clearfix'
-        }, emptyButton);
-    },
-
-    handleEmptyClick: function() {
-      var emptyEvent = _.hash_map('eventType', 'emptyList');
-      outgoingEvents.push(emptyEvent);
+  getSignOutButton: function(){
+    if(!this.props.signedIn){
+      return null;
     }
+    var icon = React.DOM.span({
+      className: 'glyphicon glyphicon-log-out'
+    });
+    var button = React.DOM.button({
+      className: 'btn btn-default nav-btn',
+      id: 'signOut',
+      type: 'button',
+      onClick: this.handleSignOut
+    }, icon);
+    return button;
+  },
+  render: function() {
+    var emptyButtonIcon = React.DOM.span({
+      className: 'glyphicon glyphicon-trash'
+    });
+    var emptyButton = React.DOM.button({
+      className: 'btn btn-default empty-btn nav-btn',
+      id: 'clearList',
+      type: 'button',
+      onClick: this.handleEmptyClick
+    },emptyButtonIcon);
+
+    return React.DOM.div({className: 'top-bar clearfix'}, 
+                         this.getSignOutButton(),
+                         emptyButton, 
+                         AddGroceryItemInput());
+  },
+  handleEmptyClick: function() {
+    var emptyEvent = _.hash_map('eventType', 'emptyList');
+    outgoingEvents.push(emptyEvent);
+  },
+  handleSignOut: function() {
+    var event = _.hash_map('eventType', 'signOut');
+    outgoingEvents.push(event);
+  }
 });
 
 var AddGroceryItemInput = React.createClass({
@@ -34,7 +53,7 @@ var AddGroceryItemInput = React.createClass({
       id: 'name',
       className: 'form-control',
       type: 'text',
-      placeholder: '2 tomatoes',
+      placeholder: 'What do you need?',
       ref: 'name',
       onKeyPress: this.handleAddEnter
     });
@@ -63,6 +82,7 @@ var AddGroceryItemInput = React.createClass({
                                     'id', Util.generateUUID(),
                                     'name', itemName);
       outgoingEvents.push(addItemEvent);
+      this.refs.name.getDOMNode().focus();
     }
   },
   handleAddEnter: function(e) {
@@ -85,10 +105,7 @@ var GroceryList = React.createClass({
     return React.DOM.div({
         className: 'groceryMain'
       },
-      TopBar(),
-      AddGroceryItemInput({
-//        onAddItem: this.addItem
-      }),
+      TopBar({signedIn: this.props.signedIn}),
       groceryList
     );
   }
