@@ -1,9 +1,12 @@
 module.exports = function(grunt) {
-
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     jshint: {
-      files: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js'],
+      files: ['Gruntfile.js', 
+              'src/**/*.js',
+              'test/unit_server/**/*.js',
+              'test/unit_client/**/*.js',
+              'test/end_to_end/**/*.js'],
       options: {
         // options here to override JSHint defaults
         globals: {
@@ -21,25 +24,18 @@ module.exports = function(grunt) {
         }
       },
       tests: {
-        src: [ 'test/unittests/**/*.js' ],
-        dest: './browsertest/browserified_tests.js',
+        src: [ 'test/unit_client/**/*.js' ],
+        dest: './test/generated/browserified_tests.js',
         options: {
           debug: true
         }}
     },
-    watch: {
-      scripts: {
-        files: ['src/**/*.js', 'test/**/*.js'],
-        tasks: ['jshint', 'browserify', 'mochaTest', 'mocha_phantomjs'],
-        options: {
-          spawn: false
-        }}},
     dalek: {
       options: {
         browser: ['chrome']
       },
       dist: {
-        src: ['test/test.js'],
+        src: ['test/end_to_end/test.js'],
         reporter: ['html']
       }
     },
@@ -48,18 +44,28 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['test/server-unittests/*.js']
+        src: ['test/unit_server/**/*.js']
       }
     },
-    'mocha_phantomjs': {
+    mocha_phantomjs: {
       all: {
         options: {
           urls: [
-            './browsertest/index.html'
+            './test/index.html'
           ]
         }
       }
-    }
+    },
+    watch: {
+      scripts: {
+        files: ['src/**/*.js', 
+                'test/unit_server/**/*.js',
+                'test/unit_client/**/*.js',
+                'test/end_to_end/**/*.js'],
+        tasks: ['jshint', 'browserify', 'unitTestsServer', 'unitTestsClient'],
+        options: {
+          spawn: false
+        }}},
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -70,6 +76,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-dalek');
   grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
-  grunt.registerTask('default', ['browserify', 'jshint', 'mochaTest', 'mocha_phantomjs']);
+  grunt.registerTask('unitTestsServer', ['mochaTest']);
+  grunt.registerTask('unitTestsClient', ['mocha_phantomjs']);
+  grunt.registerTask('endToEndTests', ['dalek']);
+
+  grunt.registerTask('default', ['browserify', 'jshint', 'unitTestsServer', 'unitTestsClient']);
 
 };
