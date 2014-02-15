@@ -9,7 +9,8 @@ var GroceryItem = React.createClass({
       dist : 0,
       tapped : false,
       pressTimer : null,
-      editing: false
+      editing: false,
+      isDelBtnShowed: false
     };
   },
   componentDidUpdate: function(prevProps, prevState, rootNode){
@@ -46,15 +47,23 @@ var GroceryItem = React.createClass({
                           onMouseUp: this.handleMouseUp},
 
                          this.getText(isCompleted, name, this.state.editing),
-                         touched ? this.getDeleteButton() : null,
+                         this.getDeleteButton(this.state.isDelBtnShowed),
                          this.getItemInput(this.state.editing));
   },
- 
-  getDeleteButton: function(){
+  getCheckbox: function(isCompleted){
+    return React.DOM.input({
+      type: 'checkbox',
+      checked: isCompleted,
+      onClick: this.handleCompletedClick
+    });
+  },
+  getDeleteButton: function(isDelBtnShowed){
+    var delBtnClass = isDelBtnShowed ? 'btn btn-sm btn-danger del-btn' : 'btn btn-sm btn-danger display-none';
     return React.DOM.button({
-      className: 'btn btn-danger',
+      className: delBtnClass,
       type: 'button',
-      onClick: this.handleDeleteClick
+      onClick: this.handleDeleteClick,
+      ref: 'delbtn'
     }, 'Delete');
   },
   getItemInput: function(editing){
@@ -67,7 +76,7 @@ var GroceryItem = React.createClass({
         ref: 'iteminput',
         defaultValue: _.get(this.props.data, 'name')
     });
-  }, 
+  },
   getText: function(isCompleted, name, editing){
     if(editing){
       return null;
@@ -89,6 +98,8 @@ var GroceryItem = React.createClass({
       event.preventDefault();
       var mouseX = parseInt(event.pageX);
       this.setSwipeStartPosition(mouseX);
+    } else {
+        event.preventDefault();
     }
   },
   handleTouchStart : function(event) {
@@ -151,10 +162,12 @@ var GroceryItem = React.createClass({
   },
   setEditing: function(){
     this.setState({editing: true,
-                   tapped: false});
+                   tapped: false,
+                   isDelBtnShowed: true});
   },
   handleInputBlur : function() {
-    this.setState({editing: false});
+    this.setState({editing: false,
+                   isDelBtnShowed: false});
     this.sendUpdateEvent();
   },
   sendUpdateEvent: function(){
@@ -185,7 +198,7 @@ var GroceryItem = React.createClass({
 
     outgoingEvents.push(event);
   },
-  handleDeleteClick: function() {
+  handleDeleteClick: function(e) {
     this.sendDeleteEvent();
   },
   sendDeleteEvent: function(){
