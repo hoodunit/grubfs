@@ -34,7 +34,7 @@
 .groceryItem {
     font-size: 16px;
     cursor: default;
-    color: #5c5c5c;
+    color: #7f7f7f;
 }
 
 .groceryItem.pressed .groceryText {
@@ -44,6 +44,7 @@
 .groceryItem input {
     margin: 0;
     padding: 0;
+    padding-right: 20px;
     border: none;
     color: #5c5c5c;
     background-color: inherit;
@@ -75,8 +76,13 @@
 
 .del-btn {
     position: absolute;
-    right: 5px;
-    margin-top: -4px;
+    right: 10px;
+    margin-top: 12px;
+    color: #5c5c5c;
+}
+
+.del-btn:hover, .del-btn:focus, .del-btn:active {
+    color: #000000;
 }
 
 .sign-in-form {

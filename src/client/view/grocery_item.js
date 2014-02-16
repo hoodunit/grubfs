@@ -58,13 +58,14 @@ var GroceryItem = React.createClass({
     });
   },
   getDeleteButton: function(isDelBtnShowed){
-    var delBtnClass = isDelBtnShowed ? 'btn btn-sm btn-danger del-btn' : 'btn btn-sm btn-danger display-none';
-    return React.DOM.button({
+    var baseClass = 'del-btn glyphicon glyphicon-remove';
+    var delBtnClass = isDelBtnShowed ? baseClass : baseClass + ' display-none';
+    var icon = React.DOM.span({
       className: delBtnClass,
-      type: 'button',
       onClick: this.handleDeleteClick,
       ref: 'delbtn'
-    }, 'Delete');
+    });
+    return icon;
   },
   getItemInput: function(editing){
     var className = editing ? 'itemInput' : 'itemInput display-none';
