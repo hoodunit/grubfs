@@ -46,16 +46,25 @@ var GroceryItem = React.createClass({
                           onMouseUp: this.handleMouseUp},
 
                          this.getText(isCompleted, name, this.state.editing),
-                         touched ? this.getDeleteButton() : null,
+                         this.getDeleteButton(this.state.editing),
                          this.getItemInput(this.state.editing));
   },
- 
-  getDeleteButton: function(){
-    return React.DOM.button({
-      className: 'btn btn-danger',
-      type: 'button',
-      onClick: this.handleDeleteClick
-    }, 'Delete');
+  getCheckbox: function(isCompleted){
+    return React.DOM.input({
+      type: 'checkbox',
+      checked: isCompleted,
+      onClick: this.handleCompletedClick
+    });
+  },
+  getDeleteButton: function(editing){
+    var baseClass = 'del-btn glyphicon glyphicon-remove';
+    var delBtnClass = editing ? baseClass : baseClass + ' display-none';
+    var icon = React.DOM.span({
+      className: delBtnClass,
+      onClick: this.handleDeleteClick,
+      ref: 'delbtn'
+    });
+    return icon;
   },
   getItemInput: function(editing){
     var className = editing ? 'itemInput' : 'itemInput display-none';
@@ -67,7 +76,7 @@ var GroceryItem = React.createClass({
         ref: 'iteminput',
         defaultValue: _.get(this.props.data, 'name')
     });
-  }, 
+  },
   getText: function(isCompleted, name, editing){
     if(editing){
       return null;
@@ -89,7 +98,14 @@ var GroceryItem = React.createClass({
       event.preventDefault();
       var mouseX = parseInt(event.pageX);
       this.setSwipeStartPosition(mouseX);
+    } else if(this.deleteButtonWasClicked(event)){
+      // Avoid handling event here so that it is handled
+      // by the delete button handler
+      event.preventDefault();
     }
+  },
+  deleteButtonWasClicked: function(event){
+    return (event.target === this.refs.delbtn.getDOMNode());
   },
   handleTouchStart : function(event) {
     if(!this.state.editing){
@@ -185,7 +201,7 @@ var GroceryItem = React.createClass({
 
     outgoingEvents.push(event);
   },
-  handleDeleteClick: function() {
+  handleDeleteClick: function(e) {
     this.sendDeleteEvent();
   },
   sendDeleteEvent: function(){

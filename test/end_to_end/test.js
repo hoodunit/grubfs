@@ -2,7 +2,7 @@ var Bacon = require('baconjs');
 
 var baseUrl = 'http://localhost:8080/';
 
-// This is an an existing user.
+// This is an existing user.
 // If it does not exist, tests will fail as this uses
 // the actual FSIO API for signing in.
 var testUser = {
@@ -54,8 +54,6 @@ function testSignIn(page){
   .done();
 }
 
-
-
 function localStorage(page) {
   page
     .open(baseUrl)
@@ -92,9 +90,36 @@ function clearNAdd(page) {
   .done();
 }
 
+function testDeleteItem(page) {
+  page
+  .open(baseUrl)
+  .execute(function() {
+    localStorage.clear();
+  })
+  .reload()
+  .waitForElement('.groceryItem')
+  .assert.numberOfElements('.groceryList .groceryItem', 3, '3 items are visible at first')
+
+  // Trigger mousedown on first element to get into editing mode
+  .execute(function() {
+    var item = document.getElementsByClassName('groceryItem')[0];
+    var dispatchMouseEvent = function(target, var_args) {
+      var e = document.createEvent("MouseEvents");
+      e.initEvent.apply(e, Array.prototype.slice.call(arguments, 1));
+      target.dispatchEvent(e);
+    };
+    dispatchMouseEvent(item, 'mousedown', true, true);
+  })
+  .wait(1000)
+  .click('.groceryItem .del-btn')
+  .assert.numberOfElements('.groceryList .groceryItem', 2, '2 items remain after deleting one')
+  .done();
+}
+
 module.exports = {
-'list can be cleared and a new item added': clearNAdd,
-'State is persisted in localStorage': localStorage,
-'User can sign up with a new email address': testSignUp,
-'User can sign in with an existing email address': testSignIn
+  'list can be cleared and a new item added': clearNAdd,
+  'State is persisted in localStorage': localStorage,
+  'User can sign up with a new email address': testSignUp,
+  'User can sign in with an existing email address': testSignIn,
+  'User can delete a grocery item': testDeleteItem
 };
