@@ -28,9 +28,7 @@ describe('Fsio', function(){
                              'email', 'mytestuser@example.com',
                              'password', 'mytestpassword');
 
-      var expected = _.hash_map('eventType', 'signedIn',
-                                'email', 'mytestuser@example.com',
-                                'password', 'mytestpassword');
+      var expected = _.hash_map('eventType', 'signedIn');
       var signedInEvents = Fsio.signIn(event);
 
       signedInEvents.onValue(function(event){
