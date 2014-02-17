@@ -63,6 +63,7 @@ function localStorage(page) {
     .execute(function() {
       localStorage.clear();
     })
+    .open(baseUrl)
     .waitForElement('.groceryItem')
     .assert.numberOfElements('.groceryList .groceryItem', 3, '3 items are visible at first')
     .type('#name', 'chocolate box')

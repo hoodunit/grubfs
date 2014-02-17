@@ -10,10 +10,9 @@ git clone <repo url>
 cd grubfs
 npm install
 npm install -g grunt-cli browserify dalek-cli mocha-phantomjs
-npm install mocha grunt-mocha-phantomjs dalekjs jquery-node-browserify jssha
 ```
 
-Start Grunt and the development server. The grunt task will rebuild client source code when changes are made and the server will restart when changes are made.
+Start Grunt and the development server. The grunt task rebuilds client source code and should be run after changes are made. The server will restart automatically when changes are made.
 
 ```
 grunt
@@ -21,3 +20,11 @@ npm run-script dev
 ```
 
 View server at localhost:8080 and hack away.
+
+If you grab new changes from GitHub and it complains about missing packages, run
+
+```
+npm install
+```
+
+This will install any packages defined in package.json under dependencies or devDependencies. Any dependencies you use should also be added to package.json. Global dependencies need to be installed separately.
