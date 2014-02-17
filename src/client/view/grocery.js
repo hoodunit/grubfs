@@ -32,11 +32,24 @@ var TopBar = React.createClass({
       onClick: this.handleEmptyClick
     },emptyButtonIcon);
 
+    var recipeListIcon = React.DOM.span({
+      className: 'glyphicon glyphicon-list-alt'
+      });
+    var recipeButton = React.DOM.button({
+      className: 'btn btn-default recipe-btn nav-btn',
+      id: 'recipeList',
+      type: 'button',
+      onClick: this.handleShowRecipes
+    }, recipeListIcon);
+ 
     return React.DOM.div({className: 'top-bar clearfix'}, 
                          this.getSignOutButton(),
                          emptyButton, 
+                         recipeButton,
                          AddGroceryItemInput());
   },
+
+ 
   handleEmptyClick: function() {
     var emptyEvent = _.hash_map('eventType', 'emptyList');
     outgoingEvents.push(emptyEvent);
@@ -44,6 +57,10 @@ var TopBar = React.createClass({
   handleSignOut: function() {
     var event = _.hash_map('eventType', 'signOut');
     outgoingEvents.push(event);
+  },
+  handleShowRecipes: function(){
+    var recipeEvent = _.hash_map('eventType', 'showRecipes');
+    outgoingEvents.push(recipeEvent);
   }
 });
 
