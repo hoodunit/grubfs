@@ -12,7 +12,6 @@ describe('Fsio', function(){
       var expected = _.hash_map(
         'url', document.location.origin + '/event',
         'type', 'POST',
-        'contentType', 'application/json; charset=utf-8',
         'data', JSON.stringify(data),
         'dataType', 'json'
       );
@@ -24,6 +23,31 @@ describe('Fsio', function(){
   });
 
   describe('signIn', function(){
+    it('should sign in an existing user', function(done){
+      var event = _.hash_map('eventType', 'signIn',
+                             'email', 'mytestuser@example.com',
+                             'password', 'mytestpassword');
+
+      var expected = _.hash_map('eventType', 'signedIn',
+                                'email', 'mytestuser@example.com',
+                                'password', 'mytestpassword');
+      var signedInEvents = Fsio.signIn(event);
+
+      signedInEvents.onValue(function(event){
+        console.log('event:', _.clj_to_js(event));
+        assert(_.equals(expected, _.dissoc(event, 'credentials')));
+        assert(_.equals(expected, _.dissoc(event, 'credentials')));
+
+        assert(_.has_key(event, 'credentials'));
+        var credentials = _.get(event, 'credentials');
+        assert(_.has_key(credentials, 'download_token'));
+        assert(_.has_key(credentials, 'token'));
+        assert(_.has_key(credentials, 'u_uuid'));
+        assert(_.has_key(credentials, 'ttl'));
+        done();
+      });
+    });
+
     it('makeChallengeRequest should create request properly', function(){
       var constants = {
         FSIO_BASE_URL: 'http://example.com/testurl',
@@ -39,7 +63,6 @@ describe('Fsio', function(){
       var expected = _.hash_map(
         'url', constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL,
         'type', 'POST',
-        'contentType', 'application/json; charset=utf-8',
         'data', JSON.stringify(data)
       );
 
@@ -77,7 +100,6 @@ describe('Fsio', function(){
       var expected = _.hash_map(
         'url', constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_RESP_URL,
         'type', 'POST',
-        'contentType', 'application/json; charset=utf-8',
         'data', JSON.stringify(data)
       );
 
