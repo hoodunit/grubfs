@@ -18,10 +18,8 @@ function signUp(event){
   var authCredentials = _signUp(email, password);
 
   var signedUpEvents = authCredentials.map(_.js_to_clj)
-    .map(_.hash_map, 
-         'eventType', 'signedUp', 
-         'email', email,
-         'credentials');
+    .map(addUserInfoToCredentials, email, password)
+    .map(makeSignedUpEvent);
 
   return signedUpEvents;
 }
@@ -45,7 +43,6 @@ function makeSignUpRequest(email, password){
   var options = {type: 'POST', 
                  data: jsonEvent, 
                  dataType: 'json',
-                 contentType: 'application/json; charset=utf-8', 
                  url: eventUrl};
   return options;
 }
@@ -59,6 +56,7 @@ function signIn(event){
     .map(_.hash_map, 
          'eventType', 'signedIn', 
          'email', email,
+         'password', password,
          'credentials');
   return signedInEvents;
 }
@@ -110,14 +108,52 @@ function makeChallengeResponseRequest(constants, email, challenge, challengeResp
 function makeRequest(url, data){
   return {url: url,
           type: 'POST',
-          contentType: 'application/json; charset=utf-8',
           data: JSON.stringify(data)};
           
+}
+
+function addUserInfoToCredentials(email, password, credentials){
+  console.log('addUserInfo email:', email, 'pass:', password, 'creds:', _.clj_to_js(credentials));
+  return _.assoc(credentials,
+                 'email', email,
+                 'password', password);
+}
+
+function makeSignedUpEvent(credentials){
+  console.log('makesignedup:', _.clj_to_js(credentials));
+  return _.hash_map('eventType', 'signedUp',
+                    'credentials', credentials);
+}
+
+function syncStateToFsio(stateDiff){
+  console.log('stateDiff:', _.clj_to_js(stateDiff));
+}
+
+function saveNewUserState(state){
+  var items = _.clj_to_js(_.get(state, 'items'));
+  var email = _.get_in(state, ['credentials', 'email']);
+  var password = _.get_in(state, ['credentials', 'password']);
+
+  var authCredentials = _signIn(email, password);
+  var result = authCredentials.flatMap(function(authCredentials){
+    console.log('items:', items);
+    return Bacon.fromArray(items).flatMapLatest(uploadItemToFsio, authCredentials);
+  });
+  
+  return result;
+}
+
+function uploadItemToFsio(authCredentials, item){
+  console.log('upload item:', item);
+  console.log('credentials:', authCredentials);
+  return item;
 }
 
 module.exports = {
   signIn: signIn,
   signUp: signUp,
+  saveNewUserState: saveNewUserState,
+  syncStateToFsio: syncStateToFsio,
   test: {
     makeSignUpRequest: makeSignUpRequest,
     makeChallengeRequest: makeChallengeRequest,
