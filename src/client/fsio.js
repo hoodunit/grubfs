@@ -141,10 +141,6 @@ function makeSignedInEvent(credentials){
                     'credentials', credentials);
 }
 
-function syncStateToFsio(stateDiff){
-  console.log('stateDiff:', _.clj_to_js(stateDiff));
-}
-
 function saveNewUserState(state){
   var items = _.clj_to_js(_.get(state, 'items'));
   var email = _.get_in(state, ['credentials', 'email']);
@@ -186,7 +182,6 @@ module.exports = {
   signIn: signIn,
   signUp: signUp,
   saveNewUserState: saveNewUserState,
-  syncStateToFsio: syncStateToFsio,
   test: {
     makeSignUpRequest: makeSignUpRequest,
     makeChallengeRequest: makeChallengeRequest,
