@@ -6,6 +6,7 @@ require('../server/bacon.ajax');
 
 var constants = {
   FSIO_BASE_URL: 'https://api-fip.sp.f-secure.com/v2',
+  FSIO_DATA_URL: 'https://data-fip.sp.f-secure.com/v2',
   OPERATOR_ID: 67901,
   CRAM_CHALLENGE_URL: '/token/cram/challenge',
   CRAM_CHALLENGE_RESP_URL: '/token/cram/user'
@@ -52,12 +53,17 @@ function signIn(event){
   var password = _.get(event, 'password');
 
   var authCredentials = _signIn(email, password);
+  // var signedInEvents = authCredentials.map(_.js_to_clj)
+  //   .map(_.hash_map, 
+  //        'eventType', 'signedIn', 
+  //        'email', email,
+  //        'password', password,
+  //        'credentials');
+
   var signedInEvents = authCredentials.map(_.js_to_clj)
-    .map(_.hash_map, 
-         'eventType', 'signedIn', 
-         'email', email,
-         'password', password,
-         'credentials');
+    .map(addUserInfoToCredentials, email, password)
+    .map(makeSignedInEvent);
+
   return signedInEvents;
 }
 
@@ -112,6 +118,12 @@ function makeRequest(url, data){
           
 }
 
+function makeAuthorizedRequest(url, data, token){
+  var request = makeRequest(url, data);
+  request.headers = {authorization: 'FsioToken ' + token};
+  return request;
+}
+
 function addUserInfoToCredentials(email, password, credentials){
   console.log('addUserInfo email:', email, 'pass:', password, 'creds:', _.clj_to_js(credentials));
   return _.assoc(credentials,
@@ -120,8 +132,12 @@ function addUserInfoToCredentials(email, password, credentials){
 }
 
 function makeSignedUpEvent(credentials){
-  console.log('makesignedup:', _.clj_to_js(credentials));
   return _.hash_map('eventType', 'signedUp',
+                    'credentials', credentials);
+}
+
+function makeSignedInEvent(credentials){
+  return _.hash_map('eventType', 'signedIn',
                     'credentials', credentials);
 }
 
@@ -146,7 +162,24 @@ function saveNewUserState(state){
 function uploadItemToFsio(authCredentials, item){
   console.log('upload item:', item);
   console.log('credentials:', authCredentials);
-  return item;
+  var uploadRequest = makeUploadItemRequest(authCredentials, item);
+  var result = Bacon.$.ajax(uploadRequest);
+  return result;
+}
+
+function makeUploadItemRequest(authCredentials, item){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
+  var requestData = item;
+  var request = {url: url,
+                 type: 'PUT',
+                 data: JSON.stringify(requestData),
+                 headers: {authorization: 'FsioToken ' + authCredentials.token}};
+  // var request = {url: url,
+  //                type: 'POST',
+  //                data: JSON.stringify(requestData),
+  //                headers: {authorization: 'FsioToken ' + authCredentials.token,
+  //                          'x-http-method-override': 'PUT'}};
+  return request;
 }
 
 module.exports = {
