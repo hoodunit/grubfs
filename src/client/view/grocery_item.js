@@ -99,9 +99,14 @@ var GroceryItem = React.createClass({
       event.preventDefault();
       var mouseX = parseInt(event.pageX);
       this.setSwipeStartPosition(mouseX);
-    } else {
-        event.preventDefault();
+    } else if(this.deleteButtonWasClicked(event)){
+      // Avoid handling event here so that it is handled
+      // by the delete button handler
+      event.preventDefault();
     }
+  },
+  deleteButtonWasClicked: function(event){
+    return (event.target === this.refs.delbtn.getDOMNode());
   },
   handleTouchStart : function(event) {
     if(!this.state.editing){
