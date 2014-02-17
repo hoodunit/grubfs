@@ -9,8 +9,7 @@ var GroceryItem = React.createClass({
       dist : 0,
       tapped : false,
       pressTimer : null,
-      editing: false,
-      isDelBtnShowed: false
+      editing: false
     };
   },
   componentDidUpdate: function(prevProps, prevState, rootNode){
@@ -47,7 +46,7 @@ var GroceryItem = React.createClass({
                           onMouseUp: this.handleMouseUp},
 
                          this.getText(isCompleted, name, this.state.editing),
-                         this.getDeleteButton(this.state.isDelBtnShowed),
+                         this.getDeleteButton(this.state.editing),
                          this.getItemInput(this.state.editing));
   },
   getCheckbox: function(isCompleted){
@@ -57,9 +56,9 @@ var GroceryItem = React.createClass({
       onClick: this.handleCompletedClick
     });
   },
-  getDeleteButton: function(isDelBtnShowed){
+  getDeleteButton: function(editing){
     var baseClass = 'del-btn glyphicon glyphicon-remove';
-    var delBtnClass = isDelBtnShowed ? baseClass : baseClass + ' display-none';
+    var delBtnClass = editing ? baseClass : baseClass + ' display-none';
     var icon = React.DOM.span({
       className: delBtnClass,
       onClick: this.handleDeleteClick,
@@ -168,12 +167,10 @@ var GroceryItem = React.createClass({
   },
   setEditing: function(){
     this.setState({editing: true,
-                   tapped: false,
-                   isDelBtnShowed: true});
+                   tapped: false});
   },
   handleInputBlur : function() {
-    this.setState({editing: false,
-                   isDelBtnShowed: false});
+    this.setState({editing: false});
     this.sendUpdateEvent();
   },
   sendUpdateEvent: function(){
