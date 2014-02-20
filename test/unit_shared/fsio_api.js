@@ -3,13 +3,14 @@ var assert = chai.assert;
 chai.should();
 
 var FsioAPI = require('../../src/shared/fsio_api.js');
+var Util = require('../util/util');
 
 describe('shared Fsio API', function(){
   this.timeout(5000);
 
   describe('signing up', function(){
     it('should return success when a new user is created', function(done){
-      var username = randomUser();
+      var username = Util.randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
@@ -30,7 +31,7 @@ describe('shared Fsio API', function(){
     });
 
     it('should return failure if the user already exists', function(done){
-      var username = randomUser();
+      var username = Util.randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
@@ -57,7 +58,7 @@ describe('shared Fsio API', function(){
 
   describe('signing in', function(){
     it('should sign in as existing user', function(done){
-      var username = randomUser();
+      var username = Util.randomUser();
       var password = "mytestpassword";
       var isAdmin = false;
 
@@ -104,7 +105,7 @@ describe('shared Fsio API', function(){
 
   describe('delete a user', function(){
     it('should return success when a user is deleted', function(done){
-      var username = randomUser();
+      var username = Util.randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
@@ -123,9 +124,45 @@ describe('shared Fsio API', function(){
       });
     });
   });
-});
 
-function randomUser(){
-  var randomNum = Math.floor(Math.random() * 1000000000);
-  return "testuser" + randomNum + "@example.com";
-}
+  describe('upload file', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should upload a file to the server', function(done){
+      var filename = 'items/testfileid'
+      var data = {id: 'testfileid',
+                  completed: false,
+                  name: 'test item'};
+      var fileKey = '/me/files/items/testfileid';
+      
+      var response = FsioAPI.uploadFile(username, password, filename, data);
+
+      response.onValue(function(fileData){
+        fileData.object_type.should.exist;
+        fileData.sha256.should.exist;
+        fileData.version_id.should.exist;
+        fileData.key.should.equal(fileKey);
+        done();
+      });
+
+      response.onError(function(error){
+        throw error;
+      });
+    });
+  });
+});

@@ -110,6 +110,8 @@ function handleUpdateItem(oldState, event) {
 
 function handleSignedUp(oldState, event){
   var newState = handleSignedIn(oldState, event);
+
+  Fsio.saveNewUserState(newState).onEnd();
   
   return newState;
 }
