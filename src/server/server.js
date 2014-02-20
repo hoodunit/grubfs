@@ -22,8 +22,14 @@ function respond(response, stream){
 }
 
 server.post('/event', function(request, response){
+  var adminUser = process.env.FSIO_USER_NAME;
+  var adminPass = process.env.FSIO_PASSWORD;
+
   var requestData = request.body;
-  var result = FsioAPI.signUp(requestData);
+  var email = requestData.email;
+  var password = requestData.password;
+
+  var result = FsioAPI.signUp(email, password, adminUser, adminPass);
   respond(response, result);
 });
 

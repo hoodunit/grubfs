@@ -1,5 +1,7 @@
 var Bacon = require('baconjs');
 
+var FsioAPI = require('../../src/shared/fsio_api.js');
+
 var baseUrl = 'http://localhost:8080/';
 
 // This is an existing user.
@@ -10,8 +12,10 @@ var testUser = {
   password: 'mytestpassword'
 };
 
-// Server must be running with mocked FSIO API or it will fail.
 function testSignUp(page){
+  var adminUser = process.env.FSIO_USER_NAME;
+  var adminPass = process.env.FSIO_PASSWORD;
+  FsioAPI.deleteUser(testUser.email, adminUser, adminPass).onEnd(function(){
   page
   .open(baseUrl)
   .waitForElement('.email')
@@ -32,6 +36,7 @@ function testSignUp(page){
   .assert.visible('#signUp', 'Sign up button is visible after signing out')
   .assert.doesntExist('#signOut', 'Sign out button is not visible after signing out')
   .done();
+  });
 }
 
 function testSignIn(page){
