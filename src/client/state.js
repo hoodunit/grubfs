@@ -33,16 +33,13 @@ function getDefaultItems(){
   return _.vector(
     _.hash_map('id', Util.generateUUID(),
                'name', '1 packages of tomato puree',
-               'completed', false,
-               'touched', false),
+               'completed', false),
     _.hash_map('id', Util.generateUUID(),
                'name', '4 yellow onions',
-               'completed', true,
-               'touched', false),
+               'completed', true),
     _.hash_map('id', Util.generateUUID(),
                'name', '2 dl cream',
-               'completed', false,
-               'touched', false));
+               'completed', false));
 }
 
 
@@ -59,8 +56,7 @@ function getInitialState(){
 function handleAddItem(oldState, event){
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
-                           'completed', false,
-                           'touched', false);
+                           'completed', false);
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
   return newState;
@@ -83,24 +79,6 @@ function handleCompleteItem(oldState, event){
 
 function handleEmptyList() {
   return _.hash_map('items', _.vector());
-}
-
-function handleHoldItem(oldState, event) {
-  var id = _.get(event, 'id');
-  var items = _.get(oldState, 'items');
-
-  /* Not inventing the wheel again.. */
-  var updatedItems = _.map(function(item) {
-    if (_.get(item, 'touched'))
-      return _.assoc(item, 'touched', false);    
-    else if (_.get(item, 'id') == id)
-      return _.assoc(item, 'touched', true);
-    else
-      return item;
-  }, items);
-
-  var newState = _.assoc(oldState, 'items', updatedItems);
-  return newState;
 }
 
 function handleDeleteItem(oldState, event) {
@@ -152,7 +130,6 @@ function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'emptyList', handleEmptyList,
-                                 'holdItem', handleHoldItem,
                                  'deleteItem', handleDeleteItem,
                                  'updateItem', handleUpdateItem,
                                  'signedUp', handleSignedUp,
@@ -193,7 +170,6 @@ module.exports = {
   signedIn: signedIn,
   handleCompleteItem: handleCompleteItem,
   handleEmptyList: handleEmptyList,
-  handleHoldItem: handleHoldItem,
   handleDeleteItem: handleDeleteItem,
   handleUpdateItem: handleUpdateItem,
   updateStateFromEvent: updateStateFromEvent
