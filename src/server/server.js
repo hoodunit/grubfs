@@ -1,23 +1,10 @@
 var express = require('express');
 
-var Fsio = require('./fsio');
+var FsioAPI = require('../shared/fsio_api');
   
 var server = express();
 var serverPath = __dirname;
 var rootPath = serverPath + '/../..';
-
-function useMockAPIIfTestServer(){
-  var commandLineArgs = process.argv;
-  for(var i = 0; i < commandLineArgs.length; i++){
-    if(commandLineArgs[i] === 'test-server'){
-      Fsio = require('./fsio_mock');
-      console.log('Using mock FSIO API for testing');
-      return;
-    }
-  }
-}
-
-useMockAPIIfTestServer();
 
 server.configure(function(){
   server.use(express.static(rootPath + '/public'));
@@ -36,7 +23,7 @@ function respond(response, stream){
 
 server.post('/event', function(request, response){
   var requestData = request.body;
-  var result = Fsio.signUp(requestData);
+  var result = FsioAPI.signUp(requestData);
   respond(response, result);
 });
 

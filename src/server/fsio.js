@@ -17,7 +17,6 @@ var constants = {
 };
 
 function signUp(user){
-  console.log('signUp:', user);
   var adminCreds = signInAsAdmin();
   var adminToken = adminCreds.map('.token');
   var newUserStatus = createUser(adminToken, user);
