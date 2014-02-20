@@ -1,9 +1,48 @@
 var chai = require('chai');
+var assert = chai.assert;
 chai.should();
 
 var FsioAPI = require('../../src/shared/fsio_api.js');
 
 describe('shared Fsio API', function(){
+  this.timeout(5000);
+
+  describe('signing up', function(){
+    it('should return success when a new user is created', function(done){
+      var username = "mytestuser@example.com";
+      var password = "mytestpassword";
+      var adminUser = process.env.FSIO_USER_NAME;
+      var adminPass = process.env.FSIO_PASSWORD;
+
+      var response = FsioAPI.signUp(username, password, adminUser, adminPass);
+      
+      response.onValue(function(value){
+        done();
+      });
+
+      response.onError(function(error){
+        throw error;
+      });
+    });
+
+    it('should return failure if the user already exists', function(done){
+      var username = "mytestuser@example.com";
+      var password = "mytestpassword";
+      var adminUser = process.env.FSIO_USER_NAME;
+      var adminPass = process.env.FSIO_PASSWORD;
+
+      var response = FsioAPI.signUp(username, password, adminUser, adminPass);
+      
+      response.onValue(function(value){
+        throw value;
+      });
+
+      response.onError(function(error){
+        done();
+      });
+    });
+  });
+
   describe('signing in', function(){
     it('should sign in as existing user', function(done){
       var user = "mytestuser@example.com";
@@ -43,14 +82,14 @@ describe('shared Fsio API', function(){
     });
   });
 
-  describe('signing up', function(){
-    it('should return success when a new user is created', function(done){
-      var username = "mytestuser1@example.com";
+  describe('delete a user', function(){
+    it('should return success when a user is deleted', function(done){
+      var username = "mytestuser@example.com";
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
 
-      var response = FsioAPI.signUp(username, password, adminUser, adminPass);
+      var response = FsioAPI.deleteUser(username, adminUser, adminPass);
       
       response.onValue(function(value){
         done();
@@ -60,22 +99,13 @@ describe('shared Fsio API', function(){
         throw error;
       });
     });
-
-    it('should return failure if the user already exists', function(done){
-      var username = "mytestuser@example.com";
-      var password = "mytestpassword";
-      var adminUser = process.env.FSIO_USER_NAME;
-      var adminPass = process.env.FSIO_PASSWORD;
-
-      var response = FsioAPI.signUp(username, password, adminUser, adminPass);
-      
-      response.onValue(function(value){
-        throw value;
-      });
-
-      response.onError(function(error){
-        done();
-      });
-    });
   });
 });
+
+function signInAsAdmin(){
+  var user = process.env.FSIO_USER_NAME;
+  var pass = process.env.FSIO_PASSWORD;
+  var isAdmin = true;
+  
+  return FsioAPI.signIn(user, pass, isAdmin);
+};

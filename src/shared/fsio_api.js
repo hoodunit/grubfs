@@ -19,10 +19,6 @@ function signIn(email, password, isAdmin){
   var signInData = Bacon.combineWith(sendChallengeResponse, 
                                      email, challenge, isAdmin, challengeResponse).ajax();
 
-  challenge.log();
-  challengeResponse.log();
-  signInData.log();
-
   return signInData;
 }
 
@@ -30,7 +26,9 @@ function requestAuthorizationChallenge(email){
   var url = constants.FSIO_BASE_URL + constants.CRAM_CHALLENGE_URL;
   var requestData = {operator_id: constants.OPERATOR_ID, 
                      user_name: email};
-  var request = makeRequest(url, requestData);
+  var request = {url: url,
+                 type: 'POST',
+                 data: JSON.stringify(requestData)};
   var response = Bacon.$.ajax(request);
   return response.map('.challenge');
 }
@@ -48,7 +46,9 @@ function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
                      challenge: challenge,
                      response: challengeResponse};
 
-  var request = makeRequest(url, requestData);
+  var request = {url: url,
+                 type: 'POST',
+                 data: JSON.stringify(requestData)};
   return request;
 }
 
@@ -88,8 +88,12 @@ function createNewUser(username, password, adminToken){
   var requestData = {quota: quotaInBytes,
                      state: 'active'};
 
-  var request = makeAuthorizedRequest(url, requestData, adminToken);
-  return Bacon.$.ajax(request);
+  var request = {url: url,
+                 type: 'POST',
+                 data: JSON.stringify(requestData)};
+
+  var authRequest = makeAuthorizedRequest(request, adminToken);
+  return Bacon.$.ajax(authRequest);
 }
 
 function addAuthToUser(adminToken, username, password, userKey){
@@ -101,26 +105,54 @@ function addAuthToUser(adminToken, username, password, userKey){
                      user_name: username,
                      password: password};
 
-  var request = makeAuthorizedRequest(url, requestData, adminToken);
-  return request;
+  var request = {url: url,
+                 type: 'POST',
+                 data: JSON.stringify(requestData)};
+
+  var authRequest = makeAuthorizedRequest(request, adminToken);
+  return authRequest;
 }
 
-function makeAuthorizedRequest(url, data, adminToken){
-  var request = makeRequest(url, data);
+function deleteUser(username, adminUser, adminPass){
+  var isAdmin = true;
+  var adminCreds = signIn(adminUser, adminPass, isAdmin);
+  var adminToken = adminCreds.map('.token');
+  var userInfo = adminToken.flatMap(_deleteUser, username);
+
+  return userInfo;
+}
+
+function _deleteUser(username, adminToken){
+  var userKey = '/operators/' + constants.OPERATOR_ID + '/users/uname:' + username;
+  var url = constants.FSIO_BASE_URL + '/admin' + userKey;
+
+  var request = {url: url, 
+                 type: 'DELETE',
+                 headers: {authorization: 'FsioToken ' + adminToken,
+                           'content-length': 0}};
+  return Bacon.$.ajax(request);
+}
+
+function getUserInfo(username, adminToken){
+  var userKey = '/operators/' + constants.OPERATOR_ID + '/users/uname:' + username;
+  var url = constants.FSIO_BASE_URL + '/admin' + userKey;
+
+  var request = {url: url,
+                 type: 'GET'};
+
+  var authRequest = makeAuthorizedRequest(request, adminToken);
+  return Bacon.$.ajax(request);
+}
+
+function makeAuthorizedRequest(request, adminToken){
   request.headers = {authorization: 'FsioToken ' + adminToken};
   return request;
-}
-
-function makeRequest(url, data){
-  return {url: url,
-          type: 'POST',
-          data: JSON.stringify(data)};
-          
 }
 
 module.exports = {
   signIn: signIn,
   signUp: signUp,
+  deleteUser: deleteUser,
   test: {
     hashChallenge: hashChallenge
   }
