@@ -75,18 +75,17 @@ function makeSignedInEvent(credentials){
 }
 
 function saveNewUserState(state){
-  // var items = _.clj_to_js(_.get(state, 'items'));
-  // var email = _.get_in(state, ['credentials', 'email']);
-  // var password = _.get_in(state, ['credentials', 'password']);
+  var items = _.clj_to_js(_.get(state, 'items'));
+  var email = _.get_in(state, ['credentials', 'email']);
+  var password = _.get_in(state, ['credentials', 'password']);
 
-  // var authCredentials = FsioAPI.signIn(email, password);
-  // var result = authCredentials.flatMap(function(authCredentials){
-  //   console.log('items:', items);
-  //   return Bacon.fromArray(items).flatMapLatest(uploadItemToFsio, authCredentials);
-  // });
+  var authCredentials = FsioAPI.signIn(email, password);
+  var result = authCredentials.flatMap(function(authCredentials){
+    console.log('items:', items);
+    return Bacon.fromArray(items).flatMapLatest(uploadItemToFsio, authCredentials);
+  });
   
-  // return result;
-  return null;
+  return result;
 }
 
 // function uploadItemToFsio(authCredentials, item){
