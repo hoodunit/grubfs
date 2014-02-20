@@ -44,7 +44,7 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['test/unit_server/**/*.js']
+        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js']
       }
     },
     mocha_phantomjs: {
