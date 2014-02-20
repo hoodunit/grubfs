@@ -4,7 +4,7 @@ var sys = require('sys');
 var exec = require('child_process').exec;
 var jsSHA = require('jssha');
 
-require('./bacon.ajax');
+require('../shared/bacon.ajax');
 
 var constants = {
   FSIO_BASE_URL: process.env.FSIO_API_URL + '/v2',
