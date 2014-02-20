@@ -2,6 +2,7 @@ var _ = require('mori');
 var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
 
+var Fsio = require('./fsio');
 var Util = require('./util');
 
 function getLocalState(){
@@ -131,6 +132,10 @@ function handleUpdateItem(oldState, event) {
 
 function handleSignedUp(oldState, event){
   var newState = handleSignedIn(oldState, event);
+
+  // Fsio.saveNewUserState(newState).onValue(function(val){
+  //   console.log('save user state response:', val);
+  // });
   
   return newState;
 }
@@ -138,6 +143,10 @@ function handleSignedUp(oldState, event){
 function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
   var newState = _.assoc(oldState, 'credentials', credentials);
+
+  Fsio.saveNewUserState(newState).onValue(function(val){
+    console.log('save user state response:', val);
+  });
   
   return newState;
 }

@@ -197,7 +197,10 @@ describe('state', function(){
   describe('signedIn event', function(){
     it('should add credentials to state', function(){
       var initialState = _.hash_map('items', _.vector());
-      var testCredentials = 'testcredentials';
+      var testCredentials = _.hash_map('token', 'testtoken',
+                                       'download_token', 'testdownloadtoken',
+                                       'email', 'testemail',
+                                       'password', 'testpassword');
       var event = _.hash_map('eventType', 'signedIn', 'credentials', testCredentials);
 
       var newState = State.updateStateFromEvent(initialState, event);
@@ -209,7 +212,10 @@ describe('state', function(){
   describe('signedUp event', function(){
     it('should add credentials to state', function(){
       var initialState = _.hash_map('items', _.vector());
-      var testCredentials = 'testcredentials';
+      var testCredentials = _.hash_map('token', 'testtoken',
+                                       'download_token', 'testdownloadtoken',
+                                       'email', 'testemail',
+                                       'password', 'testpassword');
       var event = _.hash_map('eventType', 'signedUp', 'credentials', testCredentials);
 
       var newState = State.updateStateFromEvent(initialState, event);
@@ -220,7 +226,11 @@ describe('state', function(){
 
   describe('signOut event', function(){
     it('should remove credentials from state', function(){
-      var initialState = _.hash_map('credentials', 'testcredentials');
+      var testCredentials = _.hash_map('token', 'testtoken',
+                                       'download_token', 'testdownloadtoken',
+                                       'email', 'testemail',
+                                       'password', 'testpassword');
+      var initialState = _.hash_map('credentials', testCredentials);
       var event = _.hash_map('eventType', 'signOut');
 
       var newState = State.updateStateFromEvent(initialState, event);
