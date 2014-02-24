@@ -62,6 +62,13 @@ function makeSignedInEvent(credentials){
                     'credentials', credentials);
 }
 
+function syncAddItemToServer(email, password, item){
+  
+  var result = Bacon.once(item).map(uploadItem, email, password);
+
+  return result;  
+}
+
 function saveNewUserState(state){
   var items = _.clj_to_js(_.get(state, 'items'));
   var email = _.get_in(state, ['credentials', 'email']);
@@ -81,5 +88,6 @@ function uploadItem(email, password, item){
 module.exports = {
   signIn: signIn,
   signUp: signUp,
+  syncAddItemToServer: syncAddItemToServer,
   saveNewUserState: saveNewUserState
 };

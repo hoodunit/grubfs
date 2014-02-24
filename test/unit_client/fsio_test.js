@@ -54,4 +54,39 @@ describe('Fsio', function(){
       });
     });
   });
+describe('syncAddItemToServer', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should upload item when added to list', function(done){
+      var item = _.hash_map('id', 'testid1',
+                             'name', '1 packages of tomato puree',
+                             'completed', false);
+      
+      var response = Fsio.syncAddItemToServer(username, password, item);
+
+      response.onError(function(error){
+        console.log('error:', error);
+        throw error;
+      });
+
+      response.onEnd(function(result){
+        done();
+      });
+    });
+  });
 });

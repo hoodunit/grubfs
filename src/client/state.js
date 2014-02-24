@@ -59,6 +59,14 @@ function handleAddItem(oldState, event){
                            'completed', false);
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
+
+  if (signedIn){
+    var email = _.get_in(newState, ['credentials', 'email']);
+    var password = _.get_in(newState, ['credentials', 'password']);
+
+    Fsio.syncAddItemToServer(email, password, newItem).onEnd();
+  }
+
   return newState;
 }
 
