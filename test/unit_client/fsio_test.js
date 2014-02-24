@@ -54,7 +54,8 @@ describe('Fsio', function(){
       });
     });
   });
-describe('syncAddItemToServer', function(){
+
+  describe('syncAddItemToServer', function(){
     var username;
     var password;
 
@@ -72,9 +73,9 @@ describe('syncAddItemToServer', function(){
       });
     });
 
-    it('should upload item when added to list', function(done){
-      var item = _.hash_map('id', 'testid1',
-                             'name', '1 packages of tomato puree',
+    it('should upload items with syncAddItemToServer()', function(done){
+      var item = _.hash_map('id', 'item1',
+                             'name', 'pizza',
                              'completed', false);
       
       var response = Fsio.syncAddItemToServer(username, password, item);
