@@ -63,10 +63,7 @@ function makeSignedInEvent(credentials){
 }
 
 function syncAddItemToServer(email, password, item){
-  
-  var result = Bacon.once(item).map(uploadItem, email, password);
-
-  return result;  
+  return uploadItem(email, password, item);
 }
 
 function saveNewUserState(state){

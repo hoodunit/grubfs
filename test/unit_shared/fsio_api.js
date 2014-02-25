@@ -145,23 +145,35 @@ describe('shared Fsio API', function(){
 
     it('should upload a file to the server', function(done){
       var filename = 'items/testfileid'
-      var data = {id: 'testfileid',
-                  completed: false,
-                  name: 'test item'};
+      var fileData = {id: 'testfileid',
+                      completed: false,
+                      name: 'test item'};
       var fileKey = '/me/files/items/testfileid';
       
-      var response = FsioAPI.uploadFile(username, password, filename, data);
+      var uploadedFileInfo = FsioAPI.uploadFile(username, password, filename, fileData);
 
-      response.onValue(function(fileData){
-        fileData.object_type.should.exist;
-        fileData.sha256.should.exist;
-        fileData.version_id.should.exist;
-        fileData.key.should.equal(fileKey);
-        done();
+      uploadedFileInfo.onValue(function(uploadedFileData){
+        uploadedFileData.object_type.should.exist;
+        uploadedFileData.sha256.should.exist;
+        uploadedFileData.version_id.should.exist;
+        uploadedFileData.key.should.equal(fileKey);
+      });
+    
+      // Delay by one second to allow time for file scanning on FSIO
+      // Else may return error "File scanning incomplete"
+      var downloadedFile = uploadedFileInfo.delay(1000).flatMap(FsioAPI.downloadFile, username, 
+                                                                password, filename);
+
+      downloadedFile.onValue(function(downloadedFileData){
+        downloadedFileData.should.deep.equal(fileData);
       });
 
-      response.onError(function(error){
-        throw error;
+      downloadedFile.onError(function(error){
+        error.should.deep.equal(fileData);
+      });
+      
+      downloadedFile.onEnd(function(){ 
+        done();
       });
     });
   });

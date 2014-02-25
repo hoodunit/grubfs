@@ -163,6 +163,42 @@ function _uploadFile(filename, data, token){
   return Bacon.$.ajax(authRequest);
 }
 
+function getFileInfo(username, password, filename){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+
+  var fileInfo = token.flatMap(_getFileInfo, filename);
+  return fileInfo;
+}
+
+function _getFileInfo(filename, token){
+  var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
+
+function downloadFile(username, password, filename){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+
+  var downloadedFile = token.flatMap(_downloadFile, filename).map(JSON.parse);
+  return downloadedFile;
+}
+
+function _downloadFile(filename, token){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
+
 function makeUploadItemRequest(authCredentials, item){
   var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
   var requestData = item;
@@ -185,6 +221,7 @@ module.exports = {
   signUp: signUp,
   deleteUser: deleteUser,
   uploadFile: uploadFile,
+  downloadFile: downloadFile,
   test: {
     hashChallenge: hashChallenge
   }
