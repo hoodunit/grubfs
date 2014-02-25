@@ -39,6 +39,12 @@ module.exports = function(grunt) {
           reporter: 'spec'
         },
         src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js', 'test/unit_client/**/*.js']
+      },
+      test_jenkins: {
+        options: {
+          reporter: 'mocha-jenkins-reporter'
+        },
+        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js', 'test/unit_client/**/*.js']
       }
     },
     watch: {
@@ -60,9 +66,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-dalek');
 
-  grunt.registerTask('unitTests', ['mochaTest']);
+  grunt.registerTask('unitTests', ['mochaTest:test']);
+  grunt.registerTask('unitTests_jenkins', ['mochaTest:test_jenkins']);
   grunt.registerTask('endToEndTests', ['dalek']);
 
   grunt.registerTask('default', ['browserify', 'jshint', 'unitTests']);
+  grunt.registerTask('jenkins', ['browserify', 'jshint', 'unitTests_jenkins']);
 
 };
