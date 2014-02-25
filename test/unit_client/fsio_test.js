@@ -76,17 +76,80 @@ describe('Fsio', function(){
     });
 
     it('should upload items with syncAddItemToServer()', function(done){
-      var item = _.hash_map('id', 'item1',
-                             'name', 'pizza',
-                             'completed', false);
-      
-      var response = Fsio.syncAddItemToServer(username, password, item);
 
-      response.onError(function(error){
+      var item = {id: 'item1',
+                  completed: false,
+                  name: 'pizza'};
+      var filename = 'items/item1';
+      
+      var result = Fsio.syncAddItemToServer(username, password, item);
+
+      downloadedFile = result.delay(500).flatMap(FsioAPI.downloadFile, username, 
+                                                                password, filename);
+
+      downloadedFile.onValue(function(downloadedFileData){
+        downloadedFileData.should.deep.equal(item);
+      });
+      downloadedFile.onError(function(error){
+        error.should.not.exist;
+      });
+      downloadedFile.onEnd(function(){ 
+        done();
+      });
+    });
+  });
+
+  describe('syncCompleteItemToServer', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should sync completed items with syncCompleteItemToServer()', function(done){
+  
+      //upload file to server
+      var filename = 'items/item11';
+      var fileData = {id: 'item11',
+                      completed: false,
+                      name: 'chicken'};
+      var fileKey = '/me/files/items/item11';
+      
+      var uploadedFile = FsioAPI.uploadFile(username, password, filename, fileData);
+
+      uploadedFile.onError(function(error){
+        error.should.not.exist;
+      });
+      
+      //update file
+      fileData.completed = true;
+      uploadedFile = Fsio.syncCompletedItemToServer(username, password, fileData);
+
+      uploadedFile.onError(function(error){
         error.should.not.exist;
       });
 
-      response.onEnd(function(result){
+      downloadedFile = uploadedFile.delay(500).flatMap(FsioAPI.downloadFile, username, 
+                                                                password, filename);
+
+      downloadedFile.onValue(function(downloadedFileData){
+        downloadedFileData.should.deep.equal(fileData);
+      });
+      downloadedFile.onError(function(error){
+        error.should.not.exist;
+      });
+      downloadedFile.onEnd(function(){ 
         done();
       });
     });

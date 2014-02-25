@@ -66,6 +66,10 @@ function syncAddItemToServer(email, password, item){
   return uploadItem(email, password, item);
 }
 
+function syncCompletedItemToServer(email, password, item){
+  return uploadItem(email, password, item);
+}
+
 function saveNewUserState(state){
   return Bacon.once();
 }
@@ -79,5 +83,6 @@ module.exports = {
   signIn: signIn,
   signUp: signUp,
   syncAddItemToServer: syncAddItemToServer,
+  syncCompletedItemToServer: syncCompletedItemToServer,
   saveNewUserState: saveNewUserState
 };
