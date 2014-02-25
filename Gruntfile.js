@@ -44,7 +44,7 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js']
+        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js'],
       }
     },
     mocha_phantomjs: {
@@ -54,6 +54,12 @@ module.exports = function(grunt) {
             './test/index.html'
           ]
         }
+      }
+    },
+    exec: {
+      coverage: {
+        command: "istanbul cover node_modules/mocha/bin/_mocha test/unit_client test/unit_shared -- -R spec",
+        stdout: true
       }
     },
     watch: {
@@ -68,6 +74,7 @@ module.exports = function(grunt) {
         }}},
   });
 
+  grunt.loadNpmTasks('grunt-exec');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-watch');
@@ -79,6 +86,7 @@ module.exports = function(grunt) {
   grunt.registerTask('unitTestsServer', ['mochaTest']);
   grunt.registerTask('unitTestsClient', ['mocha_phantomjs']);
   grunt.registerTask('endToEndTests', ['dalek']);
+  grunt.registerTask('coverage', ['exec:coverage']);
 
   grunt.registerTask('default', ['browserify', 'jshint', 'unitTestsServer', 'unitTestsClient']);
 
