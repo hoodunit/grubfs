@@ -122,25 +122,28 @@ function testDeleteItem(page) {
 }
 
 function testEditItem(page) {
-  page.open(baseUrl).execute(function() {
+  page
+  .open(baseUrl)
+  .execute(function() {
     localStorage.clear();
-  }
+  })
   .reload()
   .waitForElement('.groceryItem')
-  .assert.text('.groceryItem', '1 packages of tomato puree', 'the first has the right name'))
+  .assert.text('.groceryItem', '2 dl cream', 'the first has the right name')
 
   .execute(function() {
-    var item = document.getElementsByClassName('groceryItem')[0];
+    var item = document.getElementsByClassName('pull-right')[0];
     var dispatchMouseEvent = function(target, var_args) {
       var e = document.createEvent("MouseEvents");
+      console.log("toimii");
       e.initEvent.apply(e, Array.prototype.slice.call(arguments, 1));
       target.dispatchEvent(e);    
     };
-    dispatchMouseEvent(item, 'mouseover', true, true);
+    dispatchMouseEvent(item, 'click', true, true);
   })
   .wait(1000)
-  .click('.groceryItem .edit-btn')
-  .type('#iteminput', 'bifteck aux pommes frites')
+  .waitForElement('.groceryItem')
+  .type('.itemInput', 'bifteck aux pommes frites')
   .sendKeys('body', '\uE007') //007!
   .assert.text('.groceryItem', 'bifteck aux pommes frites', 'text edit works correctly')
   .done();
