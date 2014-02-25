@@ -25,27 +25,36 @@ function saveStateLocally(state){
 }
 
 function getDefaultState(){
-  return _.hash_map('items', getDefaultItems());
+  return _.hash_map('recipes', getDefaultRecipes());
+}
+
+function getDefaultRecipes(){
+  return _.vector(
+    _.hash_map('items', getDefaultItems(),
+               'name', "Chicken soup")
+  );
 }
 
 function getDefaultItems(){
   return _.vector(
-    _.hash_map('id', Util.generateUUID(),
-               'name', '1 packages of tomato puree',
-               'completed', false,
-               'touched', false),
-    _.hash_map('id', Util.generateUUID(),
-               'name', '4 yellow onions',
-               'completed', true,
-               'touched', false),
-    _.hash_map('id', Util.generateUUID(),
-               'name', '2 dl cream',
-               'completed', false,
-               'touched', false));
+      _.hash_map('id', Util.generateUUID(),
+                 'name', '1 packages of tomato puree',
+                 'completed', false,
+                 'touched', false),
+      _.hash_map('id', Util.generateUUID(),
+                 'name', '4 yellow onions',
+                 'completed', true,
+                 'touched', false),
+      _.hash_map('id', Util.generateUUID(),
+                 'name', '2 dl cream',
+                 'completed', false,
+                 'touched', false)
+  );
 }
 
 
 function getInitialState(){
+  console.log("inInitState");
   var initialState = getLocalState();
 
   if(initialState === null){

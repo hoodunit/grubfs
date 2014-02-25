@@ -4,6 +4,7 @@ var Bacon = require('baconjs');
 
 var Util = require('../util');
 var GroceryItem = require('./grocery_item');
+var RecipeList = require('./recipe_list');
 
 var TopBar = React.createClass({
   getSignOutButton: function(){
@@ -59,8 +60,10 @@ var TopBar = React.createClass({
     outgoingEvents.push(event);
   },
   handleShowRecipes: function(){
-    var recipeEvent = _.hash_map('eventType', 'showRecipes');
-    outgoingEvents.push(recipeEvent);
+    React.renderComponent(
+      RecipeList({}),
+      document.getElementById('modal-content')
+    );
   }
 });
 

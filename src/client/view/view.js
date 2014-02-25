@@ -16,9 +16,12 @@ var GrubView = React.createClass({
   },
   render: function() {
     var signedIn = State.signedIn(this.props);
-    var groceryState = {items: _.get(this.props, 'items'),
+    var recipes = _.get(this.props, 'recipes');
+    var recipe = _.get(recipes, 0);
+    var items = _.get(recipe, 'items');
+    
+    var groceryState = {items: items,
                         signedIn: signedIn};
-
     return React.DOM.div({}, 
                          React.DOM.div({className: 'col-md-2'}),
                          React.DOM.div({className: 'col-md-5'},
