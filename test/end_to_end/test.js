@@ -121,10 +121,36 @@ function testDeleteItem(page) {
   .done();
 }
 
+function testEditItem(page) {
+  page.open(baseUrl).execute(function() {
+    localStorage.clear();
+  }
+  .reload()
+  .waitForElement('.groceryItem')
+  .assert.text('.groceryItem', '1 packages of tomato puree', 'the first has the right name'))
+
+  .execute(function() {
+    var item = document.getElementsByClassName('groceryItem')[0];
+    var dispatchMouseEvent = function(target, var_args) {
+      var e = document.createEvent("MouseEvents");
+      e.initEvent.apply(e, Array.prototype.slice.call(arguments, 1));
+      target.dispatchEvent(e);    
+    };
+    dispatchMouseEvent(item, 'mouseover', true, true);
+  })
+  .wait(1000)
+  .click('.groceryItem .edit-btn')
+  .type('#iteminput', 'bifteck aux pommes frites')
+  .sendKeys('body', '\uE007') //007!
+  .assert.text('.groceryItem', 'bifteck aux pommes frites', 'text edit works correctly')
+  .done();
+  }
+
 module.exports = {
   'list can be cleared and a new item added': clearNAdd,
   'State is persisted in localStorage': localStorage,
   'User can sign up with a new email address': testSignUp,
   'User can sign in with an existing email address': testSignIn,
-  'User can delete a grocery item': testDeleteItem
+  'User can delete a grocery item': testDeleteItem,
+  'User can edit a grocery item (desktop)': testEditItem
 };
