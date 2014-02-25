@@ -21,35 +21,23 @@ function signUp(event){
 function _signUp(email, password){
   var serverUrl = document.location.origin;
   var url = serverUrl + '/event';
+  var requestData = {email: email, password: password};
 
   var request = {
     url: url,
     type: 'POST',
-    dataType: 'json'
+    dataType: 'json',
+    data: requestData
   };
 
   return Bacon.$.ajax(request);
 }
 
-function makeSignUpRequest(email, password){
-  var requestEvent = {email: email, password: password};
-  var jsonEvent = JSON.stringify(requestEvent);
-
-  var serverUrl = document.location.origin;
-  var eventUrl = serverUrl + '/event';
-  var options = {type: 'POST', 
-                 data: jsonEvent, 
-                 dataType: 'json',
-                 url: eventUrl};
-  return options;
-}
-
-
 function signIn(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
 
-  var authCredentials = FsioAPI.signIn(email, password);
+  var authCredentials = FsioAPI.signIn(email, password, false);
 
   var signedInEvents = authCredentials.map(_.js_to_clj)
     .map(addUserInfoToCredentials, email, password)
@@ -88,27 +76,25 @@ function saveNewUserState(state){
   return result;
 }
 
-// function uploadItemToFsio(authCredentials, item){
-//   console.log('upload item:', item);
-//   console.log('credentials:', authCredentials);
-//   var uploadRequest = makeUploadItemRequest(authCredentials, item);
-//   var result = Bacon.$.ajax(uploadRequest);
-//   return result;
-// }
+function uploadItemToFsio(authCredentials, item){
+  console.log('upload item:', item);
+  console.log('credentials:', authCredentials);
+  var uploadRequest = makeUploadItemRequest(authCredentials, item);
+  var result = Bacon.$.ajax(uploadRequest);
+  return result;
+}
 
-// function makeUploadItemRequest(authCredentials, item){
-//   var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
-//   var requestData = item;
-//   var request = {url: url,
-//                  type: 'PUT',
-//                  data: JSON.stringify(requestData),
-//                  headers: {authorization: 'FsioToken ' + authCredentials.token}};
-
-//   return request;
-// }
+function makeUploadItemRequest(authCredentials, item){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
+  var requestData = item;
+  var request = {url: url,
+                 type: 'PUT',
+                 data: JSON.stringify(requestData),
+                 headers: {authorization: 'FsioToken ' + authCredentials.token}};
+   return request;
+}
 
 module.exports = {
   signIn: signIn,
-  signUp: signUp,
-  saveNewUserState: saveNewUserState
+  signUp: signUp
 };

@@ -9,7 +9,7 @@ describe('shared Fsio API', function(){
 
   describe('signing up', function(){
     it('should return success when a new user is created', function(done){
-      var username = "mytestuser@example.com";
+      var username = randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
@@ -23,32 +23,52 @@ describe('shared Fsio API', function(){
       response.onError(function(error){
         throw error;
       });
+
+      response.onEnd(function(){
+        FsioAPI.deleteUser(username, adminUser, adminPass).onEnd();
+      });
     });
 
     it('should return failure if the user already exists', function(done){
-      var username = "mytestuser@example.com";
+      var username = randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
 
-      var response = FsioAPI.signUp(username, password, adminUser, adminPass);
+      var newUser = FsioAPI.signUp(username, password, adminUser, adminPass);
+      var response = newUser.flatMap(function(){
+        return FsioAPI.signUp(username, password, adminUser, adminPass);
+      });
       
       response.onValue(function(value){
+        console.log('val:', value);
         throw value;
       });
 
       response.onError(function(error){
         done();
       });
+
+      response.onEnd(function(){
+        FsioAPI.deleteUser(username, adminUser, adminPass).onEnd();
+      });
     });
   });
 
   describe('signing in', function(){
     it('should sign in as existing user', function(done){
-      var user = "mytestuser@example.com";
-      var pass = "mytestpassword";
+      var username = randomUser();
+      var password = "mytestpassword";
       var isAdmin = false;
-      FsioAPI.signIn(user, pass, isAdmin).onValue(function(credentials){
+
+      var adminUser = process.env.FSIO_USER_NAME;
+      var adminPass = process.env.FSIO_PASSWORD;
+      var newUser = FsioAPI.signUp(username, password, adminUser, adminPass);
+      var response = newUser.flatMap(function(){
+        return FsioAPI.signIn(username, password, isAdmin);
+      });
+
+      response.onValue(function(credentials){
         credentials.download_token.should.exist;
         credentials.token.should.exist;
         credentials.ttl.should.equal(1800);
@@ -68,11 +88,11 @@ describe('shared Fsio API', function(){
     });
 
     it('should sign in as an admin', function(done){
-      var user = process.env.FSIO_USER_NAME;
-      var pass = process.env.FSIO_PASSWORD;
+      var username = process.env.FSIO_USER_NAME;
+      var password = process.env.FSIO_PASSWORD;
       var isAdmin = true;
       
-      FsioAPI.signIn(user, pass, isAdmin).onValue(function(credentials){
+      FsioAPI.signIn(username, password, isAdmin).onValue(function(credentials){
         credentials.download_token.should.exist;
         credentials.token.should.exist;
         credentials.ttl.should.equal(1800);
@@ -84,12 +104,15 @@ describe('shared Fsio API', function(){
 
   describe('delete a user', function(){
     it('should return success when a user is deleted', function(done){
-      var username = "mytestuser@example.com";
+      var username = randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
 
-      var response = FsioAPI.deleteUser(username, adminUser, adminPass);
+      var newUser = FsioAPI.signUp(username, password, adminUser, adminPass);
+      var response = newUser.flatMap(function(){
+        return FsioAPI.deleteUser(username, adminUser, adminPass);
+      });
       
       response.onValue(function(value){
         done();
@@ -102,10 +125,7 @@ describe('shared Fsio API', function(){
   });
 });
 
-function signInAsAdmin(){
-  var user = process.env.FSIO_USER_NAME;
-  var pass = process.env.FSIO_PASSWORD;
-  var isAdmin = true;
-  
-  return FsioAPI.signIn(user, pass, isAdmin);
-};
+function randomUser(){
+  var randomNum = Math.floor(Math.random() * 1000000000);
+  return "testuser" + randomNum + "@example.com";
+}
