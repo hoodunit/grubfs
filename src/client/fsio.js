@@ -62,39 +62,22 @@ function makeSignedInEvent(credentials){
                     'credentials', credentials);
 }
 
+function syncAddItemToServer(email, password, item){
+  return uploadItem(email, password, item);
+}
+
 function saveNewUserState(state){
-  var items = _.clj_to_js(_.get(state, 'items'));
-  var email = _.get_in(state, ['credentials', 'email']);
-  var password = _.get_in(state, ['credentials', 'password']);
-
-  var authCredentials = FsioAPI.signIn(email, password);
-  var result = authCredentials.flatMap(function(authCredentials){
-    console.log('items:', items);
-    return Bacon.fromArray(items).flatMapLatest(uploadItemToFsio, authCredentials);
-  });
-  
-  return result;
+  return Bacon.once();
 }
 
-function uploadItemToFsio(authCredentials, item){
-  console.log('upload item:', item);
-  console.log('credentials:', authCredentials);
-  var uploadRequest = makeUploadItemRequest(authCredentials, item);
-  var result = Bacon.$.ajax(uploadRequest);
-  return result;
-}
-
-function makeUploadItemRequest(authCredentials, item){
-  var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
-  var requestData = item;
-  var request = {url: url,
-                 type: 'PUT',
-                 data: JSON.stringify(requestData),
-                 headers: {authorization: 'FsioToken ' + authCredentials.token}};
-   return request;
+function uploadItem(email, password, item){
+  var filename = 'items/' + item.id;
+  return FsioAPI.uploadFile(email, password, filename, item);
 }
 
 module.exports = {
   signIn: signIn,
-  signUp: signUp
+  signUp: signUp,
+  syncAddItemToServer: syncAddItemToServer,
+  saveNewUserState: saveNewUserState
 };

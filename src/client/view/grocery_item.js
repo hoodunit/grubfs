@@ -26,7 +26,6 @@ var GroceryItem = React.createClass({
   render: function() {
     var name = _.get(this.props.data, 'name');
     var isCompleted = _.get(this.props.data, 'completed');
-    var touched = _.get(this.props.data, 'touched');
 
     var itemClass = 'groceryItem list-group-item';
     if(isCompleted){
@@ -196,8 +195,7 @@ var GroceryItem = React.createClass({
   },
   handleHold: function() {
     var event = _.hash_map('eventType', 'holdItem',
-                           'id', _.get(this.props.data, 'id'),
-                           'touched', _.get(this.props.data, 'touched'));
+                           'id', _.get(this.props.data, 'id'));
 
     outgoingEvents.push(event);
   },

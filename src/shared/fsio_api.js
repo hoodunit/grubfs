@@ -144,8 +144,75 @@ function getUserInfo(username, adminToken){
   return Bacon.$.ajax(request);
 }
 
-function makeAuthorizedRequest(request, adminToken){
-  request.headers = {authorization: 'FsioToken ' + adminToken};
+function uploadFile(username, password, filename, data){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+
+  var fileUpload = token.flatMap(_uploadFile, filename, data);
+  return fileUpload;
+}
+
+function _uploadFile(filename, data, token){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
+  var request = {url: url,
+                 type: 'PUT',
+                 data: JSON.stringify(data)};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
+
+function getFileInfo(username, password, filename){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+
+  var fileInfo = token.flatMap(_getFileInfo, filename);
+  return fileInfo;
+}
+
+function _getFileInfo(filename, token){
+  var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
+
+function downloadFile(username, password, filename){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+
+  var downloadedFile = token.flatMap(_downloadFile, filename).map(JSON.parse);
+  return downloadedFile;
+}
+
+function _downloadFile(filename, token){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
+
+function makeUploadItemRequest(authCredentials, item){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
+  var requestData = item;
+  var request = {url: url,
+                 type: 'PUT',
+                 data: JSON.stringify(requestData),
+                 headers: {authorization: 'FsioToken ' + authCredentials.token}};
+
+  return request;
+}
+
+
+function makeAuthorizedRequest(request, token){
+  request.headers = {authorization: 'FsioToken ' + token};
   return request;
 }
 
@@ -153,6 +220,8 @@ module.exports = {
   signIn: signIn,
   signUp: signUp,
   deleteUser: deleteUser,
+  uploadFile: uploadFile,
+  downloadFile: downloadFile,
   test: {
     hashChallenge: hashChallenge
   }

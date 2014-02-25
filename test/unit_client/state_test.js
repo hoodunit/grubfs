@@ -1,3 +1,6 @@
+/*jshint expr: true*/
+// Keep jshint happy about chai statements
+
 var assert = require('assert');
 var _ = require('mori');
 var State = require('./../../src/client/state.js');
@@ -20,7 +23,6 @@ describe('state', function(){
       assert.equal(_.get(measuredItem,'name'),'a banana');
       assert.equal(_.get(measuredItem,'id'),'4');
       assert.equal(_.get(measuredItem,'completed'),false);
-      assert.equal(_.get(measuredItem,'touched'),false);
 
       //add coffee
       newItem = _.hash_map('id', 7,
@@ -35,7 +37,6 @@ describe('state', function(){
       assert.equal(_.get(measuredItem,'name'),'coffee');
       assert.equal(_.get(measuredItem,'id'),'7');
       assert.equal(_.get(measuredItem,'completed'),false);
-      assert.equal(_.get(measuredItem,'touched'),false);
     });
   });
 
@@ -45,12 +46,10 @@ describe('state', function(){
       var initialState = _.hash_map('items', _.vector(
         _.hash_map('id', 0,
                    'name', '1 packages of tomato puree',
-                   'completed', false,
-                   'touched', false),
+                   'completed', false),
         _.hash_map('id', 1,
                    'name', '2 dl cream',
-                   'completed', false,
-                   'touched', false)));
+                   'completed', false)));
 
       //check off tomato puree
       var newEvent = _.hash_map('id', 0,
@@ -67,12 +66,10 @@ describe('state', function(){
       var initialState = _.hash_map('items', _.vector(
         _.hash_map('id', 0,
                    'name', '1 packages of tomato puree',
-                   'completed', true,
-                   'touched', false),
+                   'completed', true),
         _.hash_map('id', 1,
                    'name', '2 dl cream',
-                   'completed', true,
-                   'touched', false)));
+                   'completed', true)));
 
       //uncheck cream
       var newEvent = _.hash_map('id', 1,
@@ -101,64 +98,15 @@ describe('state', function(){
   });
 
 
-  describe('handleHoldItem', function(){
-    it('should switch touch status of items from false to true', function(){
-      var initialState = _.hash_map('items', _.vector(
-        _.hash_map('id', 0,
-                   'name', '1 packages of tomato puree',
-                   'completed', true,
-                   'touched', false),
-        _.hash_map('id', 1,
-                   'name', '2 dl cream',
-                   'completed', true,
-                   'touched', false)));
-      //touch the puree
-      var newState = State.handleHoldItem(initialState, _.hash_map('id',0));
-      
-      //assert
-      var measuredItem = _.nth(_.get(newState,'items'),0);
-      assert.equal(_.get(measuredItem,'touched'),true);
-      measuredItem = _.nth(_.get(newState,'items'),1);
-      assert.equal(_.get(measuredItem,'touched'),false);
-    });
-
-    it('should switch touch status of items from true to false', function(){
-
-      var initialState = _.hash_map('items', _.vector(
-        _.hash_map('id', 0,
-                   'name', '1 packages of tomato puree',
-                   'completed', true,
-                   'touched', false),
-        _.hash_map('id', 1,
-                   'name', '2 dl cream',
-                   'completed', true,
-                   'touched', true)));
-
-
-      //touch the cream
-      var newState = State.handleHoldItem(initialState, _.hash_map('id',1));
-      
-      //assert
-      var measuredItem = _.nth(_.get(newState,'items'),0);
-      assert.equal(_.get(measuredItem,'touched'),false);
-      measuredItem = _.nth(_.get(newState,'items'),1);
-      assert.equal(_.get(measuredItem,'touched'),false);
-    });
-  });
-
-
-
   describe('handleDeleteItem', function(){
     it('should remove items', function(){
       var initialState = _.hash_map('items', _.vector(
         _.hash_map('id', 0,
                    'name', '1 packages of tomato puree',
-                   'completed', true,
-                   'touched', false),
+                   'completed', true),
         _.hash_map('id', 1,
                    'name', '2 dl cream',
-                   'completed', true,
-                   'touched', true)));
+                   'completed', true)));
 
       //remove cream
       var newEvent = _.hash_map('id',1);
@@ -177,12 +125,10 @@ describe('state', function(){
       var initialState = _.hash_map('items', _.vector(
         _.hash_map('id', 0,
                    'name', '1 packages of tomato puree',
-                   'completed', true,
-                   'touched', false),
+                   'completed', true),
         _.hash_map('id', 1,
                    'name', '2 dl cream',
-                   'completed', true,
-                   'touched', true)));
+                   'completed', true)));
 
       //edit cream to vanilla cream
       var newEvent = _.hash_map('id',1,'name','2 dl of vanilla cream');
