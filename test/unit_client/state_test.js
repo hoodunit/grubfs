@@ -1,3 +1,6 @@
+/*jshint expr: true*/
+// Keep jshint happy about chai statements
+
 var assert = require('assert');
 var _ = require('mori');
 var State = require('./../../src/client/state.js');

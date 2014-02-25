@@ -1,3 +1,6 @@
+/*jshint expr: true*/
+// Keep jshint happy about chai statements
+
 var chai = require('chai');
 chai.should();
 var _ = require('mori');
@@ -45,8 +48,7 @@ describe('Fsio', function(){
       var response = Fsio.saveNewUserState(state);
 
       response.onError(function(error){
-        console.log('error:', error);
-        throw error;
+        error.should.not.exist;
       });
 
       response.onEnd(function(result){
@@ -81,8 +83,7 @@ describe('Fsio', function(){
       var response = Fsio.syncAddItemToServer(username, password, item);
 
       response.onError(function(error){
-        console.log('error:', error);
-        throw error;
+        error.should.not.exist;
       });
 
       response.onEnd(function(result){

@@ -1,5 +1,7 @@
+/*jshint expr: true*/
+// Keep jshint happy about chai statements
+
 var chai = require('chai');
-var assert = chai.assert;
 chai.should();
 
 var FsioAPI = require('../../src/shared/fsio_api.js');
@@ -16,17 +18,13 @@ describe('shared Fsio API', function(){
       var adminPass = process.env.FSIO_PASSWORD;
 
       var response = FsioAPI.signUp(username, password, adminUser, adminPass);
-      
-      response.onValue(function(value){
-        done();
-      });
 
       response.onError(function(error){
-        throw error;
+        error.should.not.exist;
       });
 
       response.onEnd(function(){
-        FsioAPI.deleteUser(username, adminUser, adminPass).onEnd();
+        FsioAPI.deleteUser(username, adminUser, adminPass).onEnd(done);
       });
     });
 
@@ -42,8 +40,7 @@ describe('shared Fsio API', function(){
       });
       
       response.onValue(function(value){
-        console.log('val:', value);
-        throw value;
+        value.should.not.exist;
       });
 
       response.onError(function(error){
@@ -120,7 +117,7 @@ describe('shared Fsio API', function(){
       });
 
       response.onError(function(error){
-        throw error;
+        error.should.not.exist;
       });
     });
   });
@@ -161,7 +158,7 @@ describe('shared Fsio API', function(){
     
       // Delay by one second to allow time for file scanning on FSIO
       // Else may return error "File scanning incomplete"
-      var downloadedFile = uploadedFileInfo.delay(1000).flatMap(FsioAPI.downloadFile, username, 
+      var downloadedFile = uploadedFileInfo.delay(1500).flatMap(FsioAPI.downloadFile, username, 
                                                                 password, filename);
 
       downloadedFile.onValue(function(downloadedFileData){
