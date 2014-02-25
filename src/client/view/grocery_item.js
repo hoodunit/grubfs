@@ -9,7 +9,8 @@ var GroceryItem = React.createClass({
       dist : 0,
       tapped : false,
       pressTimer : null,
-      editing: false
+      editing: false,
+      mouseover: false
     };
   },
   componentDidUpdate: function(prevProps, prevState, rootNode){
@@ -42,11 +43,13 @@ var GroceryItem = React.createClass({
                           onTouchMove: this.handleTouchMove,
                           onMouseDown: this.handleMouseDown,
                           onMouseLeave: this.handleMouseLeave,
-                          onMouseUp: this.handleMouseUp},
+                          onMouseUp: this.handleMouseUp,
+                          onMouseEnter: this.handleMouseEnter},
 
                          this.getText(isCompleted, name, this.state.editing),
                          this.getDeleteButton(this.state.editing),
-                         this.getItemInput(this.state.editing));
+                         this.getItemInput(this.state.editing),
+                         this.getEditButton(this.state.editing, this.state.mouseover));
   },
   getCheckbox: function(isCompleted){
     return React.DOM.input({
@@ -55,6 +58,9 @@ var GroceryItem = React.createClass({
       onClick: this.handleCompletedClick
     });
   },
+  noProp: function(event) {
+    event.stopPropagation();
+  },
   getDeleteButton: function(editing){
     var baseClass = 'del-btn glyphicon glyphicon-remove';
     var delBtnClass = editing ? baseClass : baseClass + ' display-none';
@@ -62,6 +68,19 @@ var GroceryItem = React.createClass({
       className: delBtnClass,
       onClick: this.handleDeleteClick,
       ref: 'delbtn'
+    });
+    return icon;
+  },
+
+  getEditButton: function(editing, mouseover) {
+    var baseClass = 'del-btn glyphicon glyphicon-edit pull-right';
+    var editBtnClass = (!editing && mouseover) ? baseClass: baseClass + ' display-none';
+    var icon = React.DOM.span({
+      className: editBtnClass,
+      onClick: this.setEditing,
+      onMouseUp: this.noProp,
+      onMouseDown: this.noProp,
+      ref: 'editbtn'
     });
     return icon;
   },
@@ -89,7 +108,8 @@ var GroceryItem = React.createClass({
     clearTimeout(this.state.pressTimer);
     this.setState({
       dist: 0,
-      tapped: false
+      tapped: false,
+      mouseover: false
     });
   }, 
   handleMouseDown: function(event){
@@ -214,7 +234,12 @@ var GroceryItem = React.createClass({
   },
   enterWasPressed: function(event){
     return (event.keyCode === 13);
+  },
+  handleMouseEnter: function(event){
+    if (!this.state.editing)
+      this.setState({mouseover: true});
   }
+
 });
 
 var outgoingEvents = new Bacon.Bus();
