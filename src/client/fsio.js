@@ -62,11 +62,7 @@ function makeSignedInEvent(credentials){
                     'credentials', credentials);
 }
 
-function syncAddItemToServer(email, password, item){
-  return uploadItem(email, password, item);
-}
-
-function syncCompletedItemToServer(email, password, item){
+function syncItemToServer(email, password, item){
   return uploadItem(email, password, item);
 }
 
@@ -82,7 +78,6 @@ function uploadItem(email, password, item){
 module.exports = {
   signIn: signIn,
   signUp: signUp,
-  syncAddItemToServer: syncAddItemToServer,
-  syncCompletedItemToServer: syncCompletedItemToServer,
+  syncItemToServer: syncItemToServer,
   saveNewUserState: saveNewUserState
 };

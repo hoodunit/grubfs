@@ -57,7 +57,7 @@ describe('Fsio', function(){
     });
   });
 
-  describe('syncAddItemToServer', function(){
+  describe('Sync adding items to server', function(){
     var username;
     var password;
 
@@ -75,14 +75,14 @@ describe('Fsio', function(){
       });
     });
 
-    it('should upload items with syncAddItemToServer()', function(done){
+    it('should upload items with syncItemToServer()', function(done){
 
       var item = {id: 'item1',
                   completed: false,
                   name: 'pizza'};
       var filename = 'items/item1';
       
-      var result = Fsio.syncAddItemToServer(username, password, item);
+      var result = Fsio.syncItemToServer(username, password, item);
 
       downloadedFile = result.delay(500).flatMap(FsioAPI.downloadFile, username, 
                                                                 password, filename);
@@ -99,7 +99,7 @@ describe('Fsio', function(){
     });
   });
 
-  describe('syncCompleteItemToServer', function(){
+  describe('Sync updated items to server', function(){
     var username;
     var password;
 
@@ -117,7 +117,7 @@ describe('Fsio', function(){
       });
     });
 
-    it('should sync completed items with syncCompleteItemToServer()', function(done){
+    it('should sync completed or edited items to server with syncItemToServer()', function(done){
   
       //upload file to server
       var filename = 'items/item11';
@@ -132,9 +132,27 @@ describe('Fsio', function(){
         error.should.not.exist;
       });
       
-      //update file
+      //complete item
       fileData.completed = true;
-      uploadedFile = Fsio.syncCompletedItemToServer(username, password, fileData);
+      uploadedFile = Fsio.syncItemToServer(username, password, fileData);
+
+      uploadedFile.onError(function(error){
+        error.should.not.exist;
+      });
+
+      downloadedFile = uploadedFile.delay(500).flatMap(FsioAPI.downloadFile, username, 
+                                                                password, filename);
+
+      downloadedFile.onValue(function(downloadedFileData){
+        downloadedFileData.should.deep.equal(fileData);
+      });
+      downloadedFile.onError(function(error){
+        error.should.not.exist;
+      });
+
+      //edit item name
+      fileData.name = 'chicken breast';
+      uploadedFile = Fsio.syncItemToServer(username, password, fileData);
 
       uploadedFile.onError(function(error){
         error.should.not.exist;
