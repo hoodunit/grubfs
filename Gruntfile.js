@@ -22,13 +22,7 @@ module.exports = function(grunt) {
         files: {
           'public/js/client.js': ['src/client/*.js']
         }
-      },
-      tests: {
-        src: [ 'test/unit_client/**/*.js' ],
-        dest: './test/generated/browserified_tests.js',
-        options: {
-          debug: true
-        }}
+      }
     },
     dalek: {
       options: {
@@ -44,21 +38,12 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js'],
-      }
-    },
-    mocha_phantomjs: {
-      all: {
-        options: {
-          urls: [
-            './test/index.html'
-          ]
-        }
+        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js', 'test/unit_client/**/*.js']
       }
     },
     exec: {
       coverage: {
-        command: "istanbul cover node_modules/mocha/bin/_mocha test/unit_client test/unit_shared -- -R spec",
+        command: "istanbul cover node_modules/mocha/bin/_mocha test/unit_client test/unit_shared test/unit_client/**/*.js -- -R spec",
         stdout: true
       }
     },
@@ -68,7 +53,7 @@ module.exports = function(grunt) {
                 'test/unit_server/**/*.js',
                 'test/unit_client/**/*.js',
                 'test/end_to_end/**/*.js'],
-        tasks: ['jshint', 'browserify', 'unitTestsServer', 'unitTestsClient'],
+        tasks: ['jshint', 'browserify', 'unitTests'],
         options: {
           spawn: false
         }}},
@@ -81,13 +66,11 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-dalek');
-  grunt.loadNpmTasks('grunt-mocha-phantomjs');
 
-  grunt.registerTask('unitTestsServer', ['mochaTest']);
-  grunt.registerTask('unitTestsClient', ['mocha_phantomjs']);
+  grunt.registerTask('unitTests', ['mochaTest']);
   grunt.registerTask('endToEndTests', ['dalek']);
   grunt.registerTask('coverage', ['exec:coverage']);
 
-  grunt.registerTask('default', ['browserify', 'jshint', 'unitTestsServer', 'unitTestsClient']);
+  grunt.registerTask('default', ['browserify', 'jshint', 'unitTests']);
 
 };

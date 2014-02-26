@@ -40,7 +40,6 @@
     "dalek-browser-chrome": "0.0.9",
     "grunt-dalek": "~0.2.0",
     "grunt-mocha-test": "~0.8.2",
-    "grunt-mocha-phantomjs": "~0.3.1",
     "mocha": "~1.17.1",
     "chai": "~1.9.0",
     "grunt-exec": "^0.4.5"
