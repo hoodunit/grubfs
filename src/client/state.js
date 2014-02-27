@@ -60,7 +60,7 @@ function handleAddItem(oldState, event){
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
 
-  if (signedIn){
+  if (signedIn(newState)){
     var email = _.get_in(newState, ['credentials', 'email']);
     var password = _.get_in(newState, ['credentials', 'password']);
     newItem = _.clj_to_js(newItem);
@@ -85,7 +85,7 @@ function handleCompleteItem(oldState, event){
 
   var updatedItem = getItemById(items, id);
 
-  if(signedIn){
+  if(signedIn(newState)){
     var email = _.get_in(newState, ['credentials', 'email']);
     var password = _.get_in(newState, ['credentials', 'password']);
     updatedItem = _.clj_to_js(updatedItem);
@@ -95,7 +95,8 @@ function handleCompleteItem(oldState, event){
   return newState;
 }
 
-function handleEmptyList() {
+function handleEmptyList(oldState, event) {
+  var newState = _.assoc(oldState, 'items', _.vector());
   return _.hash_map('items', _.vector());
 }
 
@@ -126,7 +127,7 @@ function handleUpdateItem(oldState, event) {
   
   var updatedItem = getItemById(items, id);
 
-  if(signedIn){
+  if(signedIn(newState)){
     var email = _.get_in(newState, ['credentials', 'email']);
     var password = _.get_in(newState, ['credentials', 'password']);
     updatedItem = _.clj_to_js(updatedItem);
