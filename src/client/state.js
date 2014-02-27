@@ -83,11 +83,7 @@ function handleCompleteItem(oldState, event){
   }, items);
   var newState = _.assoc(oldState, 'items', updatedItems);
 
-  var updatedItem = _.filter(function(item){
-    if(_.get(item, 'id') == id){
-      return item;
-    }
-  }, items);
+  var updatedItem = getItemById(items, id);
 
   if(signedIn){
     var email = _.get_in(newState, ['credentials', 'email']);
@@ -108,8 +104,8 @@ function handleDeleteItem(oldState, event) {
   var items = _.get(oldState, 'items');
 
   var updatedItems = _.remove(function(item) {
-    return _.get(item, 'id') == id;},
-    items);
+    return _.get(item, 'id') === id;
+  }, items);
 
   var newState = _.assoc(oldState, 'items', updatedItems);
   return newState;
@@ -127,12 +123,8 @@ function handleUpdateItem(oldState, event) {
     }
   }, items);
   var newState = _.assoc(oldState, 'items', updatedItems);
-
-  var updatedItem = _.filter(function(item){
-    if(_.get(item, 'id') == id){
-      return item;
-    }
-  }, items);
+  
+  var updatedItem = getItemById(items, id);
 
   if(signedIn){
     var email = _.get_in(newState, ['credentials', 'email']);
@@ -162,6 +154,12 @@ function handleSignedIn(oldState, event){
 function handleSignOut(oldState, event){
   var newState = _.dissoc(oldState, 'credentials');
   return newState;
+}
+
+function getItemById(items, id){
+  return _.first(_.filter(function(item){
+    return (_.get(item, 'id') === id);
+  }, items));
 }
 
 function getEventHandler(event){
