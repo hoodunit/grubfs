@@ -174,4 +174,53 @@ describe('shared Fsio API', function(){
       });
     });
   });
+
+  describe('delete file', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should delete a file from the server', function(done){
+      var filename = 'items/item2'
+      var fileData = {id: 'item2',
+                      completed: false,
+                      name: 'item'};
+      var fileKey = '/me/files/items/item2';
+      
+      var uploadedFileInfo = FsioAPI.uploadFile(username, password, filename, fileData);
+
+      uploadedFileInfo.onValue(function(uploadedFileData){
+        uploadedFileData.object_type.should.exist;
+        uploadedFileData.sha256.should.exist;
+        uploadedFileData.version_id.should.exist;
+        uploadedFileData.key.should.equal(fileKey);
+      });
+    
+      var deletedFileInfo = FsioAPI.deleteFile(username, password, filename);
+ 
+      var downloadedFileInfo = deletedFileInfo.delay(1500).flatMap(FsioAPI.downloadFile, username, 
+                                                                password, filename);
+
+      downloadedFileInfo.onError(function(error){
+        error.should.not.deep.equal(fileData);
+      });
+      
+      downloadedFileInfo.onEnd(function(){ 
+        done();
+      });
+    });
+  });
 });

@@ -199,6 +199,23 @@ function _downloadFile(filename, token){
   return Bacon.$.ajax(authRequest);
 }
 
+function deleteFile(username, password, filename){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+  var deletedFile = token.flatMap(_deleteFile, filename);
+  
+  return deletedFile;
+}
+
+function _deleteFile(filename, token){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
+  var request = {url: url,
+                 type: 'DELETE',
+                 headers: {authorization: 'FsioToken ' + token,
+                           'content-length': 0}};
+}
+
 function makeUploadItemRequest(authCredentials, item){
   var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
   var requestData = item;
@@ -222,6 +239,7 @@ module.exports = {
   deleteUser: deleteUser,
   uploadFile: uploadFile,
   downloadFile: downloadFile,
+  deleteFile: deleteFile,
   test: {
     hashChallenge: hashChallenge
   }

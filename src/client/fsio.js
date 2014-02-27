@@ -66,6 +66,10 @@ function syncItemToServer(email, password, item){
   return uploadItem(email, password, item);
 }
 
+function syncRemoveItemToServer(email, password, item){
+  return deleteItem(email, password, item);
+}
+
 function saveNewUserState(state){
   var items = _.clj_to_js(_.get(state, 'items'));
   var email = _.get_in(state, ['credentials', 'email']);
@@ -81,9 +85,15 @@ function uploadItem(email, password, item){
   return FsioAPI.uploadFile(email, password, filename, item);
 }
 
+function deleteItem(email, password, item){
+  var filename = 'items/' + item.id;
+  return FsioAPI.deleteFile(email, password, filename);
+}
+
 module.exports = {
   signIn: signIn,
   signUp: signUp,
   syncItemToServer: syncItemToServer,
+  syncRemoveItemToServer: syncRemoveItemToServer,
   saveNewUserState: saveNewUserState
 };

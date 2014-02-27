@@ -112,6 +112,20 @@ function handleDeleteItem(oldState, event) {
     items);
 
   var newState = _.assoc(oldState, 'items', updatedItems);
+
+  var deletedItem = _.filter(function(item){
+    if(_.get(item, 'id') == id){
+      return item;
+    }
+  }, items);
+
+  if(signedIn){
+    var email = _.get_in(newState, ['credentials', 'email']);
+    var password = _.get_in(newState, ['credentials', 'password']);
+    deletedItem = _.clj_to_js(deletedItem);
+    Fsio.syncRemoveItemToServer(email, password, deletedItem).onEnd();
+  }
+
   return newState;
 }
 
