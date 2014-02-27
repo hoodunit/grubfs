@@ -174,4 +174,64 @@ describe('shared Fsio API', function(){
       });
     });
   });
+
+  describe('delete file', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should delete a directory from the server', function(done){
+      var dirName = 'items';
+      var fileName = dirName + '/testfileid';
+      var fileData = {id: 'testfileid',
+                      completed: false,
+                      name: 'test item'};
+      var fileKey = '/me/files/items/testfileid';
+      
+      var uploadedFileInfo = FsioAPI.uploadFile(username, password, fileName, fileData);
+
+      uploadedFileInfo.onValue(function(uploadedFileData){
+        uploadedFileData.object_type.should.exist;
+        uploadedFileData.sha256.should.exist;
+        uploadedFileData.version_id.should.exist;
+        uploadedFileData.key.should.equal(fileKey);
+      });
+    
+      var deletedDir = uploadedFileInfo.delay(1000).flatMap(FsioAPI.deleteFile, username, 
+                                                     password, dirName);
+
+      deletedDir.onError(function(error){
+        error.should.not.exist;
+      });
+      
+      var downloadedFile = deletedDir.delay(1000).
+        flatMap(FsioAPI.downloadFile, username, password, fileName);
+
+      downloadedFile.onValue(function(file){ 
+        file.should.not.exist;
+      });
+
+      downloadedFile.onError(function(error){ 
+        var objectNotFoundStatus = 404;
+        error.status.should.equal(objectNotFoundStatus);
+      });
+      
+      downloadedFile.onEnd(function(){ 
+        done();
+      });
+    });
+  });
 });

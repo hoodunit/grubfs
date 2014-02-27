@@ -97,6 +97,13 @@ function handleCompleteItem(oldState, event){
 
 function handleEmptyList(oldState, event) {
   var newState = _.assoc(oldState, 'items', _.vector());
+  
+  if (signedIn(newState)){
+    var email = _.get_in(newState, ['credentials', 'email']);
+    var password = _.get_in(newState, ['credentials', 'password']);
+    Fsio.clearItems(email, password).onEnd();
+  }
+
   return _.hash_map('items', _.vector());
 }
 
@@ -199,6 +206,7 @@ function handleStateChanges(initialState, events){
 function signedIn(state){
   return _.get(state, 'credentials') !== null;
 }
+
 
 module.exports = {
   handleStateChanges: handleStateChanges,

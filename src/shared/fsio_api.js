@@ -210,9 +210,28 @@ function makeUploadItemRequest(authCredentials, item){
   return request;
 }
 
+function deleteFile(username, password, filename){
+  var isAdmin = false;
+  var credentials = signIn(username, password, isAdmin);
+  var token = credentials.map('.token');
+
+  var deletedFileInfo = token.flatMap(_deleteFile, filename);
+  return deletedFileInfo;
+}
+
+function _deleteFile(filename, token){
+  var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
+  var request = {url: url + '?recursive=true',
+                 type: 'DELETE',
+                 headers: {'content-length': 0}};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
 
 function makeAuthorizedRequest(request, token){
-  request.headers = {authorization: 'FsioToken ' + token};
+  if(!request.headers) request.headers = {};
+  request.headers.authorization = 'FsioToken ' + token;
   return request;
 }
 
@@ -222,6 +241,7 @@ module.exports = {
   deleteUser: deleteUser,
   uploadFile: uploadFile,
   downloadFile: downloadFile,
+  deleteFile: deleteFile,
   test: {
     hashChallenge: hashChallenge
   }
