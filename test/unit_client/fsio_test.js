@@ -57,7 +57,7 @@ describe('Fsio', function(){
     });
   });
 
-  describe('Sync adding items to server', function(){
+  describe('Sync added items to server', function(){
     var username;
     var password;
 
@@ -117,7 +117,8 @@ describe('Fsio', function(){
       });
     });
 
-    it('should sync completed or edited items to server with syncItemToServer()', function(done){
+    it('should sync completed or edited items to server', function(done){
+      this.timeout(3000);
   
       //upload file to server
       var filename = 'items/item11';
