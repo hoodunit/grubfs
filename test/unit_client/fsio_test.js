@@ -10,6 +10,8 @@ var FsioAPI = require('../../src/shared/fsio_api.js');
 var Util = require('../util/util');
 
 describe('Fsio', function(){
+  this.timeout(5000);
+
   describe('saveNewUserState', function(){
     var username;
     var password;
@@ -118,8 +120,6 @@ describe('Fsio', function(){
     });
 
     it('should sync completed or edited items to server', function(done){
-      this.timeout(3000);
-  
       //upload file to server
       var filename = 'items/item11';
       var fileData = {id: 'item11',
