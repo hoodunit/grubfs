@@ -147,6 +147,7 @@ function handleUpdateItem(oldState, event) {
 function handleSignedUp(oldState, event){
   var newState = handleSignedIn(oldState, event);
 
+  // force lazy stream to evaluate using onEnd
   Fsio.saveNewUserState(newState).onEnd();
   
   return newState;
