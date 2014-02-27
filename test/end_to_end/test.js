@@ -121,10 +121,39 @@ function testDeleteItem(page) {
   .done();
 }
 
+function testEditItem(page) {
+  page
+  .open(baseUrl)
+  .execute(function() {
+    localStorage.clear();
+  })
+  .reload()
+  .waitForElement('.groceryItem')
+  .assert.text('.groceryItem', '2 dl cream', 'the first has the right name')
+
+  .execute(function() {
+    var item = document.getElementsByClassName('pull-right')[0];
+    var dispatchMouseEvent = function(target, var_args) {
+      var e = document.createEvent("MouseEvents");
+      console.log("toimii");
+      e.initEvent.apply(e, Array.prototype.slice.call(arguments, 1));
+      target.dispatchEvent(e);    
+    };
+    dispatchMouseEvent(item, 'click', true, true);
+  })
+  .wait(1000)
+  .waitForElement('.groceryItem')
+  .type('.itemInput', 'bifteck aux pommes frites')
+  .sendKeys('body', '\uE007') //007!
+  .assert.text('.groceryItem', 'bifteck aux pommes frites', 'text edit works correctly')
+  .done();
+  }
+
 module.exports = {
   'list can be cleared and a new item added': clearNAdd,
   'State is persisted in localStorage': localStorage,
   'User can sign up with a new email address': testSignUp,
   'User can sign in with an existing email address': testSignIn,
-  'User can delete a grocery item': testDeleteItem
+  'User can delete a grocery item': testDeleteItem,
+  'User can edit a grocery item (desktop)': testEditItem
 };
