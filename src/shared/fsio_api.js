@@ -207,7 +207,7 @@ function downloadFileFromList(credentials, fileList) {
       if(!fileStreams) {
         fileStreams = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
       } else {
-        fileStreams.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
+        fileStreams = fileStreams.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
       }
   });
   return fileStreams;
