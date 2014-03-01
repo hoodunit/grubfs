@@ -36,7 +36,7 @@ function initialize(){
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
 
-  var stateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents);
+  var stateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, State.outgoingEvents);
   var changedStates = State.handleStateChanges(initialState, stateEvents);
 
   changedStates.onValue(render);

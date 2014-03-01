@@ -155,8 +155,50 @@ function handleSignedUp(oldState, event){
 function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
   var newState = _.assoc(oldState, 'credentials', credentials);
+
+  triggerDownloadAllFilesEvent(credentials);
   
   return newState;
+}
+
+function triggerDownloadAllFilesEvent(credentials) {
+  /*
+  var event = _.hash_map('eventType', 'downloadAllFiles', 
+                         'credentials', credentials);
+  outgoingEvents.push(event);*/
+  var fileList = Fsio.downloadFileList(credentials);
+  fileList.onValue(downloadItemFromList, credentials);
+}
+
+function handleDownloadAllFilesEvent(oldState, event) {
+  var credentials = _.get(event, 'credentials');
+  //var fileList = Fsio.downloadFileList(credentials);
+  //var filesFromList = fileList.map(downloadItemFromList, credentials);
+  //fileList.onValue(downloadItemFromList, credentials);
+}
+
+function downloadItemFromList(credentials, fileList) {
+  var allFiles = Fsio.downloadFileFromList(credentials, fileList);
+  var initialState = getInitialState();
+  var newState = initialState;
+  allFiles.onValue(function(item) {
+      console.log(item);
+    var isNew = true;
+    var downloadedItem = _.js_to_clj(item);
+    var newItem = _.hash_map('id', _.get(downloadedItem, 'id'),
+                            'name', _.get(downloadedItem, 'name'),
+                            'completed', _.get(downloadedItem, 'completed'));
+    var oldItems = _.get(initialState, 'items');
+    _.each(oldItems, function(oldItem) {
+        if(_.get(oldItem, "id") == _.get(newItem, "id")) {
+            isNew = false;
+        }
+    });
+    if(isNew) {
+      var newItems = _.conj(oldItems, newItem);
+      newState = _.assoc(initialState, 'items', newItems);
+    }
+  });
 }
 
 function handleSignOut(oldState, event){
@@ -172,7 +214,8 @@ function getEventHandler(event){
                                  'updateItem', handleUpdateItem,
                                  'signedUp', handleSignedUp,
                                  'signedIn', handleSignedIn,
-                                 'signOut', handleSignOut);
+                                 'signOut', handleSignOut,
+                                 'downloadAllFiles', handleDownloadAllFilesEvent);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -201,6 +244,8 @@ function signedIn(state){
   return _.get(state, 'credentials') !== null;
 }
 
+var outgoingEvents = new Bacon.Bus();
+
 module.exports = {
   handleStateChanges: handleStateChanges,
   getInitialState: getInitialState,
@@ -210,5 +255,6 @@ module.exports = {
   handleEmptyList: handleEmptyList,
   handleDeleteItem: handleDeleteItem,
   handleUpdateItem: handleUpdateItem,
-  updateStateFromEvent: updateStateFromEvent
+  updateStateFromEvent: updateStateFromEvent,
+  outgoingEvents: outgoingEvents
 };

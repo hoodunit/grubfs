@@ -75,9 +75,19 @@ function uploadItem(email, password, item){
   return FsioAPI.uploadFile(email, password, filename, item);
 }
 
+function downloadFileList(credentials) {
+  return FsioAPI.downloadFileList(credentials);
+}
+
+function downloadFileFromList(credentials, fileList) {
+  return FsioAPI.downloadFileFromList(credentials, fileList);
+}
+
 module.exports = {
   signIn: signIn,
   signUp: signUp,
   syncItemToServer: syncItemToServer,
-  saveNewUserState: saveNewUserState
+  saveNewUserState: saveNewUserState,
+  downloadFileList: downloadFileList,
+  downloadFileFromList: downloadFileFromList
 };
