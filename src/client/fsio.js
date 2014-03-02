@@ -67,7 +67,13 @@ function syncItemToServer(email, password, item){
 }
 
 function saveNewUserState(state){
-  return Bacon.once();
+  var items = _.clj_to_js(_.get(state, 'items'));
+  var email = _.get_in(state, ['credentials', 'email']);
+  var password = _.get_in(state, ['credentials', 'password']);
+
+  var result = Bacon.fromArray(items).flatMapLatest(uploadItem, email, password);
+
+  return result;
 }
 
 function uploadItem(email, password, item){

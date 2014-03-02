@@ -41,6 +41,10 @@
     color: #ffffff;
 }
 
+.groceryItem:hover {
+    background-color: #fbfbfb;
+}
+
 .groceryItem input {
     margin: 0;
     padding: 0;
@@ -48,7 +52,6 @@
     border: none;
     color: #5c5c5c;
     background-color: inherit;
-    width: 100%;
     outline: none;
 }
 
