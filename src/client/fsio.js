@@ -82,7 +82,12 @@ function uploadItem(email, password, item){
 }
 
 function downloadFileList(signedInEvents) {
-  return FsioAPI.downloadFileList(signedInEvents);
+  var fileStream = FsioAPI.downloadFileList(signedInEvents);
+  return fileStream.map(makeDownloadedEvent);
+}
+
+function makeDownloadedEvent(file) {
+    return _.hash_map("item", _.js_to_clj(file));
 }
 
 module.exports = {

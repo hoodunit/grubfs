@@ -202,8 +202,6 @@ function downloadFileList(signedInEvents){
   var token = credentials.map('.token');
 
   var items = token.flatMap(listFolderItems).map(".items");
-                   /*.map(".items")
-                   .map(downloadFileFromList, token, signedInEvents);*/
   var folderItemStream = Bacon.combineTemplate({
     token: token,
     items: items
@@ -225,19 +223,20 @@ function downloadFileFromList(folderItemStream) {
   //var token = _.get(credentials, "token");
   var fileList = _.js_to_clj(folderItemStream.items);
   var token = folderItemStream.token;
-  var items = _.vector();
+  var fileStream = null;
   _.each(_.js_to_clj(fileList), function(item) {
       var filename = _.get(item, "full_name");
       //var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
       //var request = {url: url,
                      //type: 'GET'};
       /*var authRequest = makeAuthorizedRequest(request, token);*/
-      var file = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
-      //file =Bacon.$.ajax(authRequest);
-      _.conj(items, file);
+      if(!fileStream) {
+        fileStream = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
+      } else {
+        fileStream.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
+      }
   });
-  var downloadAllFilesEvent = _.hash_map("items", items);
-  return downloadAllFilesEvent;
+  return fileStream;
 }
 
 function _downloadFile(filename, token){
