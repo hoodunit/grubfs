@@ -15,6 +15,10 @@ function isEventType(eventType, event){
   return _.equals(_.get(event, 'eventType'), eventType);
 }
 
+function combineSignInAndDownload(signedInData, downloadedData) {
+    return _.conj(signedInData, downloadedData);
+}
+
 function handleSignUpEvents(events){
   var signUpEvents = events.filter(isEventType, 'signUp');
   var signedUpEvents = signUpEvents.flatMap(Fsio.signUp);
@@ -24,7 +28,11 @@ function handleSignUpEvents(events){
 function handleSignInEvents(events){
   var signInEvents = events.filter(isEventType, 'signIn');
   var signedInEvents = signInEvents.flatMap(Fsio.signIn);
-  return signedInEvents;
+  var downloadAllFilesEvent = signedInEvents.flatMap(Fsio.downloadFileList);
+  var signInAndDownloadEvent = Bacon.combineWith(combineSignInAndDownload,
+                                                 signedInEvents,
+                                                 downloadAllFilesEvent).changes();
+  return signInAndDownloadEvent;
 }
 
 function initialize(){

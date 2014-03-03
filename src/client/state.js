@@ -155,20 +155,26 @@ function handleSignedUp(oldState, event){
 
 function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
-  var newState = _.assoc(oldState, 'credentials', credentials);
+  var items = _.get(event, 'items');
+  console.log(event);
+  var newState;
+  if(items) {
+    newState = _.assoc(oldState, 'credentials', credentials, "items", items);
+  } else {
+    newState = _.assoc(oldState, 'credentials', credentials);
+  }
 
-  triggerDownloadAllFilesEvent(credentials);
+  //triggerDownloadAllFilesEvent(credentials);
   
   return newState;
 }
 
 function triggerDownloadAllFilesEvent(credentials) {
-  /*
   var event = _.hash_map('eventType', 'downloadAllFiles', 
                          'credentials', credentials);
-  outgoingEvents.push(event);*/
-  var fileList = Fsio.downloadFileList(credentials);
-  fileList.onValue(downloadItemFromList, credentials);
+  outgoingEvents.push(event);
+  //var fileList = Fsio.downloadFileList(credentials);
+  //fileList.onValue(downloadItemFromList, credentials);
 }
 
 function handleDownloadAllFilesEvent(oldState, event) {
