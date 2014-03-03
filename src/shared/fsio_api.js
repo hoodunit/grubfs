@@ -13,6 +13,15 @@ var constants = {
   CRAM_CHALLENGE_RESP_ADMIN_URL: '/token/cram/admin_l2'
 };
 
+function signUp(username, password, adminUser, adminPass){
+  var isAdmin = true;
+  var adminCreds = signIn(adminUser, adminPass, isAdmin);
+  var adminToken = adminCreds.map('.token');
+  var newUserStatus = createUser(adminToken, username, password);
+
+  return newUserStatus;
+}
+
 function signIn(email, password, isAdmin){
   var challenge = requestAuthorizationChallenge(email);
   var challengeResponse = challenge.map(hashChallenge, password);
@@ -33,6 +42,13 @@ function requestAuthorizationChallenge(email){
   return response.map('.challenge');
 }
 
+function hashChallenge(password, challenge){
+  var shaObj = new jsSHA(challenge, "B64");
+  var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
+
+  return hmac;
+}
+
 function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
   var respUrl;
   if(isAdmin){
@@ -50,22 +66,6 @@ function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
                  type: 'POST',
                  data: JSON.stringify(requestData)};
   return request;
-}
-
-function hashChallenge(password, challenge){
-  var shaObj = new jsSHA(challenge, "B64");
-  var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
-
-  return hmac;
-}
-
-function signUp(username, password, adminUser, adminPass){
-  var isAdmin = true;
-  var adminCreds = signIn(adminUser, adminPass, isAdmin);
-  var adminToken = adminCreds.map('.token');
-  var newUserStatus = createUser(adminToken, username, password);
-
-  return newUserStatus;
 }
 
 function createUser(adminToken, username, password){
