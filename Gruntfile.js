@@ -71,7 +71,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('unitTests', ['mochaTest:test']);
   grunt.registerTask('unitTests_jenkins', ['coverage']);
-  grunt.registerTask('endToEndTests', ['dalek']);
+  grunt.registerTask('endToEndTests', ['browserify', 'dalek']);
   grunt.registerTask('coverage', ['clean','exec:coverage']);
 
   grunt.registerTask('default', ['browserify', 'jshint', 'unitTests']);
