@@ -66,33 +66,38 @@ function syncStateWithFsio(event){
   var eventHandler = getEventHandler(event);
 
   if(eventHandler){
-    console.log('deleting item from FSIO:', _.clj_to_js(event));
-    return eventHandler(event);
+    // Trigger handler but do nothing with result
+    eventHandler(event).onEnd();
   } else {
     console.log('FSIO ignoring unhandled event:', _.clj_to_js(event));
-    return Bacon.never();
   }
+
+  return Bacon.never();
 }
 
 function getEventHandler(event){
-  var eventHandlers = _.hash_map('deleteItem', deleteItem);
+  var eventHandlers = _.hash_map('addItem', handleAddItem,
+                                 'deleteItem', handleDeleteItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
 }
 
-function deleteItem(event){
+function handleDeleteItem(event){
   var email = _.get_in(event, ['state', 'credentials', 'email']);
   var password = _.get_in(event, ['state', 'credentials', 'password']);
   var itemId = _.get(event, 'id');
   var filename = 'items/' + itemId;
 
-  console.log('delete item:', filename);
   var response = FsioAPI.deleteFile(email, password, filename);
-  response.onValue(function(val){
-    console.log('delete file response:', val);
-  });
   return response;
+}
+
+function handleAddItem(event){
+  var email = _.get_in(event, ['state', 'credentials', 'email']);
+  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var newItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
+  return uploadItem(email, password, _.clj_to_js(newItem));
 }
 
 function getItemById(items, id){

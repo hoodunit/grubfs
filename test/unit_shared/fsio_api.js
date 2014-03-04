@@ -216,13 +216,11 @@ describe('shared Fsio API', function(){
                                                                 password, filename);
 
       downloadedFile.onError(function(error){
-        console.log('error:', error);
         var objectNotFoundStatus = 404;
         error.status.should.equal(objectNotFoundStatus);
       });
 
       downloadedFile.onValue(function(file){ 
-        console.log('fileInfo:', file);
         file.should.not.deep.equal(fileData);
       });
       

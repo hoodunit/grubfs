@@ -43,7 +43,6 @@ function initialize(){
   var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
   
   changedStates.onValue(render);
-  
 }
 
 
