@@ -77,10 +77,31 @@ function syncStateWithFsio(event){
 
 function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
+                                 'completeItem', handleCompleteItem,
+                                 'updateItem', handleUpdateItem,
                                  'deleteItem', handleDeleteItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
+}
+
+function handleAddItem(event){
+  return handleAddedOrUpdatedItem(event);
+}
+
+function handleCompleteItem(event){
+  return handleAddedOrUpdatedItem(event);
+}
+
+function handleUpdateItem(event){
+  return handleAddedOrUpdatedItem(event);
+}
+
+function handleAddedOrUpdatedItem(event){
+  var email = _.get_in(event, ['state', 'credentials', 'email']);
+  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var updatedItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
+  return uploadItem(email, password, _.clj_to_js(updatedItem));
 }
 
 function handleDeleteItem(event){
@@ -91,13 +112,6 @@ function handleDeleteItem(event){
 
   var response = FsioAPI.deleteFile(email, password, filename);
   return response;
-}
-
-function handleAddItem(event){
-  var email = _.get_in(event, ['state', 'credentials', 'email']);
-  var password = _.get_in(event, ['state', 'credentials', 'password']);
-  var newItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
-  return uploadItem(email, password, _.clj_to_js(newItem));
 }
 
 function getItemById(items, id){

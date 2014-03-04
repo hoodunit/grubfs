@@ -128,24 +128,11 @@ function handleCompleteItem(oldState, event){
   }, items);
   var newState = _.assoc(oldState, 'items', updatedItems);
 
-  var updatedItem = _.filter(function(item){
-    if(_.get(item, 'id') == id){
-      return item;
-    }
-  }, items);
-
-  if(signedIn){
-    var email = _.get_in(newState, ['credentials', 'email']);
-    var password = _.get_in(newState, ['credentials', 'password']);
-    updatedItem = _.clj_to_js(updatedItem);
-    Fsio.syncItemToServer(email, password, updatedItem).onEnd();
-  }
-
   return newState;
 }
 
-function handleEmptyList() {
-  return _.hash_map('items', _.vector());
+function handleEmptyList(oldState, event) {
+  return _.assoc(oldState, 'items', _.vector());
 }
 
 function handleDeleteItem(oldState, event) {
@@ -173,19 +160,6 @@ function handleUpdateItem(oldState, event) {
     }
   }, items);
   var newState = _.assoc(oldState, 'items', updatedItems);
-
-  var updatedItem = _.filter(function(item){
-    if(_.get(item, 'id') == id){
-      return item;
-    }
-  }, items);
-
-  if(signedIn){
-    var email = _.get_in(newState, ['credentials', 'email']);
-    var password = _.get_in(newState, ['credentials', 'password']);
-    updatedItem = _.clj_to_js(updatedItem);
-    Fsio.syncItemToServer(email, password, updatedItem).onEnd();
-  }
 
   return newState;
 }
