@@ -238,8 +238,6 @@ function signedIn(state){
   return _.get(state, 'credentials') !== null;
 }
 
-var outgoingEvents = new Bacon.Bus();
-
 module.exports = {
   handleStateChanges: handleStateChanges,
   getInitialState: getInitialState,
@@ -249,6 +247,5 @@ module.exports = {
   handleEmptyList: handleEmptyList,
   handleDeleteItem: handleDeleteItem,
   handleUpdateItem: handleUpdateItem,
-  updateStateFromEvent: updateStateFromEvent,
-  outgoingEvents: outgoingEvents
+  updateStateFromEvent: updateStateFromEvent
 };
