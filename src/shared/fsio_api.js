@@ -233,7 +233,7 @@ function downloadFileFromList(folderItemStream) {
       if(!fileStream) {
         fileStream = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
       } else {
-        fileStream.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
+        fileStream = fileStream.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
       }
   });
   return fileStream;
