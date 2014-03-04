@@ -62,12 +62,47 @@ function makeSignedInEvent(credentials){
                     'credentials', credentials);
 }
 
-function syncItemToServer(email, password, item){
-  return uploadItem(email, password, item);
+function syncStateWithFsio(event){
+  var eventHandler = getEventHandler(event);
+
+  if(eventHandler){
+    console.log('deleting item from FSIO:', _.clj_to_js(event));
+    return eventHandler(event);
+  } else {
+    console.log('FSIO ignoring unhandled event:', _.clj_to_js(event));
+    return Bacon.never();
+  }
 }
 
-function syncRemoveItemToServer(email, password, item){
-  return deleteItem(email, password, item);
+function getEventHandler(event){
+  var eventHandlers = _.hash_map('deleteItem', deleteItem);
+  var eventType = _.get(event, 'eventType');
+  var handler = _.get(eventHandlers, eventType);
+  return handler;
+}
+
+function deleteItem(event){
+  var email = _.get_in(event, ['state', 'credentials', 'email']);
+  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var itemId = _.get(event, 'id');
+  var filename = 'items/' + itemId;
+
+  console.log('delete item:', filename);
+  var response = FsioAPI.deleteFile(email, password, filename);
+  response.onValue(function(val){
+    console.log('delete file response:', val);
+  });
+  return response;
+}
+
+function getItemById(items, id){
+  return _.first(_.filter(function(item){
+    return _.equals(_.get(item, 'id'), id);
+  }, items));
+}
+
+function syncItemToServer(email, password, item){
+  return uploadItem(email, password, item);
 }
 
 function saveNewUserState(state){
@@ -85,15 +120,10 @@ function uploadItem(email, password, item){
   return FsioAPI.uploadFile(email, password, filename, item);
 }
 
-function deleteItem(email, password, item){
-  var filename = 'items/' + item.id;
-  return FsioAPI.deleteFile(email, password, filename);
-}
-
 module.exports = {
   signIn: signIn,
   signUp: signUp,
   syncItemToServer: syncItemToServer,
-  syncRemoveItemToServer: syncRemoveItemToServer,
-  saveNewUserState: saveNewUserState
+  saveNewUserState: saveNewUserState,
+  syncStateWithFsio: syncStateWithFsio
 };

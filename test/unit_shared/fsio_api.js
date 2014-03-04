@@ -9,7 +9,7 @@ var Util = require('../util/util');
 
 describe('shared Fsio API', function(){
   this.timeout(10000);
-
+  
   describe('signing up', function(){
     it('should return success when a new user is created', function(done){
       var username = Util.randomUser();
@@ -141,7 +141,7 @@ describe('shared Fsio API', function(){
     });
 
     it('should upload a file to the server', function(done){
-      var filename = 'items/testfileid'
+      var filename = 'items/testfileid';
       var fileData = {id: 'testfileid',
                       completed: false,
                       name: 'test item'};
@@ -194,7 +194,7 @@ describe('shared Fsio API', function(){
     });
 
     it('should delete a file from the server', function(done){
-      var filename = 'items/item2'
+      var filename = 'items/item2';
       var fileData = {id: 'item2',
                       completed: false,
                       name: 'item'};
@@ -209,16 +209,24 @@ describe('shared Fsio API', function(){
         uploadedFileData.key.should.equal(fileKey);
       });
     
-      var deletedFileInfo = FsioAPI.deleteFile(username, password, filename);
+      var deletedFileInfo = uploadedFileInfo.delay(1500).
+        flatMap(FsioAPI.deleteFile, username, password, filename);
  
-      var downloadedFileInfo = deletedFileInfo.delay(1500).flatMap(FsioAPI.downloadFile, username, 
+      var downloadedFile = deletedFileInfo.delay(1500).flatMap(FsioAPI.downloadFile, username, 
                                                                 password, filename);
 
-      downloadedFileInfo.onError(function(error){
-        error.should.not.deep.equal(fileData);
+      downloadedFile.onError(function(error){
+        console.log('error:', error);
+        var objectNotFoundStatus = 404;
+        error.status.should.equal(objectNotFoundStatus);
+      });
+
+      downloadedFile.onValue(function(file){ 
+        console.log('fileInfo:', file);
+        file.should.not.deep.equal(fileData);
       });
       
-      downloadedFileInfo.onEnd(function(){ 
+      downloadedFile.onEnd(function(){ 
         done();
       });
     });

@@ -126,11 +126,12 @@ function _deleteUser(username, adminToken){
   var userKey = '/operators/' + constants.OPERATOR_ID + '/users/uname:' + username;
   var url = constants.FSIO_BASE_URL + '/admin' + userKey;
 
-  var request = {url: url, 
-                 type: 'DELETE',
-                 headers: {authorization: 'FsioToken ' + adminToken,
-                           'content-length': 0}};
-  return Bacon.$.ajax(request);
+  var origRequest = {url: url, 
+                     type: 'DELETE'};
+  var request = setContentLengthIfRunningInNode(origRequest);
+  var authRequest = makeAuthorizedRequest(request, adminToken);
+
+  return Bacon.$.ajax(authRequest);
 }
 
 function getUserInfo(username, adminToken){
@@ -204,32 +205,46 @@ function deleteFile(username, password, filename){
   var credentials = signIn(username, password, isAdmin);
   var token = credentials.map('.token');
   var deletedFile = token.flatMap(_deleteFile, filename);
-  
+
   return deletedFile;
 }
 
 function _deleteFile(filename, token){
-  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
-  var request = {url: url,
-                 type: 'DELETE',
-                 headers: {authorization: 'FsioToken ' + token,
-                           'content-length': 0}};
+  var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
+  var origRequest = {url: url,
+                     type: 'DELETE'};
+
+  var request = setContentLengthIfRunningInNode(origRequest);
+
+  var authRequest = makeAuthorizedRequest(request, token);
+  return Bacon.$.ajax(authRequest);
 }
 
-function makeUploadItemRequest(authCredentials, item){
-  var url = constants.FSIO_DATA_URL + '/data/me/files/items/' + item.id;
-  var requestData = item;
-  var request = {url: url,
-                 type: 'PUT',
-                 data: JSON.stringify(requestData),
-                 headers: {authorization: 'FsioToken ' + authCredentials.token}};
-
-  return request;
+// Hackish workaround to get some requests to work on both browser and Node.
+// FSIO requires content-length header for some requests.
+// Browser automatically sets this and does not allow you to set it.
+// JQuery on Node.js does not set it if you have no data.
+// So for tests we must set content-length and for the browser we must not.
+function setContentLengthIfRunningInNode(request){
+  if(!runningInBrowser()){
+    request.headers = request.headers || {};
+    request.headers['content-length'] = 0;
+  }
+ return request;
 }
 
+function runningInBrowser(){
+  var inBrowser = false;
+  try {
+    inBrowser = !!window;
+  } catch (e){
+  }
+  return inBrowser;
+}
 
 function makeAuthorizedRequest(request, token){
-  request.headers = {authorization: 'FsioToken ' + token};
+  request.headers = request.headers || {};
+  request.headers.authorization = 'FsioToken ' + token;
   return request;
 }
 
@@ -240,6 +255,7 @@ module.exports = {
   uploadFile: uploadFile,
   downloadFile: downloadFile,
   deleteFile: deleteFile,
+  getFileInfo: getFileInfo,
   test: {
     hashChallenge: hashChallenge
   }

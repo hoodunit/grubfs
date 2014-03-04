@@ -30,17 +30,22 @@ function handleSignInEvents(events){
 function initialize(){
   var initialState = State.getInitialState();
   render(initialState);
-
+  
   var viewEvents = View.outgoingEvents;
-
+  
+  var toRemoteEvents = new Bacon.Bus();
+  var fromRemoteEvents = toRemoteEvents.flatMap(Fsio.syncStateWithFsio);
+  
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
-
-  var stateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents);
-  var changedStates = State.handleStateChanges(initialState, stateEvents);
-
+  
+  var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, fromRemoteEvents);
+  var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
+  
   changedStates.onValue(render);
+  
 }
+
 
 initialize();
 
