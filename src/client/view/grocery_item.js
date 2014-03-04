@@ -67,7 +67,10 @@ var GroceryItem = React.createClass({
     var icon = React.DOM.span({
       className: delBtnClass,
       onClick: this.handleDeleteClick,
-      ref: 'delbtn'
+      ref: 'delbtn',
+      dataToggle: 'tooltip',
+      dataPlacement: 'top',
+      title: 'Delete the item'
     });
     return icon;
   },
@@ -80,7 +83,10 @@ var GroceryItem = React.createClass({
       onClick: this.setEditing,
       onMouseUp: this.noProp,
       onMouseDown: this.noProp,
-      ref: 'editbtn'
+      ref: 'editbtn',
+      dataToggle: 'tooltip',
+      dataPlacement: 'top',
+      title: 'Rename the item'
     });
     return icon;
   },

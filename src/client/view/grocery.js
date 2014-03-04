@@ -11,13 +11,16 @@ var TopBar = React.createClass({
       return null;
     }
     var icon = React.DOM.span({
-      className: 'glyphicon glyphicon-log-out'
+      className: 'glyphicon glyphicon-log-out',
     });
     var button = React.DOM.button({
       className: 'btn btn-default nav-btn',
       id: 'signOut',
       type: 'button',
-      onClick: this.handleSignOut
+      onClick: this.handleSignOut,
+      dataToggle: 'tooltip',
+      dataPlacement: 'top',
+      title: 'Sign out'
     }, icon);
     return button;
   },
@@ -29,6 +32,9 @@ var TopBar = React.createClass({
       className: 'btn btn-default empty-btn nav-btn',
       id: 'clearList',
       type: 'button',
+      dataToggle: 'tooltip',
+      dataPlacement: 'top',
+      title: 'Clear all items',
       onClick: this.handleEmptyClick
     },emptyButtonIcon);
 
