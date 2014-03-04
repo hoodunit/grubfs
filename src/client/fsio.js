@@ -37,9 +37,9 @@ function signIn(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
 
-  var authCredentials = FsioAPI.signIn(email, password, false);
+  var token = FsioAPI.signIn(email, password, false);
 
-  var signedInEvents = authCredentials.map(_.js_to_clj)
+  var signedInEvents = token.map(_.hash_map, 'token')
     .map(addUserInfoToCredentials, email, password)
     .map(makeSignedInEvent);
 

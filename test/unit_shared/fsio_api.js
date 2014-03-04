@@ -57,20 +57,16 @@ describe('shared Fsio API', function(){
     it('should sign in as existing user', function(done){
       var username = Util.randomUser();
       var password = "mytestpassword";
-      var isAdmin = false;
 
       var adminUser = process.env.FSIO_USER_NAME;
       var adminPass = process.env.FSIO_PASSWORD;
       var newUser = FsioAPI.signUp(username, password, adminUser, adminPass);
       var response = newUser.flatMap(function(){
-        return FsioAPI.signIn(username, password, isAdmin);
+        return FsioAPI.signIn(username, password);
       });
 
-      response.onValue(function(credentials){
-        credentials.download_token.should.exist;
-        credentials.token.should.exist;
-        credentials.ttl.should.equal(1800);
-        credentials.u_uuid.should.exist;
+      response.onValue(function(token){
+        token.should.exist;
         done();
       });
     });
@@ -88,13 +84,9 @@ describe('shared Fsio API', function(){
     it('should sign in as an admin', function(done){
       var username = process.env.FSIO_USER_NAME;
       var password = process.env.FSIO_PASSWORD;
-      var isAdmin = true;
       
-      FsioAPI.signIn(username, password, isAdmin).onValue(function(credentials){
-        credentials.download_token.should.exist;
-        credentials.token.should.exist;
-        credentials.ttl.should.equal(1800);
-        credentials.u_uuid.should.exist;
+      FsioAPI.signInAsAdmin(username, password).onValue(function(token){
+        token.should.exist;
         done();
       });
     });

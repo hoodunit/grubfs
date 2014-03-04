@@ -13,13 +13,24 @@ var constants = {
   CRAM_CHALLENGE_RESP_ADMIN_URL: '/token/cram/admin_l2'
 };
 
-function signIn(email, password, isAdmin){
+function signIn(email, password){
+  var isAdmin = false;
+  return _signIn(email, password, isAdmin);
+}
+
+function signInAsAdmin(email, password){
+  var isAdmin = true;
+  return _signIn(email, password, isAdmin);
+}
+
+function _signIn(email, password, isAdmin){
   var challenge = requestAuthorizationChallenge(email);
   var challengeResponse = challenge.map(hashChallenge, password);
   var signInData = Bacon.combineWith(sendChallengeResponse, 
                                      email, challenge, isAdmin, challengeResponse).ajax();
+  var token = signInData.map('.token');
 
-  return signInData;
+  return token;
 }
 
 function requestAuthorizationChallenge(email){
@@ -60,9 +71,7 @@ function hashChallenge(password, challenge){
 }
 
 function signUp(username, password, adminUser, adminPass){
-  var isAdmin = true;
-  var adminCreds = signIn(adminUser, adminPass, isAdmin);
-  var adminToken = adminCreds.map('.token');
+  var adminToken = signInAsAdmin(adminUser, adminPass);
   var newUserStatus = createUser(adminToken, username, password);
 
   return newUserStatus;
@@ -114,9 +123,7 @@ function addAuthToUser(adminToken, username, password, userKey){
 }
 
 function deleteUser(username, adminUser, adminPass){
-  var isAdmin = true;
-  var adminCreds = signIn(adminUser, adminPass, isAdmin);
-  var adminToken = adminCreds.map('.token');
+  var adminToken = signInAsAdmin(adminUser, adminPass);
   var userInfo = adminToken.flatMap(_deleteUser, username);
 
   return userInfo;
@@ -146,10 +153,7 @@ function getUserInfo(username, adminToken){
 }
 
 function uploadFile(username, password, filename, data){
-  var isAdmin = false;
-  var credentials = signIn(username, password, isAdmin);
-  var token = credentials.map('.token');
-
+  var token = signIn(username, password);
   var fileUpload = token.flatMap(_uploadFile, filename, data);
   return fileUpload;
 }
@@ -165,10 +169,7 @@ function _uploadFile(filename, data, token){
 }
 
 function getFileInfo(username, password, filename){
-  var isAdmin = false;
-  var credentials = signIn(username, password, isAdmin);
-  var token = credentials.map('.token');
-
+  var token = signIn(username, password);
   var fileInfo = token.flatMap(_getFileInfo, filename);
   return fileInfo;
 }
@@ -183,10 +184,7 @@ function _getFileInfo(filename, token){
 }
 
 function downloadFile(username, password, filename){
-  var isAdmin = false;
-  var credentials = signIn(username, password, isAdmin);
-  var token = credentials.map('.token');
-
+  var token = signIn(username, password);
   var downloadedFile = token.flatMap(_downloadFile, filename).map(JSON.parse);
   return downloadedFile;
 }
@@ -201,9 +199,7 @@ function _downloadFile(filename, token){
 }
 
 function deleteFile(username, password, filename){
-  var isAdmin = false;
-  var credentials = signIn(username, password, isAdmin);
-  var token = credentials.map('.token');
+  var token = signIn(username, password);
   var deletedFile = token.flatMap(_deleteFile, filename);
 
   return deletedFile;
@@ -250,6 +246,7 @@ function makeAuthorizedRequest(request, token){
 
 module.exports = {
   signIn: signIn,
+  signInAsAdmin: signInAsAdmin,
   signUp: signUp,
   deleteUser: deleteUser,
   uploadFile: uploadFile,
