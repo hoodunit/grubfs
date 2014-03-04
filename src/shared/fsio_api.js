@@ -192,7 +192,6 @@ function downloadFile(username, password, filename){
 }
 
 function downloadFileList(signedInEvents){
-  console.log(signedInEvents);
   var isAdmin = false;
   var credentialsOld = _.get(signedInEvents, "credentials");
   var username = _.get(credentialsOld, "email");

@@ -166,8 +166,6 @@ function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
   var item = _.get(event, 'item');
   var oldItems = _.get(oldState, 'items');
-  console.log(oldItems);
-  console.log(item);
   var newItems;
   var newState;
   if(item) {
