@@ -32,10 +32,19 @@ function getDefaultState(){
 function getDefaultItems(){
   return _.vector(
     _.hash_map('id', Util.generateUUID(),
-               'name', '1 packages of tomato puree',
+               'name', '1 package of tomato puree',
                'completed', false),
     _.hash_map('id', Util.generateUUID(),
                'name', '4 yellow onions',
+               'completed', true),
+   _.hash_map('id', Util.generateUUID(),
+               'name', 'fresh thyme',
+               'completed', false),
+    _.hash_map('id', Util.generateUUID(),
+               'name', 'goat cheese',
+               'completed', false),
+    _.hash_map('id', Util.generateUUID(),
+               'name', 'popcorn',
                'completed', true),
     _.hash_map('id', Util.generateUUID(),
                'name', '2 dl cream',
@@ -147,6 +156,7 @@ function handleUpdateItem(oldState, event) {
 function handleSignedUp(oldState, event){
   var newState = handleSignedIn(oldState, event);
 
+  // force lazy stream to evaluate using onEnd
   Fsio.saveNewUserState(newState).onEnd();
   
   return newState;
