@@ -32,7 +32,7 @@ function getDefaultState(){
 function getDefaultItems(){
   return _.vector(
     _.hash_map('id', Util.generateUUID(),
-               'name', '1 packages of tomato puree',
+               'name', '1 package of tomato puree',
                'completed', false),
     _.hash_map('id', Util.generateUUID(),
                'name', '4 yellow onions',
@@ -41,7 +41,7 @@ function getDefaultItems(){
                'name', 'fresh thyme',
                'completed', false),
     _.hash_map('id', Util.generateUUID(),
-               'name', 'goat\'s cheese',
+               'name', 'goat cheese',
                'completed', false),
     _.hash_map('id', Util.generateUUID(),
                'name', 'popcorn',
