@@ -5,6 +5,16 @@ var $ = require('jquery-node-browserify');
 var Fsio = require('./fsio');
 var Util = require('./util');
 
+function getInitialState(){
+  var initialState = getLocalState();
+
+  if(initialState === null){
+    initialState = getDefaultState();
+  }
+
+  return initialState;
+}
+
 function getLocalState(){
   var localState = null;
   var localStateJson = localStorage.getItem('state');
@@ -51,15 +61,46 @@ function getDefaultItems(){
                'completed', false));
 }
 
+function handleStateChanges(initialState, events, toRemote){
+  var changedStates = new Bacon.Bus();
+  var state = initialState;
+  events.onValue(function(event){
+    var oldState = state;
+    state = updateStateFromEvent(state, event);
+    if(!_.equals(oldState, state)){
+      changedStates.push(state);
+    }
+    if(signedIn(state)){
+      var eventWithState = _.assoc(event, 'state', state);
+      toRemote.push(eventWithState);
+    }
+  });
+}
 
-function getInitialState(){
-  var initialState = getLocalState();
+function updateStateFromEvent(oldState, event){
+  var eventHandler = getEventHandler(event);
 
-  if(initialState === null){
-    initialState = getDefaultState();
+  if(eventHandler){
+    var newState = eventHandler(oldState, event);
+    return newState;
+  } else {
+    console.log('Ignoring unhandled event:', _.clj_to_js(event));
+    return oldState;
   }
+}
 
-  return initialState;
+function getEventHandler(event){
+  var eventHandlers = _.hash_map('addItem', handleAddItem,
+                                 'completeItem', handleCompleteItem,
+                                 'emptyList', handleEmptyList,
+                                 'deleteItem', handleDeleteItem,
+                                 'updateItem', handleUpdateItem,
+                                 'signedUp', handleSignedUp,
+                                 'signedIn', handleSignedIn,
+                                 'signOut', handleSignOut);
+  var eventType = _.get(event, 'eventType');
+  var handler = _.get(eventHandlers, eventType);
+  return handler;
 }
 
 function handleAddItem(oldState, event){
@@ -186,39 +227,6 @@ function handleSignedIn(oldState, event){
 function handleSignOut(oldState, event){
   var newState = _.dissoc(oldState, 'credentials');
   return newState;
-}
-
-function getEventHandler(event){
-  var eventHandlers = _.hash_map('addItem', handleAddItem,
-                                 'completeItem', handleCompleteItem,
-                                 'emptyList', handleEmptyList,
-                                 'deleteItem', handleDeleteItem,
-                                 'updateItem', handleUpdateItem,
-                                 'signedUp', handleSignedUp,
-                                 'signedIn', handleSignedIn,
-                                 'signOut', handleSignOut);
-  var eventType = _.get(event, 'eventType');
-  var handler = _.get(eventHandlers, eventType);
-  return handler;
-}
-
-function updateStateFromEvent(oldState, event){
-  var eventHandler = getEventHandler(event);
-
-  if(eventHandler){
-    var newState = eventHandler(oldState, event);
-    return newState;
-  } else {
-    console.log('Ignoring unhandled event:', _.clj_to_js(event));
-    return oldState;
-  }
-}
-
-function handleStateChanges(initialState, events){
-  var currentState = events.scan(initialState, updateStateFromEvent);
-  var changedStates = currentState.changes();
-  changedStates.onValue(saveStateLocally);
-  return changedStates;
 }
 
 function signedIn(state){
