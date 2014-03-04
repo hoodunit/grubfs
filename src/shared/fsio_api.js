@@ -220,16 +220,11 @@ function listFolderItems(token) {
 }
 
 function downloadFileFromList(folderItemStream) {
-  //var token = _.get(credentials, "token");
   var fileList = _.js_to_clj(folderItemStream.items);
   var token = folderItemStream.token;
   var fileStream = null;
   _.each(_.js_to_clj(fileList), function(item) {
       var filename = _.get(item, "full_name");
-      //var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
-      //var request = {url: url,
-                     //type: 'GET'};
-      /*var authRequest = makeAuthorizedRequest(request, token);*/
       if(!fileStream) {
         fileStream = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
       } else {
