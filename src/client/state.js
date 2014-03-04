@@ -76,6 +76,8 @@ function handleStateChanges(initialState, events, toRemote){
     }
   });
   
+  changedStates.onValue(saveStateLocally);
+  
   return changedStates;
 }
 
