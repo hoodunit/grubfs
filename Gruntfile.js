@@ -57,7 +57,7 @@ module.exports = function(grunt) {
         tasks: ['jshint', 'browserify', 'unitTests'],
         options: {
           spawn: false
-        }}},
+        }}}
   });
 
   grunt.loadNpmTasks('grunt-exec');

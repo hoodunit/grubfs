@@ -9,7 +9,7 @@ var Util = require('../util/util');
 
 describe('shared Fsio API', function(){
   this.timeout(10000);
-  
+
   describe('signing up', function(){
     it('should return success when a new user is created', function(done){
       var username = Util.randomUser();
