@@ -31,7 +31,7 @@ function _signUp(email, password){
   };
 
   return Bacon.$.ajax(request);
-}
+  }
 
 function signIn(event){
   var email = _.get(event, 'email');

@@ -103,9 +103,22 @@ var SignInForm = React.createClass({
     var ENTER_KEYCODE = 13;
     return event.keyCode === ENTER_KEYCODE;
   },
+
+  fsioErrorMessage: function(that, message) {
+    if (!(this.state.emailError || this.state.passwordError || this.state.confirmError)) {
+      window.setTimeout(function() {that.setState(message);}, 2000);
+    }
+  },
+
   onSignUpClick: function(){
     if(this.state.signingUp){
         this.validateInputAndSignUp();
+        console.log(this.state.emailError);
+        if (!(this.state.emailError ||
+          this.state.passwordError || this.state.confirmError)) {
+          var that = this;
+          this.fsioErrorMessage(that, {emailError: 'Email address already in use.'});
+      }
     } else {
       this.setState({signingUp: true});
     }
@@ -151,6 +164,10 @@ var SignInForm = React.createClass({
   },
   onSignInClick: function(){
     this.sendSignInEvent();
+    if (!(this.state.emailError || this.state.passwordError || this.state.confirmError)) {
+      var that = this;
+      this.fsioErrorMessage(that, {emailError: 'Wrong email address or password.'});
+    }
   },
   sendSignInEvent: function(){
     var email = this.refs.email.getDOMNode().value.trim();

@@ -4,6 +4,7 @@ var $ = require('jquery-node-browserify');
 
 var Fsio = require('./fsio');
 var Util = require('./util');
+var View = require('./view/view');
 
 function getInitialState(){
   var initialState = getLocalState();
@@ -167,12 +168,21 @@ function handleUpdateItem(oldState, event) {
 }
 
 function handleSignedUp(oldState, event){
-  var newState = handleSignedIn(oldState, event);
-
-  // force lazy stream to evaluate using onEnd
-  Fsio.saveNewUserState(newState).onEnd();
+  var newState;
+  if (checkValid(event)) {
+    newState = handleSignedIn(oldState, event);
+    // force lazy stream to evaluate using onEnd
+    Fsio.saveNewUserState(newState).onEnd();
+  } else {
+    newState = oldState;
+  }
   
   return newState;
+}
+
+function checkValid(event) {
+  var status = _.get(_.get(event, 'credentials'), 'statusText');
+  return (status !== 'error');
 }
 
 function handleSignedIn(oldState, event){
