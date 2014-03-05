@@ -169,21 +169,14 @@ function handleSignedIn(oldState, event){
   var newItems;
   var newState;
   if(item) {
-    var isNew = true;
-    var updatedItems = _.map(function(oldItem){
-      if(_.get(oldItem, 'id') == _.get(item, 'id')){
-        isNew = false;
-        return item;
+    var updatedItems = _.filter(function(oldItem){
+      if(_.get(oldItem, 'id') == _.get(item, 'id')) {
+        return false;
       } else {
-        return oldItem;
+        return true;
       }
     }, oldItems);
-
-    if(isNew) {
-      newItems = _.conj(updatedItems, item);
-    } else {
-      newItems = updatedItems;
-    }
+    newItems = _.conj(updatedItems, item);
   } else {
     newItems = oldItems;
   }
@@ -197,7 +190,9 @@ function handleSignedIn(oldState, event){
 }
 
 function handleSignOut(oldState, event){
-  var newState = _.dissoc(oldState, 'credentials');
+  var newState = _.dissoc(oldState, 'credentials', "items");
+  var defaultItems = getDefaultItems();
+  newState = _.assoc(newState, "items", defaultItems);
   return newState;
 }
 
