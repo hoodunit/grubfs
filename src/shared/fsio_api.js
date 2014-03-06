@@ -196,8 +196,7 @@ function downloadFileList(signedInEvents){
   var username = _.get(credentialsOld, "email");
   var password = _.get(credentialsOld, "password");
 
-  var credentials = signIn(username, password, isAdmin);
-  var token = credentials.map('.token');
+  var token = signIn(username, password);
 
   var items = token.flatMap(listFolderItems).map(".items");
   var folderItemStream = Bacon.combineTemplate({
