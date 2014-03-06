@@ -37,9 +37,9 @@ function signIn(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
 
-  var authCredentials = FsioAPI.signIn(email, password, false);
+  var token = FsioAPI.signIn(email, password, false);
 
-  var signedInEvents = authCredentials.map(_.js_to_clj)
+  var signedInEvents = token.map(_.hash_map, 'token')
     .map(addUserInfoToCredentials, email, password)
     .map(makeSignedInEvent);
 
@@ -60,6 +60,64 @@ function makeSignedUpEvent(credentials){
 function makeSignedInEvent(credentials){
   return _.hash_map('eventType', 'signedIn',
                     'credentials', credentials);
+}
+
+function syncStateWithFsio(event){
+  var eventHandler = getEventHandler(event);
+
+  if(eventHandler){
+    // Trigger handler but do nothing with result
+    eventHandler(event).onEnd();
+  } else {
+    console.log('FSIO ignoring unhandled event:', _.clj_to_js(event));
+  }
+
+  return Bacon.never();
+}
+
+function getEventHandler(event){
+  var eventHandlers = _.hash_map('addItem', handleAddItem,
+                                 'completeItem', handleCompleteItem,
+                                 'updateItem', handleUpdateItem,
+                                 'deleteItem', handleDeleteItem);
+  var eventType = _.get(event, 'eventType');
+  var handler = _.get(eventHandlers, eventType);
+  return handler;
+}
+
+function handleAddItem(event){
+  return handleAddedOrUpdatedItem(event);
+}
+
+function handleCompleteItem(event){
+  return handleAddedOrUpdatedItem(event);
+}
+
+function handleUpdateItem(event){
+  return handleAddedOrUpdatedItem(event);
+}
+
+function handleAddedOrUpdatedItem(event){
+  var email = _.get_in(event, ['state', 'credentials', 'email']);
+  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var updatedItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
+  return uploadItem(email, password, _.clj_to_js(updatedItem));
+}
+
+function handleDeleteItem(event){
+  var email = _.get_in(event, ['state', 'credentials', 'email']);
+  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var itemId = _.get(event, 'id');
+  var filename = 'items/' + itemId;
+
+  var response = FsioAPI.deleteFile(email, password, filename);
+  return response;
+}
+
+function getItemById(items, id){
+  return _.first(_.filter(function(item){
+    return _.equals(_.get(item, 'id'), id);
+  }, items));
 }
 
 function syncItemToServer(email, password, item){
@@ -95,5 +153,6 @@ module.exports = {
   signUp: signUp,
   syncItemToServer: syncItemToServer,
   saveNewUserState: saveNewUserState,
-  downloadFileList: downloadFileList
+  downloadFileList: downloadFileList,
+  syncStateWithFsio: syncStateWithFsio
 };
