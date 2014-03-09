@@ -4,6 +4,8 @@
 var chai = require('chai');
 chai.should();
 var _ = require('mori');
+var Sinon = require('sinon');
+var Bacon = require('baconjs');
 
 var Fsio = require('../../src/client/fsio.js');
 var FsioAPI = require('../../src/shared/fsio_api.js');
@@ -169,6 +171,22 @@ describe('Fsio', function(){
         error.should.not.exist;
       });
       downloadedFile.onEnd(function(){ 
+        done();
+      });
+    });
+  });
+
+  describe('Sync clearing items to server', function(){
+    it('should call FSIO API to delete items directory', function(done){
+      var username = 'testusername';
+      var password = 'testpassword';
+
+      var stub = Sinon.stub(Fsio.test.FsioAPI, 'deleteFile').returns(Bacon.never());
+      
+      var result = Fsio.clearItems(username, password);
+      
+      result.onEnd(function(){
+        stub.calledWith(username, password, 'items').should.equal(true);
         done();
       });
     });
