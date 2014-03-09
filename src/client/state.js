@@ -5,6 +5,16 @@ var $ = require('jquery-node-browserify');
 var Fsio = require('./fsio');
 var Util = require('./util');
 
+function getInitialState(){
+  var initialState = getLocalState();
+
+  if(initialState === null){
+    initialState = getDefaultState();
+  }
+
+  return initialState;
+}
+
 function getLocalState(){
   var localState = null;
   var localStateJson = localStorage.getItem('state');
@@ -32,25 +42,69 @@ function getDefaultState(){
 function getDefaultItems(){
   return _.vector(
     _.hash_map('id', Util.generateUUID(),
-               'name', '1 packages of tomato puree',
+               'name', '1 package of tomato puree',
                'completed', false),
     _.hash_map('id', Util.generateUUID(),
                'name', '4 yellow onions',
+               'completed', true),
+   _.hash_map('id', Util.generateUUID(),
+               'name', 'fresh thyme',
+               'completed', false),
+    _.hash_map('id', Util.generateUUID(),
+               'name', 'goat cheese',
+               'completed', false),
+    _.hash_map('id', Util.generateUUID(),
+               'name', 'popcorn',
                'completed', true),
     _.hash_map('id', Util.generateUUID(),
                'name', '2 dl cream',
                'completed', false));
 }
 
+function handleStateChanges(initialState, events, toRemote){
+  var changedStates = new Bacon.Bus();
+  var state = initialState;
+  events.onValue(function(event){
+    var oldState = state;
+    state = updateStateFromEvent(state, event);
+    if(!_.equals(oldState, state)){
+      changedStates.push(state);
+    }
+    if(signedIn(state)){
+      var eventWithState = _.assoc(event, 'state', state);
+      toRemote.push(eventWithState);
+    }
+  });
+  
+  changedStates.onValue(saveStateLocally);
+  
+  return changedStates;
+}
 
-function getInitialState(){
-  var initialState = getLocalState();
+function updateStateFromEvent(oldState, event){
+  var eventHandler = getEventHandler(event);
 
-  if(initialState === null){
-    initialState = getDefaultState();
+  if(eventHandler){
+    var newState = eventHandler(oldState, event);
+    return newState;
+  } else {
+    console.log('Ignoring unhandled event:', _.clj_to_js(event));
+    return oldState;
   }
+}
 
-  return initialState;
+function getEventHandler(event){
+  var eventHandlers = _.hash_map('addItem', handleAddItem,
+                                 'completeItem', handleCompleteItem,
+                                 'emptyList', handleEmptyList,
+                                 'deleteItem', handleDeleteItem,
+                                 'updateItem', handleUpdateItem,
+                                 'signedUp', handleSignedUp,
+                                 'signedIn', handleSignedIn,
+                                 'signOut', handleSignOut);
+  var eventType = _.get(event, 'eventType');
+  var handler = _.get(eventHandlers, eventType);
+  return handler;
 }
 
 function handleAddItem(oldState, event){
@@ -59,13 +113,6 @@ function handleAddItem(oldState, event){
                            'completed', false);
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
-
-  if (signedIn(newState)){
-    var email = _.get_in(newState, ['credentials', 'email']);
-    var password = _.get_in(newState, ['credentials', 'password']);
-    newItem = _.clj_to_js(newItem);
-    Fsio.syncItemToServer(email, password, newItem).onEnd();
-  }
 
   return newState;
 }
@@ -83,28 +130,11 @@ function handleCompleteItem(oldState, event){
   }, items);
   var newState = _.assoc(oldState, 'items', updatedItems);
 
-  var updatedItem = getItemById(items, id);
-
-  if(signedIn(newState)){
-    var email = _.get_in(newState, ['credentials', 'email']);
-    var password = _.get_in(newState, ['credentials', 'password']);
-    updatedItem = _.clj_to_js(updatedItem);
-    Fsio.syncItemToServer(email, password, updatedItem).onEnd();
-  }
-
   return newState;
 }
 
 function handleEmptyList(oldState, event) {
-  var newState = _.assoc(oldState, 'items', _.vector());
-  
-  if (signedIn(newState)){
-    var email = _.get_in(newState, ['credentials', 'email']);
-    var password = _.get_in(newState, ['credentials', 'password']);
-    Fsio.clearItems(email, password).onEnd();
-  }
-
-  return _.hash_map('items', _.vector());
+  return _.assoc(oldState, 'items', _.vector());
 }
 
 function handleDeleteItem(oldState, event) {
@@ -116,6 +146,7 @@ function handleDeleteItem(oldState, event) {
   }, items);
 
   var newState = _.assoc(oldState, 'items', updatedItems);
+
   return newState;
 }
 
@@ -133,13 +164,6 @@ function handleUpdateItem(oldState, event) {
   var newState = _.assoc(oldState, 'items', updatedItems);
   
   var updatedItem = getItemById(items, id);
-
-  if(signedIn(newState)){
-    var email = _.get_in(newState, ['credentials', 'email']);
-    var password = _.get_in(newState, ['credentials', 'password']);
-    updatedItem = _.clj_to_js(updatedItem);
-    Fsio.syncItemToServer(email, password, updatedItem).onEnd();
-  }
 
   return newState;
 }
@@ -163,45 +187,6 @@ function handleSignedIn(oldState, event){
 function handleSignOut(oldState, event){
   var newState = _.dissoc(oldState, 'credentials');
   return newState;
-}
-
-function getItemById(items, id){
-  return _.first(_.filter(function(item){
-    return (_.get(item, 'id') === id);
-  }, items));
-}
-
-function getEventHandler(event){
-  var eventHandlers = _.hash_map('addItem', handleAddItem,
-                                 'completeItem', handleCompleteItem,
-                                 'emptyList', handleEmptyList,
-                                 'deleteItem', handleDeleteItem,
-                                 'updateItem', handleUpdateItem,
-                                 'signedUp', handleSignedUp,
-                                 'signedIn', handleSignedIn,
-                                 'signOut', handleSignOut);
-  var eventType = _.get(event, 'eventType');
-  var handler = _.get(eventHandlers, eventType);
-  return handler;
-}
-
-function updateStateFromEvent(oldState, event){
-  var eventHandler = getEventHandler(event);
-
-  if(eventHandler){
-    var newState = eventHandler(oldState, event);
-    return newState;
-  } else {
-    console.log('Ignoring unhandled event:', _.clj_to_js(event));
-    return oldState;
-  }
-}
-
-function handleStateChanges(initialState, events){
-  var currentState = events.scan(initialState, updateStateFromEvent);
-  var changedStates = currentState.changes();
-  changedStates.onValue(saveStateLocally);
-  return changedStates;
 }
 
 function signedIn(state){

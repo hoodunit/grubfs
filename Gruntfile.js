@@ -30,7 +30,7 @@ module.exports = function(grunt) {
       },
       dist: {
         src: ['test/end_to_end/test.js'],
-        reporter: ['html']
+        reporter: ['console', 'html', 'junit']
       }
     },
     mochaTest: {
@@ -39,18 +39,12 @@ module.exports = function(grunt) {
           reporter: 'spec'
         },
         src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js', 'test/unit_client/**/*.js']
-      },
-      test_jenkins: {
-        options: {
-          reporter: 'mocha-jenkins-reporter'
-        },
-        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js', 'test/unit_client/**/*.js']
       }
     },
     clean: ["coverage/"],
     exec: {
       coverage: {
-        command: "istanbul cover node_modules/mocha/bin/_mocha test/unit_client test/unit_shared -- -R mocha-jenkins-reporter",
+        command: "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha test/unit_client test/unit_shared -- -R mocha-jenkins-reporter",
         stdout: true
       }
     },
@@ -63,7 +57,7 @@ module.exports = function(grunt) {
         tasks: ['jshint', 'browserify', 'unitTests'],
         options: {
           spawn: false
-        }}},
+        }}}
   });
 
   grunt.loadNpmTasks('grunt-exec');
@@ -76,8 +70,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-dalek');
 
   grunt.registerTask('unitTests', ['mochaTest:test']);
-  grunt.registerTask('unitTests_jenkins', ['mochaTest:test_jenkins']);
-  grunt.registerTask('endToEndTests', ['dalek']);
+  grunt.registerTask('unitTests_jenkins', ['coverage']);
+  grunt.registerTask('endToEndTests', ['browserify', 'dalek']);
   grunt.registerTask('coverage', ['clean','exec:coverage']);
 
   grunt.registerTask('default', ['browserify', 'jshint', 'unitTests']);
