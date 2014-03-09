@@ -4,12 +4,13 @@ var _ = require('mori');
 
 var Grocery = require('./grocery');
 var SignIn = require('./sign_in');
+var UserInfo = require('./user_info');
 var State = require('../state');
 
 var GrubView = React.createClass({
-  getSignInForm: function(signedIn){
+  getSignInFormOrUserInfo: function(signedIn){
     if(signedIn){
-      return null;
+      return UserInfo.UserInfo(_.get(this.props, 'credentials'));
     } else {
       return SignIn.SignInForm({});
     }
@@ -24,7 +25,7 @@ var GrubView = React.createClass({
                          React.DOM.div({className: 'col-md-5'},
                                        Grocery.GroceryList(groceryState)),
                          React.DOM.div({className: 'col-md-3'},
-                                       this.getSignInForm(signedIn)),
+                                       this.getSignInFormOrUserInfo(signedIn)),
                          React.DOM.div({className: 'col-md-2'}));
   }
 });
