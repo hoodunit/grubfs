@@ -4,8 +4,6 @@ var $ = require('jquery-node-browserify');
 
 var Fsio = require('./fsio');
 var Util = require('./util');
-var View = require('./view/view');
-var SignIn = require('./view/sign_in');
 
 function getInitialState(){
   var initialState = getLocalState();

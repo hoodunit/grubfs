@@ -162,7 +162,7 @@ var SignInForm = React.createClass({
    window.setTimeout(function() {that.setState({emailError: 'Email address is already in use.'});}, 1000); 
   }
   else {
-   window.setTimeout(function() {that.refs.password.getDOMNode().parentNode.className += 'has-error';}, 1000);
+   //window.setTimeout(function() {that.refs.password.getDOMNode().parentNode.className += 'has-error';}, 1000);
    window.setTimeout(function() {that.setState({emailError: 'Email address or password was invalid.'});}, 1000);     
   }
  },
