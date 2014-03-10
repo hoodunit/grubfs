@@ -139,6 +139,16 @@ function uploadItem(email, password, item){
   return FsioAPI.uploadFile(email, password, filename, item);
 }
 
+
+function downloadFileList(signedInEvents) {
+  var fileStream = FsioAPI.downloadFileList(signedInEvents);
+  return fileStream.map(makeDownloadedEvent);
+}
+
+function makeDownloadedEvent(file) {
+    return _.hash_map("item", _.js_to_clj(file));
+}
+
 function clearItems(email, password){
   var itemsFile = 'items';
   return FsioAPI.deleteFile(email, password, itemsFile);
@@ -150,6 +160,7 @@ module.exports = {
   syncItemToServer: syncItemToServer,
   clearItems: clearItems,
   saveNewUserState: saveNewUserState,
+  downloadFileList: downloadFileList,
   syncStateWithFsio: syncStateWithFsio,
   test: {
     FsioAPI: FsioAPI
