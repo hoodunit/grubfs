@@ -94,12 +94,14 @@ function updateStateFromEvent(oldState, event){
 }
 
 function getEventHandler(event){
+
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'emptyList', handleEmptyList,
                                  'deleteItem', handleDeleteItem,
                                  'updateItem', handleUpdateItem,
                                  'signedUp', handleSignedUp,
+                                 'signIn', handleSignIn,
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut);
   var eventType = _.get(event, 'eventType');
@@ -172,6 +174,12 @@ function handleSignedUp(oldState, event){
   // force lazy stream to evaluate using onEnd
   Fsio.saveNewUserState(newState).onEnd();
   
+  return newState;
+}
+
+function handleSignIn(oldState,event){
+  var newState = _.assoc(oldState, "items", _.vector());
+  newState = handleSignedIn(newState, event);
   return newState;
 }
 
