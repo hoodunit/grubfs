@@ -1,15 +1,16 @@
 var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
+var State = require('../state');
 
 var Validate = require('../../shared/validate');
 
 var SignInForm = React.createClass({
   getInitialState: function(){
     return {signingUp: false, 
-            emailError: null,
-            passwordError: null,
-            confirmError: null};
+           emailError: null,
+           passwordError: null,
+           confirmError: null};
   },
   componentDidUpdate: function(prevProps, prevState, rootNode){
     if(prevState.signingUp === false && this.state.signingUp === true){
@@ -103,24 +104,18 @@ var SignInForm = React.createClass({
     var ENTER_KEYCODE = 13;
     return event.keyCode === ENTER_KEYCODE;
   },
-
-  fsioErrorMessage: function(that, message) {
-    if (!(this.state.emailError || this.state.passwordError || this.state.confirmError)) {
-      window.setTimeout(function() {that.setState(message);}, 2000);
-    }
-  },
-
   onSignUpClick: function(){
     if(this.state.signingUp){
         this.validateInputAndSignUp();
-        console.log(this.state.emailError);
         if (!(this.state.emailError ||
           this.state.passwordError || this.state.confirmError)) {
-          var that = this;
-          this.fsioErrorMessage(that, {emailError: 'Email address already in use.'});
-      }
-    } else {
-      this.setState({signingUp: true});
+          if (!State.signedIn(State.getLocalState())) {
+            var that = this;
+            this.noticeError(that, 'email');
+          }
+        }
+      } else {
+        this.setState({signingUp: true});
     }
   },
   validateInputAndSignUp: function(){
@@ -162,11 +157,22 @@ var SignInForm = React.createClass({
                            'password', password);
     outgoingEvents.push(event);
   },
+  noticeError: function(that, type) {
+  if (type === 'email') {
+   window.setTimeout(function() {that.setState({emailError: 'Email address is already in use.'});}, 1000); 
+  }
+  else {
+   window.setTimeout(function() {that.refs.password.getDOMNode().parentNode.className += 'has-error';}, 1000);
+   window.setTimeout(function() {that.setState({emailError: 'Email address or password was invalid.'});}, 1000);     
+  }
+ },
   onSignInClick: function(){
     this.sendSignInEvent();
     if (!(this.state.emailError || this.state.passwordError || this.state.confirmError)) {
-      var that = this;
-      this.fsioErrorMessage(that, {emailError: 'Wrong email address or password.'});
+      if (!State.signedIn(State.getLocalState())) {
+        var that = this;
+        this.noticeError(that, 'password');
+      }
     }
   },
   sendSignInEvent: function(){
