@@ -144,8 +144,8 @@ function handleDeleteItem(oldState, event) {
   var items = _.get(oldState, 'items');
 
   var updatedItems = _.remove(function(item) {
-    return _.get(item, 'id') == id;},
-    items);
+    return _.get(item, 'id') === id;
+  }, items);
 
   var newState = _.assoc(oldState, 'items', updatedItems);
 
@@ -220,6 +220,7 @@ function handleSignOut(oldState, event){
 function signedIn(state){
   return _.get(state, 'credentials') !== null;
 }
+
 
 module.exports = {
   handleStateChanges: handleStateChanges,

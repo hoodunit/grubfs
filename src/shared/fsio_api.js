@@ -45,6 +45,13 @@ function requestAuthorizationChallenge(email){
   return response.map('.challenge');
 }
 
+function hashChallenge(password, challenge){
+  var shaObj = new jsSHA(challenge, "B64");
+  var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
+
+  return hmac;
+}
+
 function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
   var respUrl;
   if(isAdmin){

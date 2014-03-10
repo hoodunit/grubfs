@@ -19,8 +19,13 @@ describe('Validate', function(){
   });
 
   describe('validEmail', function(){
-    it('should invalidate some obvious cases', function(){
+    it('should validate some common cases', function(){
       assert(Validate.validEmail('asdf@asdf.com'));
+      assert(Validate.validEmail('foo.bar@sub.domain.com'));
+      assert(Validate.validEmail('asdf@domain.museum'));
+      assert(Validate.validEmail('asdf+bar@domain.fi'));
+    });
+    it('should invalidate some obvious cases', function(){
       assert(!Validate.validEmail('asdf'));
       assert(!Validate.validEmail('asdf@'));
       assert(!Validate.validEmail('asdf@asdf'));
