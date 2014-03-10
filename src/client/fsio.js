@@ -139,10 +139,19 @@ function uploadItem(email, password, item){
   return FsioAPI.uploadFile(email, password, filename, item);
 }
 
+function clearItems(email, password){
+  var itemsFile = 'items';
+  return FsioAPI.deleteFile(email, password, itemsFile);
+}
+
 module.exports = {
   signIn: signIn,
   signUp: signUp,
   syncItemToServer: syncItemToServer,
+  clearItems: clearItems,
   saveNewUserState: saveNewUserState,
-  syncStateWithFsio: syncStateWithFsio
+  syncStateWithFsio: syncStateWithFsio,
+  test: {
+    FsioAPI: FsioAPI
+  }
 };
