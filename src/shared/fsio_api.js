@@ -197,12 +197,7 @@ function downloadFile(username, password, filename){
   return downloadedFile;
 }
 
-function downloadFileList(signedInEvents){
-  var isAdmin = false;
-  var credentialsOld = _.get(signedInEvents, "credentials");
-  var username = _.get(credentialsOld, "email");
-  var password = _.get(credentialsOld, "password");
-
+function downloadFileList(username, password){
   var token = signIn(username, password);
 
   var items = token.flatMap(listFolderItems).map(".items");
