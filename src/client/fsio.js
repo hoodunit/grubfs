@@ -38,12 +38,23 @@ function signIn(event){
   var password = _.get(event, 'password');
 
   var token = FsioAPI.signIn(email, password, false);
+  token.onValue(function() {console.log('ERR');});
 
   var signedInEvents = token.map(_.hash_map, 'token')
-    .map(addUserInfoToCredentials, email, password)
-    .map(makeSignedInEvent);
+  .map(addUserInfoToCredentials, email, password)
+  .map(makeSignedInEvent);
 
-  return signedInEvents;
+  if (checkSignIn(token)) {
+    return signedInEvents;
+  } else {
+    $('#email').parent().prepend('<label class="control-label" htmlfor="email" id="password-label">Invalid email address or password.</label>');
+    $('#email').parent().addClass('has-error');
+    $('#password').parent().addClass('has-error');
+  }
+}
+
+function checkSignIn(token) {
+  return (_.get(token, 'credentials') !== null);
 }
 
 function addUserInfoToCredentials(email, password, credentials){

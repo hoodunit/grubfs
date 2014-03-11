@@ -176,11 +176,13 @@ function handleSignedUp(oldState, event){
     Fsio.saveNewUserState(newState).onEnd();
   } else {
     newState = oldState;
+    // ...
+    $('#email').parent().prepend('<label class="control-label" htmlfor="email" id="email-label">Email address already in use.</label>');
+    $('#email').parent().addClass('has-error');
   }
   
   return newState;
 }
-
 
 function checkValid(event) {
   var status = _.get(_.get(event, 'credentials'), 'statusText');
@@ -228,7 +230,7 @@ function handleSignOut(oldState, event){
 }
 
 function signedIn(state){
-  return _.get(state, 'credentials') !== null;
+  return (_.get(state, 'credentials') !== null);
 }
 
 

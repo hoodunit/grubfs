@@ -2,6 +2,7 @@ var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
 var State = require('../state');
+var $ = require('jquery-node-browserify');
 
 var Validate = require('../../shared/validate');
 
@@ -107,15 +108,9 @@ var SignInForm = React.createClass({
   onSignUpClick: function(){
     if(this.state.signingUp){
         this.validateInputAndSignUp();
-        if (!(this.state.emailError ||
-          this.state.passwordError || this.state.confirmError)) {
-          if (!State.signedIn(State.getLocalState())) {
-            var that = this;
-            this.noticeError(that, 'email');
-          }
-        }
       } else {
         this.setState({signingUp: true});
+        this.clearMess();
     }
   },
   validateInputAndSignUp: function(){
@@ -157,23 +152,8 @@ var SignInForm = React.createClass({
                            'password', password);
     outgoingEvents.push(event);
   },
-  noticeError: function(that, type) {
-  if (type === 'email') {
-   window.setTimeout(function() {that.setState({emailError: 'Email address is already in use.'});}, 1000); 
-  }
-  else {
-   //window.setTimeout(function() {that.refs.password.getDOMNode().parentNode.className += 'has-error';}, 1000);
-   window.setTimeout(function() {that.setState({emailError: 'Email address or password was invalid.'});}, 1000);     
-  }
- },
   onSignInClick: function(){
     this.sendSignInEvent();
-    if (!(this.state.emailError || this.state.passwordError || this.state.confirmError)) {
-      if (!State.signedIn(State.getLocalState())) {
-        var that = this;
-        this.noticeError(that, 'password');
-      }
-    }
   },
   sendSignInEvent: function(){
     var email = this.refs.email.getDOMNode().value.trim();
@@ -184,11 +164,19 @@ var SignInForm = React.createClass({
                            'password', password);
     outgoingEvents.push(event);
   },
+  clearMess: function() {
+    $('#email-label').remove();
+    $('#email').parent().removeClass('has-error');
+    $('#password-label').remove();
+    $('#password').parent().removeClass('has-error');    
+  },
   onCancelClick: function(){
     this.setState({signingUp: false,
                    emailError: null,
                    passwordError: null,
                    confirmError: null});
+
+    this.clearMess();
   }
 });
 
