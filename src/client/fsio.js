@@ -149,7 +149,8 @@ function downloadFileList(signedInEvents) {
 }
 
 function makeDownloadedEvent(file) {
-    return _.hash_map("item", _.js_to_clj(file));
+  file = file[0] ? file[0] : file;
+  return _.hash_map("item", _.js_to_clj(file));
 }
 
 function clearItems(email, password){
