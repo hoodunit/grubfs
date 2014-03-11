@@ -141,7 +141,10 @@ function uploadItem(email, password, item){
 
 
 function downloadFileList(signedInEvents) {
-  var fileStream = FsioAPI.downloadFileList(signedInEvents);
+  var credentials = _.get(signedInEvents, "credentials");
+  var username = _.get(credentials, "email");
+  var password = _.get(credentials, "password");
+  var fileStream = FsioAPI.downloadFileList(username, password);
   return fileStream.map(makeDownloadedEvent);
 }
 
