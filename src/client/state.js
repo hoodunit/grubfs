@@ -94,12 +94,14 @@ function updateStateFromEvent(oldState, event){
 }
 
 function getEventHandler(event){
+
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'emptyList', handleEmptyList,
                                  'deleteItem', handleDeleteItem,
                                  'updateItem', handleUpdateItem,
                                  'signedUp', handleSignedUp,
+                                 'signIn', handleSignIn,
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut);
   var eventType = _.get(event, 'eventType');
@@ -162,8 +164,6 @@ function handleUpdateItem(oldState, event) {
     }
   }, items);
   var newState = _.assoc(oldState, 'items', updatedItems);
-  
-  var updatedItem = getItemById(items, id);
 
   return newState;
 }
@@ -181,20 +181,49 @@ function handleSignedUp(oldState, event){
   return newState;
 }
 
+
 function checkValid(event) {
   var status = _.get(_.get(event, 'credentials'), 'statusText');
   return (status !== 'error');
 }
 
+function handleSignIn(oldState,event){
+  var newState = _.assoc(oldState, "items", _.vector());
+  newState = handleSignedIn(newState, event);
+  return newState;
+}
+
 function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
-  var newState = _.assoc(oldState, 'credentials', credentials);
-  
+  var item = _.get(event, 'item');
+  var oldItems = _.get(oldState, 'items');
+  var newItems;
+  var newState;
+  if(item) {
+    var updatedItems = _.filter(function(oldItem){
+      if(_.get(oldItem, 'id') == _.get(item, 'id')) {
+        return false;
+      } else {
+        return true;
+      }
+    }, oldItems);
+    newItems = _.conj(updatedItems, item);
+  } else {
+    newItems = oldItems;
+  }
+  if(newItems) {
+    newState = _.assoc(oldState, 'credentials', credentials, "items", newItems);
+  } else {
+    newState = _.assoc(oldState, 'credentials', credentials);
+  }
+
   return newState;
 }
 
 function handleSignOut(oldState, event){
-  var newState = _.dissoc(oldState, 'credentials');
+  var newState = _.dissoc(oldState, 'credentials', "items");
+  var defaultItems = getDefaultItems();
+  newState = _.assoc(newState, "items", defaultItems);
   return newState;
 }
 

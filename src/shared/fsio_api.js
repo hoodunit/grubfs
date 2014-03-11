@@ -1,6 +1,7 @@
 var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
 var jsSHA = require('jssha');
+var _ = require('mori');
 
 require('../shared/bacon.ajax');
 
@@ -196,6 +197,42 @@ function downloadFile(username, password, filename){
   return downloadedFile;
 }
 
+function downloadFileList(username, password){
+  var token = signIn(username, password);
+
+  var items = token.flatMap(listFolderItems).map(".items");
+  var folderItemStream = Bacon.combineTemplate({
+    token: token,
+    items: items
+  }).changes();
+  var signedInEventsNew = folderItemStream.flatMap(downloadFileFromList);
+  return signedInEventsNew;
+}
+
+function listFolderItems(token) {
+  var url = constants.FSIO_BASE_URL + '/content/me/files/items';
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return Bacon.$.ajax(authRequest);
+}
+
+function downloadFileFromList(folderItemStream) {
+  var fileList = _.js_to_clj(folderItemStream.items);
+  var token = folderItemStream.token;
+  var fileStream = null;
+  _.each(_.js_to_clj(fileList), function(item) {
+      var filename = _.get(item, "full_name");
+      if(!fileStream) {
+        fileStream = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
+      } else {
+        fileStream = fileStream.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
+      }
+  });
+  return fileStream;
+}
+
 function _downloadFile(filename, token){
   var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
   var request = {url: url,
@@ -258,6 +295,7 @@ module.exports = {
   deleteUser: deleteUser,
   uploadFile: uploadFile,
   downloadFile: downloadFile,
+  downloadFileList: downloadFileList,
   deleteFile: deleteFile,
   getFileInfo: getFileInfo,
   test: {
