@@ -8,6 +8,7 @@ require('../shared/bacon.ajax');
 var constants = {
   FSIO_BASE_URL: 'https://api-fip.sp.f-secure.com/v2',
   FSIO_DATA_URL: 'https://data-fip.sp.f-secure.com/v2',
+  FSIO_UEB_URL: 'https://ueb-fip.sp.f-secure.com/v2',
   OPERATOR_ID: 67901,
   CRAM_CHALLENGE_URL: '/token/cram/challenge',
   CRAM_CHALLENGE_RESP_URL: '/token/cram/user',
@@ -16,12 +17,16 @@ var constants = {
 
 function signIn(email, password){
   var isAdmin = false;
-  return _signIn(email, password, isAdmin);
+  var signInData = _signIn(email, password, isAdmin);
+  var token = signInData.map('.token');
+  return token;
 }
 
 function signInAsAdmin(email, password){
   var isAdmin = true;
-  return _signIn(email, password, isAdmin);
+  var signInData = _signIn(email, password, isAdmin);
+  var token = signInData.map('.token');
+  return token;
 }
 
 function _signIn(email, password, isAdmin){
@@ -29,9 +34,8 @@ function _signIn(email, password, isAdmin){
   var challengeResponse = challenge.map(hashChallenge, password);
   var signInData = Bacon.combineWith(sendChallengeResponse, 
                                      email, challenge, isAdmin, challengeResponse).ajax();
-  var token = signInData.map('.token');
 
-  return token;
+  return signInData;
 }
 
 function requestAuthorizationChallenge(email){
@@ -265,6 +269,35 @@ function _deleteFile(filename, token){
   return Bacon.$.ajax(authRequest);
 }
 
+function getNotification(username, password){
+  var isAdmin = false;
+  var signInData = _signIn(username, password, isAdmin);
+  var userId = signInData.map('.u_uuid');
+  var response = userId.flatMap(_getNotification);
+
+  return response;
+}
+
+function _getNotification(userId){
+  var url = constants.FSIO_UEB_URL + '/notification/uid:' + userId + '/notifications';
+
+  var requestData = {
+    device_id: 'testdeviceid',
+    include_content_types: [
+      'fsio:file'
+    ],
+    keep_alive_threshold: 30
+  };
+
+  var request = {url: url,
+                 type: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(requestData)
+                };
+  
+  return Bacon.$.ajax(request);
+}
+
 // Hackish workaround to get some requests to work on both browser and Node.
 // FSIO requires content-length header for some requests.
 // Browser automatically sets this and does not allow you to set it.
@@ -303,6 +336,7 @@ module.exports = {
   downloadFileList: downloadFileList,
   deleteFile: deleteFile,
   getFileInfo: getFileInfo,
+  getNotification: getNotification,
   test: {
     hashChallenge: hashChallenge
   }
