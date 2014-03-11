@@ -108,6 +108,9 @@ var SignInForm = React.createClass({
   onSignUpClick: function(){
     if(this.state.signingUp){
         this.validateInputAndSignUp();
+        if (!this.state.emailError && !this.state.emailError) {
+          this.clearMess();
+        }
       } else {
         this.setState({signingUp: true});
         this.clearMess();
@@ -153,6 +156,7 @@ var SignInForm = React.createClass({
     outgoingEvents.push(event);
   },
   onSignInClick: function(){
+    this.clearMess();
     this.sendSignInEvent();
   },
   sendSignInEvent: function(){
