@@ -145,12 +145,13 @@ function downloadFileList(signedInEvents) {
   var username = _.get(credentials, "email");
   var password = _.get(credentials, "password");
   var fileStream = FsioAPI.downloadFileList(username, password);
-  return fileStream.map(makeDownloadedEvent);
+  return fileStream.map(makeGetInitialStateEvent);
 }
 
-function makeDownloadedEvent(file) {
+function makeGetInitialStateEvent(file) {
   file = file[0] ? file[0] : file;
-  return _.hash_map("item", _.js_to_clj(file));
+  return _.hash_map("item", _.js_to_clj(file),
+                    "eventType", "getInitialState");
 }
 
 function clearItems(email, password){

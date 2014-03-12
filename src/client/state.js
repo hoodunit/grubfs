@@ -103,7 +103,8 @@ function getEventHandler(event){
                                  'signedUp', handleSignedUp,
                                  'signIn', handleSignIn,
                                  'signedIn', handleSignedIn,
-                                 'signOut', handleSignOut);
+                                 'signOut', handleSignOut,
+                                 'getInitialState', handleGetInitialState);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -185,27 +186,7 @@ function handleSignIn(oldState,event){
 
 function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
-  var item = _.get(event, 'item');
-  var oldItems = _.get(oldState, 'items');
-  var newItems;
-  var newState;
-  if(item) {
-    var updatedItems = _.filter(function(oldItem){
-      if(_.get(oldItem, 'id') == _.get(item, 'id')) {
-        return false;
-      } else {
-        return true;
-      }
-    }, oldItems);
-    newItems = _.conj(updatedItems, item);
-  } else {
-    newItems = oldItems;
-  }
-  if(newItems) {
-    newState = _.assoc(oldState, 'credentials', credentials, "items", newItems);
-  } else {
-    newState = _.assoc(oldState, 'credentials', credentials);
-  }
+  newState = _.assoc(oldState, 'credentials', credentials);
 
   return newState;
 }
@@ -214,6 +195,24 @@ function handleSignOut(oldState, event){
   var newState = _.dissoc(oldState, 'credentials', "items");
   var defaultItems = getDefaultItems();
   newState = _.assoc(newState, "items", defaultItems);
+  return newState;
+}
+
+function handleGetInitialState(oldState, event) {
+  var item = _.get(event, 'item');
+  var oldItems = _.get(oldState, 'items');
+  var newItems;
+  var newState;
+  if(item) {
+    var updatedItems = _.filter(function(oldItem){
+      return _.get(oldItem, 'id') == _.get(item, 'id') ? false : true;
+    }, oldItems);
+    newItems = _.conj(updatedItems, item);
+  } else {
+    newItems = oldItems;
+  }
+  newState = _.assoc(oldState, "items", newItems);
+
   return newState;
 }
 
