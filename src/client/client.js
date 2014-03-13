@@ -42,6 +42,18 @@ function handleNotificationEvents(signedInEvents) {
   return notificationEvents;
 }
 
+function listenNotification(preNotification) {
+  var initialState = State.getInitialState();
+  var toRemoteEvents = new Bacon.Bus();
+  var notificationEvents = Fsio.getNotification(preNotification);
+  var changedStates = State.handleStateChanges(initialState, notificationEvents, toRemoteEvents);
+
+  changedStates.onValue(render);
+  notificationEvents.onValue(function(notification) {
+    listenNotification(notification);
+  });
+}
+
 function initialize(){
   var initialState = State.getInitialState();
   render(initialState);
@@ -55,6 +67,9 @@ function initialize(){
   var signedInEvents = handleSignInEvents(viewEvents);
   var getInitialStateEvents = handleGetInitialStateEvents(signedInEvents);
   var notificationEvents = handleNotificationEvents(signedInEvents);
+  notificationEvents.onValue(function(notification) {
+    listenNotification(notification);
+  });
   
   var toStateEvents = Bacon.mergeAll(viewEvents,
                                      signedUpEvents,

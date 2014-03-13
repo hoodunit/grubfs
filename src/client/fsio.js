@@ -159,12 +159,13 @@ function getNotification(signedInEvents) {
   var username = _.get(credentials, "email");
   var password = _.get(credentials, "password");
   var notification = FsioAPI.getNotification(username, password);
-  return notification.flatMap(makeNotificationEvent);
+  return notification.flatMap(makeNotificationEvent, credentials);
 }
 
-function makeNotificationEvent(notification) {
+function makeNotificationEvent(credentials, notification) {
   return _.hash_map("notification", notification,
-                    "eventType", "notification");
+                    "eventType", "notification",
+                    "credentials", credentials);
 }
 
 function clearItems(email, password){
