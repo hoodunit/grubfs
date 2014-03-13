@@ -154,6 +154,19 @@ function makeGetInitialStateEvent(file) {
                     "eventType", "getInitialState");
 }
 
+function getNotification(signedInEvents) {
+  var credentials = _.get(signedInEvents, "credentials");
+  var username = _.get(credentials, "email");
+  var password = _.get(credentials, "password");
+  var notification = FsioAPI.getNotification(username, password);
+  return notification.flatMap(makeNotificationEvent);
+}
+
+function makeNotificationEvent(notification) {
+  return _.hash_map("notification", notification,
+                    "eventType", "notification");
+}
+
 function clearItems(email, password){
   var itemsFile = 'items';
   return FsioAPI.deleteFile(email, password, itemsFile);
@@ -167,6 +180,7 @@ module.exports = {
   saveNewUserState: saveNewUserState,
   downloadFileList: downloadFileList,
   syncStateWithFsio: syncStateWithFsio,
+  getNotification: getNotification,
   test: {
     FsioAPI: FsioAPI
   }

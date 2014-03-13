@@ -32,9 +32,14 @@ function handleSignInEvents(events){
   return signedInEvents;
 }
 
-function handleGetInitialStateEvents(signInEvents) {
-  var getInitialStateEvents = signInEvents.flatMap(Fsio.downloadFileList);
+function handleGetInitialStateEvents(signedInEvents) {
+  var getInitialStateEvents = signedInEvents.flatMap(Fsio.downloadFileList);
   return getInitialStateEvents;
+}
+
+function handleNotificationEvents(signedInEvents) {
+  var notificationEvents  = signedInEvents.flatMap(Fsio.getNotification);
+  return notificationEvents;
 }
 
 function initialize(){
@@ -49,12 +54,14 @@ function initialize(){
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
   var getInitialStateEvents = handleGetInitialStateEvents(signedInEvents);
+  var notificationEvents = handleNotificationEvents(signedInEvents);
   
   var toStateEvents = Bacon.mergeAll(viewEvents,
                                      signedUpEvents,
                                      signedInEvents,
                                      fromRemoteEvents,
-                                     getInitialStateEvents);
+                                     getInitialStateEvents,
+                                     notificationEvents);
   var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
   
   changedStates.onValue(render);

@@ -104,7 +104,8 @@ function getEventHandler(event){
                                  'signIn', handleSignIn,
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut,
-                                 'getInitialState', handleGetInitialState);
+                                 'getInitialState', handleGetInitialState,
+                                 'notification', handleNotification);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -213,6 +214,12 @@ function handleGetInitialState(oldState, event) {
   }
   newState = _.assoc(oldState, "items", newItems);
 
+  return newState;
+}
+
+function handleNotification(oldState, event) {
+  var notification = _.get(event, 'notification');
+  var newState = _.assoc(oldState, "notification", notification);
   return newState;
 }
 
