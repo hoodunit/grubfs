@@ -38,7 +38,9 @@ module.exports = function(grunt) {
         options: {
           reporter: 'spec'
         },
-        src: ['test/unit_server/**/*.js', 'test/unit_shared/**/*.js', 'test/unit_client/**/*.js']
+        src: ['test/unit_server/**/*.js',
+              'test/unit_shared/**/*.js',
+              'test/unit_client/**/*.js']
       }
     },
     clean: ["coverage/"],
