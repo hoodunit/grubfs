@@ -24,6 +24,14 @@ describe('Validate', function(){
       assert(Validate.validEmail('foo.bar@sub.domain.com'));
       assert(Validate.validEmail('asdf@domain.museum'));
       assert(Validate.validEmail('asdf+bar@domain.fi'));
+
+      assert(Validate.validEmail('niceandsimple@example.com'));
+      assert(Validate.validEmail('very.common@example.com'));
+      assert(Validate.validEmail('a.little.lengthy.but.fine@dept.example.com'));
+      assert(Validate.validEmail('disposable.style.email.with+symbol@example.com'));
+      assert(Validate.validEmail('other.email-with-dash@example.com'));
+      assert(Validate.validEmail("!#$%&'*+-/=?^_`{}|~@example.org"));
+
     });
     it('should invalidate some obvious cases', function(){
       assert(!Validate.validEmail('asdf'));
