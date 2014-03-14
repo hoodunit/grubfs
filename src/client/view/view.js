@@ -12,7 +12,8 @@ var GrubView = React.createClass({
     if(signedIn){
       return UserInfo.UserInfo(_.get(this.props, 'credentials'));
     } else {
-      return SignIn.SignInForm({});
+      var clientState = _.clj_to_js(_.get(this.props, 'clientState'));
+      return SignIn.SignInForm(clientState);
     }
   },
   render: function() {

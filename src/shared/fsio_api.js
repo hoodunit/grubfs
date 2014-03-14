@@ -15,7 +15,8 @@ var constants = {
 var errors = {
   OBJECT_ALREADY_EXISTS: 111,
   AUTHENTICATION_INVALID: 104,
-  OBJECT_NOT_FOUND: 404
+  OBJECT_NOT_FOUND: 115,
+  HTTP_BAD_REQUEST: 400
 };
 
 function signIn(email, password){
@@ -298,10 +299,16 @@ function sendRequest(request){
 }
 
 function parseFsioErrors(response){
-  var errors = response.errors().mapError('.responseText').map(JSON.parse).flatMap(function(error){
+  var errors = response.errors();
+  var parsedErrors = errors.mapError(function(error){
+    var errorData = JSON.parse(error.responseText);
+    errorData.httpCode = error.status;
+    return errorData;
+  }).flatMap(function(error){
     return new Bacon.Error(error);
   });
-  return response.skipErrors().merge(errors);
+
+  return response.skipErrors().merge(parsedErrors);
 }
 
 module.exports = {

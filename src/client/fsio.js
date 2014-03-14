@@ -11,11 +11,19 @@ function signUp(event){
   
   var authCredentials = _signUp(email, password);
 
-  var signedUpEvents = authCredentials.map(_.js_to_clj)
+  var signedUpEvents = authCredentials.skipErrors().map(_.js_to_clj)
     .map(addUserInfoToCredentials, email, password)
     .map(makeSignedUpEvent);
+  
+  var signUpFailedEvents = 
+    authCredentials.errors()
+                   .mapError(_.js_to_clj)
+                   .map(function(){
+                     return _.hash_map('eventType', 'signInStatusChange',
+                                       'signUpError', true);
+                   });
 
-  return signedUpEvents;
+  return Bacon.mergeAll(signedUpEvents, signUpFailedEvents);
 }
 
 function _signUp(email, password){
@@ -30,27 +38,27 @@ function _signUp(email, password){
     data: requestData
   };
 
-  return Bacon.$.ajax(request);
-  }
+  return Bacon.fromPromise($.ajax(request));
+}
 
 function signIn(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
 
   var token = FsioAPI.signIn(email, password, false);
-  token.onValue(function() {console.log('ERR');});
 
-  var signedInEvents = token.map(_.hash_map, 'token')
+  var signedInEvents = token.skipErrors().map(_.hash_map, 'token')
   .map(addUserInfoToCredentials, email, password)
   .map(makeSignedInEvent);
 
-  if (checkSignIn(token)) {
-    return signedInEvents;
-  } else {
-    $('#email').parent().prepend('<label class="control-label" htmlfor="email" id="password-label">Invalid email address or password.</label>');
-    $('#email').parent().addClass('has-error');
-    $('#password').parent().addClass('has-error');
-  }
+  var signInFailedEvents = token.errors()
+                                .mapError(_.js_to_clj)
+                                .map(function(){
+                                  return _.hash_map('eventType', 'signInStatusChange',
+                                                    'signInError', true);
+                                });
+
+  return Bacon.mergeAll(signedInEvents, signInFailedEvents);
 }
 
 function checkSignIn(token) {
@@ -79,8 +87,6 @@ function syncStateWithFsio(event){
   if(eventHandler){
     // Trigger handler but do nothing with result
     eventHandler(event).onEnd();
-  } else {
-    console.log('FSIO ignoring unhandled event:', _.clj_to_js(event));
   }
 
   return Bacon.never();
@@ -156,11 +162,15 @@ function downloadFileList(signedInEvents) {
   var username = _.get(credentials, "email");
   var password = _.get(credentials, "password");
   var fileStream = FsioAPI.downloadFileList(username, password);
-  return fileStream.map(makeDownloadedEvent);
+  var remoteAddItemEvents = fileStream.map(makeRemoteAddItemEvent);
+
+  return remoteAddItemEvents;
 }
 
-function makeDownloadedEvent(file) {
-    return _.hash_map("item", _.js_to_clj(file));
+function makeRemoteAddItemEvent(item){
+  var itemData = _.js_to_clj(item);
+  var event = _.assoc(itemData, 'eventType', 'remoteAddItem');
+  return event;
 }
 
 function clearItems(email, password){

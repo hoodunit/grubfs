@@ -13,7 +13,7 @@ var Util = require('../util/util');
 
 describe('Fsio', function(){
   this.timeout(10000);
-
+  
   describe('saveNewUserState', function(){
     var username;
     var password;

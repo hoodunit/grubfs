@@ -28,7 +28,7 @@ describe('shared Fsio API', function(){
       });
     });
 
-    it('should return failure if the user already exists', function(done){
+    it('should return an error if the user already exists', function(done){
       var username = Util.randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
@@ -45,6 +45,7 @@ describe('shared Fsio API', function(){
 
       response.onError(function(error){
         error.code.should.equal(FsioAPI.errors.OBJECT_ALREADY_EXISTS);
+        error.httpCode.should.equal(FsioAPI.errors.HTTP_BAD_REQUEST);
       });
 
       response.onEnd(function(){
@@ -180,7 +181,7 @@ describe('shared Fsio API', function(){
         error.should.deep.equal(fileData);
       });
       
-      downloadedFile.onEnd(function(){ 
+      downloadedFile.onEnd(function(){
         done();
       });
     });

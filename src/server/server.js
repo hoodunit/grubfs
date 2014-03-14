@@ -17,7 +17,7 @@ function respond(response, stream){
     response.send(data);
   });
   jsonStream.onError(function(data){
-    response.send(data);
+    response.send(data.httpCode, data);
   });
 }
 
