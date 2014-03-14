@@ -301,7 +301,12 @@ function sendRequest(request){
 function parseFsioErrors(response){
   var errors = response.errors();
   var parsedErrors = errors.mapError(function(error){
-    var errorData = JSON.parse(error.responseText);
+    var errorData;
+    try {
+      errorData = JSON.parse(error.responseText);
+    } catch(e){
+      errorData = {text: error.responseText};
+    }
     errorData.httpCode = error.status;
     return errorData;
   }).flatMap(function(error){
