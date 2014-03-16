@@ -11,6 +11,11 @@
     margin-right: 10px;
 }
 
+.user-info {
+    overflow: hidden;
+    word-break: break-all;
+}
+
 .clearfix:before, .clearfix:after {
     content:"";
     display:table;
