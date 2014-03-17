@@ -115,19 +115,17 @@ function handleUpdateItem(event){
 }
 
 function handleAddedOrUpdatedItem(event){
-  var email = _.get_in(event, ['state', 'credentials', 'email']);
-  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
   var updatedItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
-  return uploadItem(email, password, _.clj_to_js(updatedItem));
+  return uploadItem(token, _.clj_to_js(updatedItem));
 }
 
 function handleDeleteItem(event){
-  var email = _.get_in(event, ['state', 'credentials', 'email']);
-  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
   var itemId = _.get(event, 'id');
   var filename = 'items/' + itemId;
 
-  var response = FsioAPI.deleteFile(email, password, filename);
+  var response = FsioAPI.deleteFile(token, filename);
   return response;
 }
 
@@ -151,9 +149,9 @@ function saveNewUserState(state){
   return result;
 }
 
-function uploadItem(email, password, item){
+function uploadItem(token, item){
   var filename = 'items/' + item.id;
-  return FsioAPI.uploadFile(email, password, filename, item);
+  return FsioAPI.uploadFile(token, filename, item);
 }
 
 
