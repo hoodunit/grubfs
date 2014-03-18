@@ -224,18 +224,20 @@ function listFolderItems(token) {
 }
 
 function downloadFileFromList(folderItemStream) {
-  var fileList = _.js_to_clj(folderItemStream.items);
   var token = folderItemStream.token;
-  var fileStream = null;
-  _.each(_.js_to_clj(fileList), function(item) {
-      var filename = _.get(item, "full_name");
-      if(!fileStream) {
-        fileStream = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
-      } else {
-        fileStream = fileStream.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
-      }
+  var items = Bacon.fromArray(folderItemStream.items);
+  var itemNames = items.map(".full_name");
+
+  var downloadedFiles = itemNames.flatMap(function(filename) {
+    return _downloadFile(filename, token);
   });
-  return fileStream;
+  
+  var downloadedItems = downloadedFiles.map(JSON.parse);
+  
+  var downloadedItemsArray = downloadedItems.reduce(_.vector(), _.conj);
+  downloadItemsArray.onValue(function(value) {console.log(_.clj_to_js(value));});
+  
+  return downloadItemsArray;
 }
 
 function _downloadFile(filename, token){
