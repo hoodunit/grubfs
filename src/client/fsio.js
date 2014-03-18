@@ -146,7 +146,7 @@ function saveNewUserState(state){
   var email = _.get_in(state, ['credentials', 'email']);
   var password = _.get_in(state, ['credentials', 'password']);
 
-  var result = Bacon.fromArray(items).flatMapLatest(uploadItem, email, password);
+  var result = Bacon.fromArray(items).flatMap(uploadItem, email, password);
 
   return result;
 }
