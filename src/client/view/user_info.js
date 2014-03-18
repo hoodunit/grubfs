@@ -3,7 +3,8 @@ var _ = require('mori');
 
 var UserInfo = React.createClass({
   render: function(){
-    return React.DOM.div({className: 'sign-in-form well well-lg clearfix'}, _.get(this.props, 'email'));
+    console.log(this.props);
+    return React.DOM.div({className: 'user-info'}, this.props.email);
   }
 });
 
