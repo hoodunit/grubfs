@@ -10,23 +10,21 @@ var State = require('../state');
 var GrubView = React.createClass({
   getSignInFormOrUserInfo: function(signedIn){
     if(signedIn){
-      return UserInfo.UserInfo(_.get(this.props, 'credentials'));
+      return UserInfo.UserInfo(this.props.credentials);
     } else {
-      var clientState = _.clj_to_js(_.get(this.props, 'clientState'));
-      return SignIn.SignInForm(clientState);
+      return SignIn.SignInForm(this.props.clientState);
     }
   },
   render: function() {
-    var signedIn = State.signedIn(this.props);
-    var groceryState = {items: _.get(this.props, 'items'),
-                        signedIn: signedIn};
+    var groceryState = {items: this.props.items,
+                        signedIn: this.props.signedIn};
 
     return React.DOM.div({}, 
                          React.DOM.div({className: 'col-md-2'}),
                          React.DOM.div({className: 'col-md-5'},
                                        Grocery.GroceryList(groceryState)),
                          React.DOM.div({className: 'col-md-3'},
-                                       this.getSignInFormOrUserInfo(signedIn)),
+                                       this.getSignInFormOrUserInfo(this.props.signedIn)),
                          React.DOM.div({className: 'col-md-2'}));
   }
 });
@@ -35,7 +33,10 @@ var outgoingEvents = Bacon.mergeAll(Grocery.outgoingEvents, SignIn.outgoingEvent
 
 function render(state) {
   React.initializeTouchEvents(true);
-  React.renderComponent(GrubView(state), document.getElementById('content'));
+  var signedIn = State.signedIn(state);
+  var jsState = _.clj_to_js(state);
+  jsState.signedIn = signedIn;
+  React.renderComponent(GrubView(jsState), document.getElementById('content'));
 }
 
 module.exports = {
