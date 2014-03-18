@@ -211,7 +211,8 @@ function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
   var newState = _.assoc(oldState,
                          'credentials', credentials,
-                         'items', _.vector());
+                         'items', _.vector(),
+                         'clientState', getDefaultClientState());
 
   return newState;
 }
