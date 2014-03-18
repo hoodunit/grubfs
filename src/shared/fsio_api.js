@@ -1,5 +1,11 @@
 var Bacon = require('baconjs');
+if(!runningInBrowser()){
+var jsdom = require("jsdom");
+var $ = require('jquery')(jsdom.jsdom().parentWindow);
+} else
+{
 var $ = require('jquery');
+}
 var jsSHA = require('jssha');
 var _ = require('mori');
 
