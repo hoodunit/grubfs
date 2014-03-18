@@ -86,7 +86,8 @@ var AddGroceryItemInput = React.createClass({
       this.refs.name.getDOMNode().value = '';
       var addItemEvent = _.hash_map('eventType', 'addItem',
                                     'id', Util.generateUUID(),
-                                    'name', itemName);
+                                    'name', itemName,
+                                    'completed', false);
       outgoingEvents.push(addItemEvent);
       this.refs.name.getDOMNode().focus();
     }

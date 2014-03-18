@@ -124,7 +124,7 @@ function getEventHandler(event){
 function handleAddItem(oldState, event){
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
-                           'completed', false);
+                           'completed', _.get(event, 'completed'));
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
 
@@ -234,7 +234,6 @@ function handleRemoteAddItem(oldState, event){
 function signedIn(state){
   return (_.get(state, 'credentials') !== null);
 }
-
 
 module.exports = {
   handleStateChanges: handleStateChanges,
