@@ -4,8 +4,34 @@ var Bacon = require('baconjs');
 
 var Util = require('../util');
 var GroceryItem = require('./grocery_item');
+var UserInfo = require('./user_info');
 
-var TopBar = React.createClass({
+var ControlBar = React.createClass({
+  render: function() {
+    var emptyButtonIcon = React.DOM.span({
+      className: 'glyphicon glyphicon-trash'
+    });
+    var emptyButton = React.DOM.button({
+      className: 'btn btn-default empty-btn nav-btn',
+      id: 'clearList',
+      type: 'button',
+      dataToggle: 'tooltip',
+      dataPlacement: 'top',
+      title: 'Clear all items',
+      onClick: this.handleEmptyClick
+    },emptyButtonIcon);
+
+    return React.DOM.div({className: 'top-bar clearfix'}, 
+                         emptyButton, 
+                         AddGroceryItemInput());
+  },
+  handleEmptyClick: function() {
+    var emptyEvent = _.hash_map('eventType', 'emptyList');
+    outgoingEvents.push(emptyEvent);
+  }
+});
+
+var UserBar = React.createClass({
   getSignOutButton: function(){
     if(!this.props.signedIn){
       return null;
@@ -25,27 +51,9 @@ var TopBar = React.createClass({
     return button;
   },
   render: function() {
-    var emptyButtonIcon = React.DOM.span({
-      className: 'glyphicon glyphicon-trash'
-    });
-    var emptyButton = React.DOM.button({
-      className: 'btn btn-default empty-btn nav-btn',
-      id: 'clearList',
-      type: 'button',
-      dataToggle: 'tooltip',
-      dataPlacement: 'top',
-      title: 'Clear all items',
-      onClick: this.handleEmptyClick
-    },emptyButtonIcon);
-
     return React.DOM.div({className: 'top-bar clearfix'}, 
                          this.getSignOutButton(),
-                         emptyButton, 
-                         AddGroceryItemInput());
-  },
-  handleEmptyClick: function() {
-    var emptyEvent = _.hash_map('eventType', 'emptyList');
-    outgoingEvents.push(emptyEvent);
+                         UserInfo.UserInfo({email: this.props.email}));
   },
   handleSignOut: function() {
     var event = _.hash_map('eventType', 'signOut');
@@ -116,7 +124,8 @@ var GroceryList = React.createClass({
     return React.DOM.div({
         className: 'groceryMain'
       },
-      TopBar({signedIn: this.props.signedIn}),
+      UserBar({signedIn: this.props.signedIn, email: this.props.email}),
+      ControlBar(),
       groceryList
     );
   }
