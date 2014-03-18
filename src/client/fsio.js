@@ -85,11 +85,10 @@ function syncStateWithFsio(event){
   var eventHandler = getEventHandler(event);
 
   if(eventHandler){
-    // Trigger handler but do nothing with result
-    eventHandler(event).onEnd();
+    return eventHandler(event);
+  } else {
+    return Bacon.never();
   }
-
-  return Bacon.never();
 }
 
 function getEventHandler(event){
