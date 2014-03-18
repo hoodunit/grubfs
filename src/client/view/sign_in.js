@@ -2,7 +2,6 @@ var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
 var State = require('../state');
-var $ = require('jquery-node-browserify');
 
 var Validate = require('../../shared/validate');
 

@@ -1,5 +1,5 @@
 var Bacon = require('baconjs');
-var $ = require('jquery-node-browserify');
+var $ = require('jquery');
 var jsSHA = require('jssha');
 var _ = require('mori');
 

@@ -1,6 +1,5 @@
 var _ = require('mori');
 var Bacon = require('baconjs');
-var $ = require('jquery-node-browserify');
 
 var Fsio = require('./fsio');
 var Util = require('./util');
