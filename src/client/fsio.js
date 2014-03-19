@@ -157,18 +157,18 @@ function uploadItem(email, password, item){
 }
 
 
-function downloadFileList(event) {
+function loadCurrentRemoteState(event) {
   var email = _.get_in(event, ['credentials', 'email']);
   var password = _.get_in(event, ['credentials', 'password']);
-  var fileStream = FsioAPI.downloadFileList(email, password);
-  var remoteAddItemEvents = fileStream.map(makeRemoteAddItemEvent);
+  var remoteItems = FsioAPI.downloadRemoteItems(email, password);
+  var resetStateEvents = remoteItems.map(makeResetStateEvent);
 
-  return remoteAddItemEvents;
+  return resetStateEvents;
 }
 
-function makeRemoteAddItemEvent(items){
+function makeResetStateEvent(items){
   var itemData = _.js_to_clj(items);
-  var event = _.hash_map('items', itemData, 'eventType', 'remoteAddItem');
+  var event = _.hash_map('items', itemData, 'eventType', 'resetState');
   return event;
 }
 
@@ -183,7 +183,7 @@ module.exports = {
   syncItemToServer: syncItemToServer,
   clearItems: clearItems,
   saveNewUserState: saveNewUserState,
-  downloadFileList: downloadFileList,
+  loadCurrentRemoteState: loadCurrentRemoteState,
   syncStateWithFsio: syncStateWithFsio,
   test: {
     FsioAPI: FsioAPI

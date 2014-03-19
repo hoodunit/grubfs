@@ -202,7 +202,7 @@ function downloadFile(username, password, filename){
   return downloadedFile;
 }
 
-function downloadFileList(username, password){
+function downloadRemoteItems(username, password){
   var token = signIn(username, password);
 
   var items = token.flatMap(listFolderItems).map(".items");
@@ -210,8 +210,8 @@ function downloadFileList(username, password){
     token: token,
     items: items
   }).changes();
-  var signedInEventsNew = folderItemStream.flatMap(downloadFilesFromList);
-  return signedInEventsNew;
+  var remoteItemsEvents = folderItemStream.flatMap(downloadItemsFromList);
+  return remoteItemsEvents;
 }
 
 function listFolderItems(token) {
@@ -223,7 +223,7 @@ function listFolderItems(token) {
   return sendRequest(authRequest);
 }
 
-function downloadFilesFromList(folderItemStream) {
+function downloadItemsFromList(folderItemStream) {
   var token = folderItemStream.token;
   var items = Bacon.fromArray(folderItemStream.items);
   var itemNames = items.map(".full_name");
@@ -324,7 +324,7 @@ module.exports = {
   deleteUser: deleteUser,
   uploadFile: uploadFile,
   downloadFile: downloadFile,
-  downloadFileList: downloadFileList,
+  downloadRemoteItems: downloadRemoteItems,
   deleteFile: deleteFile,
   getFileInfo: getFileInfo,
   errors: errors,

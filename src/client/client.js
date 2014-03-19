@@ -24,8 +24,8 @@ function handleSignUpEvents(events){
 function handleSignInEvents(events){
   var signInEvents = events.filter(isEventType, 'signIn');
   var signedInEvents = signInEvents.flatMap(Fsio.signIn);
-  var remoteAddItemEvents = signedInEvents.flatMap(Fsio.downloadFileList);
-  return signedInEvents.merge(remoteAddItemEvents);
+  var resetStateEvents = signedInEvents.flatMap(Fsio.loadCurrentRemoteState);
+  return signedInEvents.merge(resetStateEvents);
 }
 
 function makeInitEvents(initialState) {
@@ -38,11 +38,11 @@ function initialize(){
 
   var initEvents = Bacon.once(makeInitEvents(initialState));
   
-  var remoteAddItemEvents;
+  var resetStateEvents;
   if(State.signedIn(initialState)) {
-    remoteAddItemEvents = initEvents.flatMap(Fsio.downloadFileList);
+    resetStateEvents = initEvents.flatMap(Fsio.loadCurrentRemoteState);
   } else {
-    remoteAddItemEvents = Bacon.never();
+    resetStateEvents = Bacon.never();
   }
   
   var viewEvents = View.outgoingEvents;
@@ -53,7 +53,7 @@ function initialize(){
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
 
-  var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, remoteAddItemEvents, fromRemoteEvents);
+  var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, resetStateEvents, fromRemoteEvents);
   var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
   
   changedStates.onValue(render);
