@@ -134,16 +134,15 @@ function getItemById(items, id){
   }, items));
 }
 
-function syncItemToServer(email, password, item){
-  return uploadItem(email, password, item);
+function syncItemToServer(token, item){
+  return uploadItem(token, item);
 }
 
 function saveNewUserState(state){
   var items = _.clj_to_js(_.get(state, 'items'));
-  var email = _.get_in(state, ['credentials', 'email']);
-  var password = _.get_in(state, ['credentials', 'password']);
+  var token = _.get_in(state, ['credentials', 'token']);
 
-  var result = Bacon.fromArray(items).flatMap(uploadItem, email, password);
+  var result = Bacon.fromArray(items).flatMap(uploadItem, token);
 
   return result;
 }
