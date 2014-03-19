@@ -31,9 +31,9 @@ describe('state', function(){
 
       //check that there is coffee and and a banana in the list
       assert.equal(_.count(_.get(newState,'items')),2);
-      measuredItem = _.nth(_.get(newState,'items'),0);
-      assert.equal(_.get(measuredItem,'name'),'a banana');
       measuredItem = _.nth(_.get(newState,'items'),1);
+      assert.equal(_.get(measuredItem,'name'),'a banana');
+      measuredItem = _.nth(_.get(newState,'items'),0);
       assert.equal(_.get(measuredItem,'name'),'coffee');
       assert.equal(_.get(measuredItem,'id'),'7');
       assert.equal(_.get(measuredItem,'completed'),false);

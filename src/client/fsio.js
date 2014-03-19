@@ -8,7 +8,7 @@ var FsioAPI = require('../shared/fsio_api');
 function signUp(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
-  
+
   var authCredentials = _signUp(email, password);
 
   var signedUpEvents = authCredentials.map(_.js_to_clj)
@@ -140,8 +140,8 @@ function uploadItem(email, password, item){
 }
 
 
-function downloadFileList(signedInEvents) {
-  var credentials = _.get(signedInEvents, "credentials");
+function downloadFileList(event) {
+  var credentials = _.get(event, "credentials");
   var username = _.get(credentials, "email");
   var password = _.get(credentials, "password");
   var fileStream = FsioAPI.downloadFileList(username, password);
@@ -154,8 +154,8 @@ function makeGetInitialStateEvent(file) {
                     "eventType", "getInitialState");
 }
 
-function getNotification(signedInEvents) {
-  var credentials = _.get(signedInEvents, "credentials");
+function getNotification(event) {
+  var credentials = _.get(event, "credentials");
   var username = _.get(credentials, "email");
   var password = _.get(credentials, "password");
   var notification = FsioAPI.getNotification(username, password);
@@ -166,6 +166,66 @@ function makeNotificationEvent(credentials, notification) {
   return _.hash_map("notification", notification,
                     "eventType", "notification",
                     "credentials", credentials);
+}
+
+function getJournals(initial_sync, journal_id_gt, event) {
+  var credentials = _.get(event, "credentials");
+  var username = _.get(credentials, "email");
+  var password = _.get(credentials, "password");
+  var journals = FsioAPI.getJournals(username, password, initial_sync, journal_id_gt);
+  return journals.flatMap(makeJournalEvent, credentials);
+}
+
+function makeJournalEvent(credentials, journals) {
+  return _.hash_map('eventType', 'journal',
+                    'journals', journals,
+                    'credentials', credentials);
+}
+
+function syncFromServer(event) {
+  var credentials = _.get(event, "credentials");
+  var username = _.get(credentials, "email");
+  var password = _.get(credentials, "password");
+  var journalsItems = _.get_in(event, ["journals", "items"]);
+  console.log('journalsItems');
+  console.log(journalsItems);
+  var syncStateEvents = new Bacon.Bus();
+
+  _.each(journalsItems, function(journalsItem) {
+    var operation = _.get(journalsItem, 'operation');
+    var filename = 'items/' + _.get(journalsItem, 'key').split('/').pop();
+    var event;
+
+    if(operation === 'delete') {
+      event = _.hash_map('eventType', 'deleteItem',
+                             'id', filename);
+      syncStateEvents.push(event);
+    } else {
+      var fileStream = FsioAPI.downloadFile(username, password, filename);
+      event = fileStream.map(_makeSyncEvent, operation);
+      event.onValue(function(val) {
+        console.log('file');
+        console.log(val);
+      });
+      syncStateEvents.plug(event);
+    }
+  });
+
+  return syncStateEvents;
+}
+
+function _makeSyncEvent(operation, fileStream) {
+  var file = _.js_to_clj(fileStream);
+  var event;
+  if(operation === 'create') {
+    console.log('create');
+    event = _.assoc(file, 'eventType', 'addItem');
+  }
+  if(operation === 'update') {
+    console.log('update');
+    event = _.assoc(file, 'eventType', 'updateItem');
+  }
+  return event;
 }
 
 function clearItems(email, password){
@@ -182,6 +242,8 @@ module.exports = {
   downloadFileList: downloadFileList,
   syncStateWithFsio: syncStateWithFsio,
   getNotification: getNotification,
+  getJournals: getJournals,
+  syncFromServer: syncFromServer,
   test: {
     FsioAPI: FsioAPI
   }

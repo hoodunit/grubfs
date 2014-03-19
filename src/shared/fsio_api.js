@@ -268,7 +268,7 @@ function getNotification(username, password){
   var isAdmin = false;
   var signInData = _signIn(username, password, isAdmin);
   var userId = signInData.map('.u_uuid');
-  var response = userId.flatMap(_getNotification);
+  var response = userId.flatMap(_getNotification).map(_.js_to_clj);
 
   return response;
 }
@@ -277,11 +277,11 @@ function _getNotification(userId){
   var url = constants.FSIO_UEB_URL + '/notification/uid:' + userId + '/notifications';
 
   var requestData = {
-    device_id: 'testdeviceid',
+    device_id: 'testdeviceid2',
     include_content_types: [
       'fsio:file'
     ],
-    keep_alive_threshold: 30
+    keep_alive_threshold: 600
   };
 
   var request = {url: url,
@@ -291,6 +291,27 @@ function _getNotification(userId){
                 };
   
   return Bacon.$.ajax(request);
+}
+
+function getJournals(username, password, initial_sync, journal_id_gt) {
+  var isAdmin = false;
+  var signInData = _signIn(username, password, isAdmin);
+  var token = signInData.map('.token');
+  var response = token.flatMap(_getJournals, initial_sync, journal_id_gt).map(_.js_to_clj);
+
+  return response;
+}
+
+function _getJournals(initial_sync, journal_id_gt, token) {
+  var journal_id_gt_uri = journal_id_gt ? '&journal_id_gt=' + journal_id_gt : '';
+  var url = constants.FSIO_BASE_URL + '/content/me/journal?limit=' + 100 + '&initial_sync=' + initial_sync + '&related_objects=file' + journal_id_gt_uri;
+
+  var request = {url: url,
+                 type: 'GET',
+                };
+  var authRequest = makeAuthorizedRequest(request, token);
+  
+  return Bacon.$.ajax(authRequest);
 }
 
 // Hackish workaround to get some requests to work on both browser and Node.
@@ -332,6 +353,7 @@ module.exports = {
   deleteFile: deleteFile,
   getFileInfo: getFileInfo,
   getNotification: getNotification,
+  getJournals: getJournals,
   test: {
     hashChallenge: hashChallenge
   }

@@ -70,7 +70,7 @@ function handleStateChanges(initialState, events, toRemote){
     if(!_.equals(oldState, state)){
       changedStates.push(state);
     }
-    if(signedIn(state)){
+    if(signedIn(state) && toRemote){
       var eventWithState = _.assoc(event, 'state', state);
       toRemote.push(eventWithState);
     }
@@ -115,7 +115,17 @@ function handleAddItem(oldState, event){
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
                            'completed', false);
-  var newItems = _.conj(_.get(oldState, 'items'), newItem);
+  var oldItems = _.get(oldState, 'items');
+  console.log('newItem');
+  console.log(newItem);
+  console.log('oldItems');
+  console.log(oldItems);
+  var updatedItems = _.filter(function(oldItem){
+    return _.get(oldItem, 'id') == _.get(newItem, 'id') ? false : true;
+  }, oldItems);
+  var newItems = _.conj(updatedItems, newItem);
+  console.log('newItems');
+  console.log(newItems);
   var newState = _.assoc(oldState, 'items', newItems);
 
   return newState;
