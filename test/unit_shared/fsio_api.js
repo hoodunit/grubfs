@@ -159,7 +159,10 @@ describe('shared Fsio API', function(){
                       name: 'test item'};
       var fileKey = '/me/files/items/testfileid';
       
-      var uploadedFileInfo = FsioAPI.uploadFile(username, password, filename, fileData);
+      var tokenStream = FsioAPI.signIn(username, password);
+      var uploadedFileInfo = tokenStream.flatMap(function(token) {
+        return FsioAPI.uploadFile(token, filename, fileData);
+      });
 
       uploadedFileInfo.onValue(function(uploadedFileData){
         uploadedFileData.object_type.should.exist;
@@ -212,7 +215,10 @@ describe('shared Fsio API', function(){
                       name: 'item'};
       var fileKey = '/me/files/items/item2';
       
-      var uploadedFileInfo = FsioAPI.uploadFile(username, password, filename, fileData);
+      var tokenStream = FsioAPI.signIn(username, password);
+      var uploadedFileInfo = tokenStream.flatMap(function(token) {
+        return FsioAPI.uploadFile(token, filename, fileData);
+      });
 
       uploadedFileInfo.onValue(function(uploadedFileData){
         uploadedFileData.object_type.should.exist;
@@ -222,10 +228,11 @@ describe('shared Fsio API', function(){
       });
     
       var deletedFileInfo = uploadedFileInfo.delay(1500).
-        flatMap(FsioAPI.deleteFile, username, password, filename);
+        flatMap(FsioAPI.signIn, username, password).
+        flatMap(function(token) { return FsioAPI.deleteFile(token, filename); });
  
-      var downloadedFile = deletedFileInfo.delay(1500).flatMap(FsioAPI.downloadFile, username, 
-                                                                password, filename);
+      var downloadedFile = deletedFileInfo.delay(1500).
+        flatMap(FsioAPI.downloadFile, username, password, filename);
 
       downloadedFile.onError(function(error){
         error.code.should.equal(FsioAPI.errors.OBJECT_NOT_FOUND);

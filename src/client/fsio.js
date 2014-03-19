@@ -85,11 +85,10 @@ function syncStateWithFsio(event){
   var eventHandler = getEventHandler(event);
 
   if(eventHandler){
-    // Trigger handler but do nothing with result
-    eventHandler(event).onEnd();
+    return eventHandler(event);
+  } else {
+    return Bacon.never();
   }
-
-  return Bacon.never();
 }
 
 function getEventHandler(event){
@@ -115,19 +114,17 @@ function handleUpdateItem(event){
 }
 
 function handleAddedOrUpdatedItem(event){
-  var email = _.get_in(event, ['state', 'credentials', 'email']);
-  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
   var updatedItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
-  return uploadItem(email, password, _.clj_to_js(updatedItem));
+  return uploadItem(token, _.clj_to_js(updatedItem));
 }
 
 function handleDeleteItem(event){
-  var email = _.get_in(event, ['state', 'credentials', 'email']);
-  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
   var itemId = _.get(event, 'id');
   var filename = 'items/' + itemId;
 
-  var response = FsioAPI.deleteFile(email, password, filename);
+  var response = FsioAPI.deleteFile(token, filename);
   return response;
 }
 
@@ -137,23 +134,22 @@ function getItemById(items, id){
   }, items));
 }
 
-function syncItemToServer(email, password, item){
-  return uploadItem(email, password, item);
+function syncItemToServer(token, item){
+  return uploadItem(token, item);
 }
 
 function saveNewUserState(state){
   var items = _.clj_to_js(_.get(state, 'items'));
-  var email = _.get_in(state, ['credentials', 'email']);
-  var password = _.get_in(state, ['credentials', 'password']);
+  var token = _.get_in(state, ['credentials', 'token']);
 
-  var result = Bacon.fromArray(items).flatMap(uploadItem, email, password);
+  var result = Bacon.fromArray(items).flatMap(uploadItem, token);
 
   return result;
 }
 
-function uploadItem(email, password, item){
+function uploadItem(token, item){
   var filename = 'items/' + item.id;
-  return FsioAPI.uploadFile(email, password, filename, item);
+  return FsioAPI.uploadFile(token, filename, item);
 }
 
 

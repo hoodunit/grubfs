@@ -165,13 +165,8 @@ function getUserInfo(username, adminToken){
   return sendRequest(request);
 }
 
-function uploadFile(username, password, filename, data){
-  var token = signIn(username, password);
-  var fileUpload = token.flatMap(_uploadFile, filename, data);
-  return fileUpload;
-}
 
-function _uploadFile(filename, data, token){
+function uploadFile(token, filename, data){
   var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
   var request = {url: url,
                  type: 'PUT',
@@ -247,14 +242,7 @@ function _downloadFile(filename, token){
   return sendRequest(authRequest);
 }
 
-function deleteFile(username, password, filename){
-  var token = signIn(username, password);
-  var deletedFile = token.flatMap(_deleteFile, filename);
-
-  return deletedFile;
-}
-
-function _deleteFile(filename, token){
+function deleteFile(token, filename){
   var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
   var origRequest = {url: url,
                      type: 'DELETE'};

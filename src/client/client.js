@@ -36,11 +36,20 @@ function initialize(){
   
   var toRemoteEvents = new Bacon.Bus();
   var fromRemoteEvents = toRemoteEvents.flatMap(Fsio.syncStateWithFsio);
+  var signedOutEvents = fromRemoteEvents.mapError(function(e) {
+    if(e.status == 401){
+      return _.hash_map('eventType', 'signOut');
+    } else{
+      return _.hash_map();
+    }
+  }).filter(function(event) {
+    return _.get(event, 'eventType') == "signOut";
+  });
   
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
   
-  var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, fromRemoteEvents);
+  var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, signedOutEvents);
   var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
   
   changedStates.onValue(render);

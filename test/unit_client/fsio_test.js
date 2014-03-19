@@ -44,19 +44,21 @@ describe('Fsio', function(){
                    'name', '2 dl cream',
                    'completed', false));
       
-      var credentials = _.hash_map('email', username, 'password', password);
+      FsioAPI.signIn(username, password).onValue(function(token) {
+        var credentials = _.hash_map('email', username, 'password', password, 'token', token);
 
-      var state = _.hash_map('items', items,
-                             'credentials', credentials);
-      
-      var response = Fsio.saveNewUserState(state);
+        var state = _.hash_map('items', items,
+                               'credentials', credentials);
+        
+        var response = Fsio.saveNewUserState(state);
 
-      response.onError(function(error){
-        error.should.not.exist;
-      });
+        response.onError(function(error){
+          error.should.not.exist;
+        });
 
-      response.onEnd(function(result){
-        done();
+        response.onEnd(function(result){
+          done();
+        });
       });
     });
   });
@@ -86,8 +88,11 @@ describe('Fsio', function(){
                   name: 'pizza'};
       var filename = 'items/item1';
       
-      var result = Fsio.syncItemToServer(username, password, item);
-
+      
+      var result = FsioAPI.signIn(username, password).flatMap(function(token) {
+        return Fsio.syncItemToServer(token, item);
+      });
+      
       downloadedFile = result.delay(500).flatMap(FsioAPI.downloadFile, username, 
                                                                 password, filename);
 
@@ -129,7 +134,10 @@ describe('Fsio', function(){
                       name: 'chicken'};
       var fileKey = '/me/files/items/item11';
       
-      var uploadedFile = FsioAPI.uploadFile(username, password, filename, fileData);
+      
+      var uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
+        return FsioAPI.uploadFile(token, filename, fileData);
+      });
 
       uploadedFile.onError(function(error){
         error.should.not.exist;
@@ -137,7 +145,9 @@ describe('Fsio', function(){
       
       //complete item
       fileData.completed = true;
-      uploadedFile = Fsio.syncItemToServer(username, password, fileData);
+      uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
+        return Fsio.syncItemToServer(token, fileData);
+      });
 
       uploadedFile.onError(function(error){
         error.should.not.exist;
@@ -155,7 +165,9 @@ describe('Fsio', function(){
 
       //edit item name
       fileData.name = 'chicken breast';
-      uploadedFile = Fsio.syncItemToServer(username, password, fileData);
+      uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
+        return Fsio.syncItemToServer(token, fileData);
+      });
 
       uploadedFile.onError(function(error){
         error.should.not.exist;
