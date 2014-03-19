@@ -228,7 +228,8 @@ function handleSignOut(oldState, event){
 }
 
 function handleRemoteAddItem(oldState, event){
-  return handleAddItem(oldState, event);
+  var newState = _.assoc(oldState, 'items', _.get(event, 'items'));
+  return newState;
 }
 
 function signedIn(state){

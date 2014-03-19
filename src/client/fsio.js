@@ -157,19 +157,18 @@ function uploadItem(email, password, item){
 }
 
 
-function downloadFileList(signedInEvents) {
-  var credentials = _.get(signedInEvents, "credentials");
-  var username = _.get(credentials, "email");
-  var password = _.get(credentials, "password");
-  var fileStream = FsioAPI.downloadFileList(username, password);
+function downloadFileList(event) {
+  var email = _.get_in(event, ['credentials', 'email']);
+  var password = _.get_in(event, ['credentials', 'password']);
+  var fileStream = FsioAPI.downloadFileList(email, password);
   var remoteAddItemEvents = fileStream.map(makeRemoteAddItemEvent);
 
   return remoteAddItemEvents;
 }
 
-function makeRemoteAddItemEvent(item){
-  var itemData = _.js_to_clj(item);
-  var event = _.assoc(itemData, 'eventType', 'remoteAddItem');
+function makeRemoteAddItemEvent(items){
+  var itemData = _.js_to_clj(items);
+  var event = _.hash_map('items', itemData, 'eventType', 'remoteAddItem');
   return event;
 }
 

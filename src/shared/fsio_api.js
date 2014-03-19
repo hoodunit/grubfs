@@ -210,7 +210,7 @@ function downloadFileList(username, password){
     token: token,
     items: items
   }).changes();
-  var signedInEventsNew = folderItemStream.flatMap(downloadFileFromList);
+  var signedInEventsNew = folderItemStream.flatMap(downloadFilesFromList);
   return signedInEventsNew;
 }
 
@@ -223,7 +223,7 @@ function listFolderItems(token) {
   return sendRequest(authRequest);
 }
 
-function downloadFileFromList(folderItemStream) {
+function downloadFilesFromList(folderItemStream) {
   var token = folderItemStream.token;
   var items = Bacon.fromArray(folderItemStream.items);
   var itemNames = items.map(".full_name");
@@ -235,9 +235,8 @@ function downloadFileFromList(folderItemStream) {
   var downloadedItems = downloadedFiles.map(JSON.parse);
   
   var downloadedItemsArray = downloadedItems.reduce(_.vector(), _.conj);
-  downloadItemsArray.onValue(function(value) {console.log(_.clj_to_js(value));});
   
-  return downloadItemsArray;
+  return downloadedItemsArray;
 }
 
 function _downloadFile(filename, token){

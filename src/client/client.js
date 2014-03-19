@@ -28,15 +28,21 @@ function handleSignInEvents(events){
   return signedInEvents.merge(remoteAddItemEvents);
 }
 
+function makeInitEvents(initialState) {
+  return _.hash_map('credentials', _.get(initialState, 'credentials'), 'eventType', 'init');
+}
+
 function initialize(){
   var initialState = State.getInitialState();
   render(initialState);
+
+  var initEvents = Bacon.once(makeInitEvents(initialState));
   
   var remoteAddItemEvents;
   if(State.signedIn(initialState)) {
-	remoteAddItemEvents = signedInEvents.flatMap(Fsio.downloadFileList);
+    remoteAddItemEvents = initEvents.flatMap(Fsio.downloadFileList);
   } else {
-	remoteAddItemEvents = Bacon.never();
+    remoteAddItemEvents = Bacon.never();
   }
   
   var viewEvents = View.outgoingEvents;
@@ -46,7 +52,7 @@ function initialize(){
   
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
-  
+
   var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, remoteAddItemEvents, fromRemoteEvents);
   var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
   
