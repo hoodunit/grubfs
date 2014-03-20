@@ -62,6 +62,8 @@ describe('Fsio', function(){
   });
 
   describe('loadCurrentRemoteState', function(){
+    this.timeout(30000);
+    
     var username;
     var password;
     var credentials;

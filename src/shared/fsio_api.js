@@ -235,11 +235,21 @@ function downloadItemsFromList(folderItemStream) {
   var items = Bacon.fromArray(itemsArray);
   var itemNames = items.map(".full_name");
 
-  var downloadedFiles = itemNames.flatMap(function(filename) {
+  // make a stream of streams that are concatenated instead of
+  // directly flatMapping to preserve the order of downloads
+  var downloadStreams = itemNames.map(function(filename) {
     return _downloadFile(filename, token);
   });
+
+  var concatenatedDownloadStreams = downloadStreams.reduce(Bacon.never(), function(streams, stream) {
+    return streams.concat(stream);
+  });
+
+  var concatenatedDownloads = concatenatedDownloadStreams.flatMap(function(concatenatedDownloadStream) {
+    return concatenatedDownloadStream;
+  });
   
-  var downloadedItems = downloadedFiles.map(JSON.parse);
+  var downloadedItems = concatenatedDownloads.map(JSON.parse);
   
   var downloadedItemsArray = downloadedItems.reduce(_.vector(), _.conj);
   
