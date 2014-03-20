@@ -225,7 +225,14 @@ function listFolderItems(token) {
 
 function downloadItemsFromList(folderItemStream) {
   var token = folderItemStream.token;
-  var items = Bacon.fromArray(folderItemStream.items);
+  
+  // BaconJS bug? folderItemStream.items instanceof Array == false workaround
+  var itemsArray = [];
+  folderItemStream.items.forEach(function(item) {
+    itemsArray.push(item);
+  });
+  
+  var items = Bacon.fromArray(itemsArray);
   var itemNames = items.map(".full_name");
 
   var downloadedFiles = itemNames.flatMap(function(filename) {

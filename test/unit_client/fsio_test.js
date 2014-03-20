@@ -99,18 +99,14 @@ describe('Fsio', function(){
     });
 
     it('should return the added items', function(done){
-      var resetStateEvent = Fsio.loadCurrentRemoteState(_.hash_map('credentials', credentials, 'eventType', 'init'));
-
+      var initEvent = _.hash_map('credentials', credentials, 'eventType', 'init');
+      var resetStateEvent = Fsio.loadCurrentRemoteState(initEvent);
       resetStateEvent.onError(function(error){
         error.should.not.exist;
       });
 
       resetStateEvent.onValue(function(event){
-        if(_.equals(_.get(event, 'items'), items)) {
-          done();
-        } else {
-          error.should.not.exist;
-        }
+        _.clj_to_js(items).should.deep.equal(_.clj_to_js(_.get(event, 'items')));
       });
     });
   });
