@@ -1,11 +1,7 @@
 var Bacon = require('baconjs');
-if(!runningInBrowser()){
-var jsdom = require("jsdom");
-var $ = require('jquery')(jsdom.jsdom().parentWindow);
-} else
-{
-var $ = require('jquery');
-}
+var jsdom = require('jsdom');
+var window = window || jsdom.jsdom().createWindow();
+var $ = require('jquery')(window);
 var jsSHA = require('jssha');
 var _ = require('mori');
 
