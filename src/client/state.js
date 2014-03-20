@@ -105,26 +105,27 @@ function getEventHandler(event){
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut,
                                  'getInitialState', handleGetInitialState,
-                                 'notification', handleNotification);
+                                 'notification', handleNotification,
+                                 'syncDelete', handleDeleteItem,
+                                 'syncAdd', handleAddItem,
+                                 'syncUpdate', handleUpdateItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
 }
 
 function handleAddItem(oldState, event){
+  console.log('add');
+  console.log(event);
+  var completed = _.has_key(event, 'completed') ? _.get(event, 'completed') : false;
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
-                           'completed', false);
+                           'completed', completed);
   var oldItems = _.get(oldState, 'items');
-  console.log('newItem');
-  console.log(newItem);
-  console.log('oldItems');
-  console.log(oldItems);
   var updatedItems = _.filter(function(oldItem){
     return _.get(oldItem, 'id') == _.get(newItem, 'id') ? false : true;
   }, oldItems);
   var newItems = _.conj(updatedItems, newItem);
-  console.log('newItems');
   console.log(newItems);
   var newState = _.assoc(oldState, 'items', newItems);
 
@@ -152,7 +153,9 @@ function handleEmptyList(oldState, event) {
 }
 
 function handleDeleteItem(oldState, event) {
+  console.log('delete');
   var id = _.get(event, 'id');
+  console.log(event);
   var items = _.get(oldState, 'items');
 
   var updatedItems = _.remove(function(item) {

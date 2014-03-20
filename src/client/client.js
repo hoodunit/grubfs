@@ -39,38 +39,31 @@ function listenNotification(preNotification) {
   var notificationEvents = Fsio.getNotification(preNotification);
   var preStateId = _.get_in(preNotification, ['notification', 'notifications', 0, 'state_id']);
 
-  if(!LAST_SEEN_STATE_ID) { //when get first notification
-    syncFromServer(preNotification);
-  }
+  setTimeout(syncFromServer, 1000, preNotification);
 
   LAST_SEEN_STATE_ID = preStateId;
-  console.log("pre:");
-  console.log(preNotification);
 
   notificationEvents.onValue(function(notification) {
-    var currentStateId = _.get_in(notification, ['notification', 'notifications', 0, 'state_id']);
-    console.log("new:");
-    console.log(notification);
-    if(LAST_SEEN_STATE_ID !== currentStateId) {
-      syncFromServer(notification);
-    }
     listenNotification(notification);
   });
 }
 
 function syncFromServer(event) {
   var initialState = State.getInitialState();
-  console.log('last_journalid');
-  console.log(LAST_SEEN_JOURNAL_ID);
   var journalEvent = Bacon.once(event).flatMap(Fsio.getJournals, false, LAST_SEEN_JOURNAL_ID);
   journalEvent.onValue(function(journals) {
-    LAST_SEEN_JOURNAL_ID = _.get(_.last(_.get_in(journals, ['journals', 'items'])), 'journal_id');
+    var newJournalId = _.get(_.last(_.get_in(journals, ['journals', 'items'])), 'journal_id');
+    LAST_SEEN_JOURNAL_ID = newJournalId ? newJournalId : LAST_SEEN_JOURNAL_ID;
 
     var syncStateEvents = Fsio.syncFromServer(journals);
-    syncStateEvents.onValue(function(val) {
-      console.log('syncStateEvents');
-      console.log(val);
-    });
+syncStateEvents.onValue(function(val) {
+  console.log('syncStateEvents');
+  console.log(val);
+});
+    /*syncStateEvents.onValue(function(val) {*/
+      //console.log('syncStateEvents');
+      //console.log(val);
+    /*});*/
     var changedStates = State.handleStateChanges(initialState, syncStateEvents);
     changedStates.onValue(render);
   });
@@ -96,7 +89,7 @@ function initialize(){
 
   var journalEvent = signedInEvents.flatMap(Fsio.getJournals, true, LAST_SEEN_JOURNAL_ID);
   journalEvent.onValue(function(journals) {
-    LAST_SEEN_JOURNAL_ID = _.get(_.last(_.get_in(journals, ['journals', 'items'])), 'journal_id');
+    LAST_SEEN_JOURNAL_ID = _.get_in(journals, ['journals', 'journal_max']) - 1;
   });
 
   var toStateEvents = Bacon.mergeAll(viewEvents,

@@ -189,17 +189,18 @@ function syncFromServer(event) {
   var journalsItems = _.get_in(event, ["journals", "items"]);
   console.log('journalsItems');
   console.log(journalsItems);
-  var syncStateEvents = new Bacon.Bus();
+  var syncStateEvents = Bacon.once();
 
   _.each(journalsItems, function(journalsItem) {
     var operation = _.get(journalsItem, 'operation');
-    var filename = 'items/' + _.get(journalsItem, 'key').split('/').pop();
+    var id = _.get(journalsItem, 'key').split('/').pop();
+    var filename = 'items/' + id;
     var event;
 
     if(operation === 'delete') {
-      event = _.hash_map('eventType', 'deleteItem',
-                             'id', filename);
-      syncStateEvents.push(event);
+      event = _.hash_map('eventType', 'syncDelete',
+                             'id', id);
+      syncStateEvents = syncStateEvents.merge(Bacon.once(event));
     } else {
       var fileStream = FsioAPI.downloadFile(username, password, filename);
       event = fileStream.map(_makeSyncEvent, operation);
@@ -207,7 +208,7 @@ function syncFromServer(event) {
         console.log('file');
         console.log(val);
       });
-      syncStateEvents.plug(event);
+      syncStateEvents = syncStateEvents.merge(event);
     }
   });
 
@@ -219,11 +220,11 @@ function _makeSyncEvent(operation, fileStream) {
   var event;
   if(operation === 'create') {
     console.log('create');
-    event = _.assoc(file, 'eventType', 'addItem');
+    event = _.assoc(file, 'eventType', 'syncAdd');
   }
   if(operation === 'update') {
     console.log('update');
-    event = _.assoc(file, 'eventType', 'updateItem');
+    event = _.assoc(file, 'eventType', 'syncUpdate');
   }
   return event;
 }
