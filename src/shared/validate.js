@@ -6,7 +6,8 @@ function validPasswordLength(password){
 }
 
 function validEmail(email){
-  return (/^[a-z0-9]+([-._\+][a-z0-9]+)*@([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,16}$/).test(email) &&
+  //all sensible and most weird emails allowed
+  return (/^([!#$%&'*+-\/=?^_`{}|~a-z0-9]+)*@([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,16}$/).test(email) &&
     (/^(?=.{1,64}@.{4,64}$)(?=.{6,100}$).*/).test(email);
 }
 
