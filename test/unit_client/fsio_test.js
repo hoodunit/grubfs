@@ -62,8 +62,6 @@ describe('Fsio', function(){
   });
 
   describe('loadCurrentRemoteState', function(){
-    this.timeout(30000);
-    
     var username;
     var password;
     var credentials;
@@ -109,6 +107,7 @@ describe('Fsio', function(){
 
       resetStateEvent.onValue(function(event){
         _.clj_to_js(items).should.deep.equal(_.clj_to_js(_.get(event, 'items')));
+        done();
       });
     });
   });
