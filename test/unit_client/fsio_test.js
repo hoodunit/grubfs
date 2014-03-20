@@ -61,6 +61,60 @@ describe('Fsio', function(){
     });
   });
 
+  describe('loadCurrentRemoteState', function(){
+    var username;
+    var password;
+    var credentials;
+    var items = _.vector(
+      _.hash_map('id', 'testid1',
+                 'name', '1 packages of tomato puree',
+                 'completed', false),
+      _.hash_map('id', 'testid2',
+                 'name', '4 yellow onions',
+                 'completed', true),
+      _.hash_map('id', 'testid3',
+                 'name', '2 dl cream',
+                 'completed', false));
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        credentials = _.hash_map('email', username, 'password', password);
+
+        var state = _.hash_map('items', items,
+                             'credentials', credentials);
+        var response = Fsio.saveNewUserState(state);
+        
+        response.onEnd(function(result){
+          done();
+        });
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should return the added items', function(done){
+      var resetStateEvent = Fsio.loadCurrentRemoteState(_.hash_map('credentials', credentials, 'eventType', 'init'));
+
+      resetStateEvent.onError(function(error){
+        error.should.not.exist;
+      });
+
+      resetStateEvent.onValue(function(event){
+        if(_.equals(_.get(event, 'items'), items)) {
+          done();
+        } else {
+          error.should.not.exist;
+        }
+      });
+    });
+  });
+
   describe('Sync added items to server', function(){
     var username;
     var password;
