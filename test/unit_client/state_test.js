@@ -14,7 +14,8 @@ describe('state', function(){
 
       //add a banana
       var newItem = _.hash_map('id', 4,
-                               'name', 'a banana');
+                               'name', 'a banana',
+                               'completed', false);
       var newState = State.handleAddItem(initialState, newItem);
 
       //check that there is a banana in the list
@@ -26,7 +27,8 @@ describe('state', function(){
 
       //add coffee
       newItem = _.hash_map('id', 7,
-                           'name', 'coffee');
+                           'name', 'coffee',
+                           'completed', false);
       newState = State.handleAddItem(newState, newItem);
 
       //check that there is coffee and and a banana in the list

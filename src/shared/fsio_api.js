@@ -3,8 +3,6 @@ var $ = require('jquery-node-browserify');
 var jsSHA = require('jssha');
 var _ = require('mori');
 
-require('../shared/bacon.ajax');
-
 var constants = {
   FSIO_BASE_URL: 'https://api-fip.sp.f-secure.com/v2',
   FSIO_DATA_URL: 'https://data-fip.sp.f-secure.com/v2',
@@ -12,6 +10,13 @@ var constants = {
   CRAM_CHALLENGE_URL: '/token/cram/challenge',
   CRAM_CHALLENGE_RESP_URL: '/token/cram/user',
   CRAM_CHALLENGE_RESP_ADMIN_URL: '/token/cram/admin_l2'
+};
+
+var errors = {
+  OBJECT_ALREADY_EXISTS: 111,
+  AUTHENTICATION_INVALID: 104,
+  OBJECT_NOT_FOUND: 115,
+  HTTP_BAD_REQUEST: 400
 };
 
 function signIn(email, password){
@@ -28,9 +33,10 @@ function _signIn(email, password, isAdmin){
   var challenge = requestAuthorizationChallenge(email);
   var challengeResponse = challenge.map(hashChallenge, password);
   var signInData = Bacon.combineWith(sendChallengeResponse, 
-                                     email, challenge, isAdmin, challengeResponse).ajax();
+                                     email, challenge, isAdmin, challengeResponse)
+                        .flatMapLatest(sendRequest);
   var token = signInData.map('.token');
-
+  
   return token;
 }
 
@@ -41,7 +47,7 @@ function requestAuthorizationChallenge(email){
   var request = {url: url,
                  type: 'POST',
                  data: JSON.stringify(requestData)};
-  var response = Bacon.$.ajax(request);
+  var response = sendRequest(request);
   return response.map('.challenge');
 }
 
@@ -81,7 +87,6 @@ function hashChallenge(password, challenge){
 function signUp(username, password, adminUser, adminPass){
   var adminToken = signInAsAdmin(adminUser, adminPass);
   var newUserStatus = createUser(adminToken, username, password);
-
   return newUserStatus;
 }
 
@@ -90,7 +95,7 @@ function createUser(adminToken, username, password){
   var newUserKey = newUserData.map('.key');
   var newUserAuthKey = Bacon.combineWith(addAuthToUser, adminToken, 
                                          username, password, 
-                                         newUserKey).ajax();
+                                         newUserKey).flatMapLatest(sendRequest);
   return newUserAuthKey;
 }
 
@@ -110,7 +115,7 @@ function createNewUser(username, password, adminToken){
                  data: JSON.stringify(requestData)};
 
   var authRequest = makeAuthorizedRequest(request, adminToken);
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 function addAuthToUser(adminToken, username, password, userKey){
@@ -146,7 +151,7 @@ function _deleteUser(username, adminToken){
   var request = setContentLengthIfRunningInNode(origRequest);
   var authRequest = makeAuthorizedRequest(request, adminToken);
 
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 function getUserInfo(username, adminToken){
@@ -157,7 +162,7 @@ function getUserInfo(username, adminToken){
                  type: 'GET'};
 
   var authRequest = makeAuthorizedRequest(request, adminToken);
-  return Bacon.$.ajax(request);
+  return sendRequest(request);
 }
 
 function uploadFile(username, password, filename, data){
@@ -173,7 +178,7 @@ function _uploadFile(filename, data, token){
                  data: JSON.stringify(data)};
   var authRequest = makeAuthorizedRequest(request, token);
 
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 function getFileInfo(username, password, filename){
@@ -188,7 +193,7 @@ function _getFileInfo(filename, token){
                  type: 'GET'};
   var authRequest = makeAuthorizedRequest(request, token);
 
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 function downloadFile(username, password, filename){
@@ -215,7 +220,7 @@ function listFolderItems(token) {
                  type: 'GET'};
   var authRequest = makeAuthorizedRequest(request, token);
 
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 function downloadFileFromList(folderItemStream) {
@@ -239,7 +244,7 @@ function _downloadFile(filename, token){
                  type: 'GET'};
   var authRequest = makeAuthorizedRequest(request, token);
 
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 function deleteFile(username, password, filename){
@@ -257,7 +262,7 @@ function _deleteFile(filename, token){
   var request = setContentLengthIfRunningInNode(origRequest);
 
   var authRequest = makeAuthorizedRequest(request, token);
-  return Bacon.$.ajax(authRequest);
+  return sendRequest(authRequest);
 }
 
 // Hackish workaround to get some requests to work on both browser and Node.
@@ -288,6 +293,29 @@ function makeAuthorizedRequest(request, token){
   return request;
 }
 
+function sendRequest(request){
+  var response = Bacon.fromPromise($.ajax(request));
+  return parseFsioErrors(response);
+}
+
+function parseFsioErrors(response){
+  var errors = response.errors();
+  var parsedErrors = errors.mapError(function(error){
+    var errorData;
+    try {
+      errorData = JSON.parse(error.responseText);
+    } catch(e){
+      errorData = {text: error.responseText};
+    }
+    errorData.httpCode = error.status;
+    return errorData;
+  }).flatMap(function(error){
+    return new Bacon.Error(error);
+  });
+
+  return response.skipErrors().merge(parsedErrors);
+}
+
 module.exports = {
   signIn: signIn,
   signInAsAdmin: signInAsAdmin,
@@ -298,6 +326,7 @@ module.exports = {
   downloadFileList: downloadFileList,
   deleteFile: deleteFile,
   getFileInfo: getFileInfo,
+  errors: errors,
   test: {
     hashChallenge: hashChallenge
   }

@@ -25,8 +25,8 @@ var GroceryItem = React.createClass({
     return (!this.state.editing && prevState.editing);
   },
   render: function() {
-    var name = _.get(this.props.data, 'name');
-    var isCompleted = _.get(this.props.data, 'completed');
+    var name = this.props.data.name;
+    var isCompleted = this.props.data.completed;
 
     var itemClass = 'groceryItem list-group-item';
     if(isCompleted){
@@ -98,7 +98,7 @@ var GroceryItem = React.createClass({
         onBlur: this.handleInputBlur,
         onKeyPress: this.handleEditEnter,
         ref: 'iteminput',
-        defaultValue: _.get(this.props.data, 'name')
+        defaultValue: this.props.data.name
     });
   },
   getText: function(isCompleted, name, editing){
@@ -199,7 +199,7 @@ var GroceryItem = React.createClass({
     this.sendUpdateEvent();
   },
   sendUpdateEvent: function(){
-    var id = _.get(this.props.data, 'id');
+    var id = this.props.data.id;
     var name = this.refs.iteminput.getDOMNode().value.trim();
     var eventType = 'updateItem';
     var event = _.hash_map('eventType', eventType,
@@ -211,8 +211,8 @@ var GroceryItem = React.createClass({
     this.sendCompletedEvent();
   },
   sendCompletedEvent: function(){
-    var id = _.get(this.props.data, 'id');
-    var completed = _.get(this.props.data, 'completed');
+    var id = this.props.data.id;
+    var completed = this.props.data.completed;
     var eventType = 'completeItem';
     var event = _.hash_map('eventType', eventType,
                            'id', id,
@@ -221,7 +221,7 @@ var GroceryItem = React.createClass({
   },
   handleHold: function() {
     var event = _.hash_map('eventType', 'holdItem',
-                           'id', _.get(this.props.data, 'id'));
+                           'id', this.props.data.id);
 
     outgoingEvents.push(event);
   },
@@ -230,7 +230,7 @@ var GroceryItem = React.createClass({
   },
   sendDeleteEvent: function(){
     var event = _.hash_map('eventType', 'deleteItem',
-                          'id', _.get(this.props.data, 'id'));
+                          'id', this.props.data.id);
     outgoingEvents.push(event);
   },
   handleEditEnter : function(event) {

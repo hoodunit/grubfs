@@ -37,7 +37,7 @@ var UserBar = React.createClass({
       return null;
     }
     var icon = React.DOM.span({
-      className: 'glyphicon glyphicon-log-out',
+      className: 'glyphicon glyphicon-log-out'
     });
     var button = React.DOM.button({
       className: 'btn btn-default nav-btn',
@@ -94,7 +94,8 @@ var AddGroceryItemInput = React.createClass({
       this.refs.name.getDOMNode().value = '';
       var addItemEvent = _.hash_map('eventType', 'addItem',
                                     'id', Util.generateUUID(),
-                                    'name', itemName);
+                                    'name', itemName,
+                                    'completed', false);
       outgoingEvents.push(addItemEvent);
       this.refs.name.getDOMNode().focus();
     }
@@ -108,12 +109,12 @@ var AddGroceryItemInput = React.createClass({
 var GroceryList = React.createClass({
   render: function() {
     var itemsSorted = _.sort(function(a, b) {
-      return _.get(a, 'completed') - _.get(b, 'completed');
+      return a.completed - b.completed;
     }, this.props.items);
 
     var itemNodes = _.into_array(_.map(function(item) {
       return GroceryItem.GroceryItem({data: item,
-                                      key: _.get(item, 'id')});
+                                      key: item.id});
     }, itemsSorted));
 
     var groceryList = React.DOM.div({

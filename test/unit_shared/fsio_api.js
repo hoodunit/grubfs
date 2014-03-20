@@ -28,7 +28,7 @@ describe('shared Fsio API', function(){
       });
     });
 
-    it('should return failure if the user already exists', function(done){
+    it('should return an error if the user already exists', function(done){
       var username = Util.randomUser();
       var password = "mytestpassword";
       var adminUser = process.env.FSIO_USER_NAME;
@@ -44,11 +44,12 @@ describe('shared Fsio API', function(){
       });
 
       response.onError(function(error){
-        done();
+        error.code.should.equal(FsioAPI.errors.OBJECT_ALREADY_EXISTS);
+        error.httpCode.should.equal(FsioAPI.errors.HTTP_BAD_REQUEST);
       });
 
       response.onEnd(function(){
-        FsioAPI.deleteUser(username, adminUser, adminPass).onEnd();
+        FsioAPI.deleteUser(username, adminUser, adminPass).onEnd(done);
       });
     });
   });
@@ -87,6 +88,25 @@ describe('shared Fsio API', function(){
       
       FsioAPI.signInAsAdmin(username, password).onValue(function(token){
         token.should.exist;
+        done();
+      });
+    });
+
+    it('should return appropriate FSIO error code when signing in with invalid credentials', function(done){
+      var username = "nonexistentuser";
+      var password = "asdf";
+      
+      var response = FsioAPI.signIn(username, password);
+        
+      response.onValue(function(token){
+        token.should.not.exist;
+      });
+
+      response.onError(function(error){
+        error.code.should.equal(FsioAPI.errors.AUTHENTICATION_INVALID);
+      });
+
+      response.onEnd(function(){
         done();
       });
     });
@@ -161,7 +181,7 @@ describe('shared Fsio API', function(){
         error.should.deep.equal(fileData);
       });
       
-      downloadedFile.onEnd(function(){ 
+      downloadedFile.onEnd(function(){
         done();
       });
     });
@@ -208,8 +228,7 @@ describe('shared Fsio API', function(){
                                                                 password, filename);
 
       downloadedFile.onError(function(error){
-        var objectNotFoundStatus = 404;
-        error.status.should.equal(objectNotFoundStatus);
+        error.code.should.equal(FsioAPI.errors.OBJECT_NOT_FOUND);
       });
 
       downloadedFile.onValue(function(file){ 

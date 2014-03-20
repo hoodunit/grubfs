@@ -6,16 +6,16 @@ var Fsio = require('./fsio');
 var Util = require('./util');
 
 function getInitialState(){
-  var initialState = getLocalState();
+  var localStorageState = getLocalStorageState();
 
-  if(initialState === null){
-    initialState = getDefaultState();
+  if(localStorageState === null){
+    return getDefaultState();
+  } else {
+    return _.assoc(localStorageState, 'clientState', getDefaultClientState());
   }
-
-  return initialState;
 }
 
-function getLocalState(){
+function getLocalStorageState(){
   var localState = null;
   var localStateJson = localStorage.getItem('state');
   if(localStateJson !== null) {
@@ -31,12 +31,14 @@ function getLocalState(){
 }
 
 function saveStateLocally(state){
-  var stateJson = JSON.stringify(_.clj_to_js(state));
+  var savedState = _.dissoc(state, 'clientState');
+  var stateJson = JSON.stringify(_.clj_to_js(savedState));
   localStorage.setItem('state', stateJson);
 }
 
 function getDefaultState(){
-  return _.hash_map('items', getDefaultItems());
+  return _.hash_map('items', getDefaultItems(),
+                    'clientState', getDefaultClientState());
 }
 
 function getDefaultItems(){
@@ -59,6 +61,16 @@ function getDefaultItems(){
     _.hash_map('id', Util.generateUUID(),
                'name', '2 dl cream',
                'completed', false));
+}
+
+function getDefaultClientState(){
+  return _.hash_map(
+    'signingUp', false,
+    'emailError', null,
+    'passwordError', null,
+    'confirmError', null,
+    'signInError', false,
+    'signUpError', false);
 }
 
 function handleStateChanges(initialState, events, toRemote){
@@ -88,7 +100,6 @@ function updateStateFromEvent(oldState, event){
     var newState = eventHandler(oldState, event);
     return newState;
   } else {
-    console.log('Ignoring unhandled event:', _.clj_to_js(event));
     return oldState;
   }
 }
@@ -100,10 +111,11 @@ function getEventHandler(event){
                                  'emptyList', handleEmptyList,
                                  'deleteItem', handleDeleteItem,
                                  'updateItem', handleUpdateItem,
+                                 'signInStatusChange', handleSignInStatusChange,
                                  'signedUp', handleSignedUp,
-                                 'signIn', handleSignIn,
                                  'signedIn', handleSignedIn,
-                                 'signOut', handleSignOut);
+                                 'signOut', handleSignOut,
+                                 'remoteAddItem', handleRemoteAddItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -112,7 +124,7 @@ function getEventHandler(event){
 function handleAddItem(oldState, event){
   var newItem = _.hash_map('id', _.get(event, 'id'),
                            'name', _.get(event, 'name'),
-                           'completed', false);
+                           'completed', _.get(event, 'completed'));
   var newItems = _.conj(_.get(oldState, 'items'), newItem);
   var newState = _.assoc(oldState, 'items', newItems);
 
@@ -168,8 +180,29 @@ function handleUpdateItem(oldState, event) {
   return newState;
 }
 
+function handleSignInStatusChange(oldState, event){
+  var oldClientState = _.get(oldState, 'clientState');
+  var newData = _.dissoc(event, 'eventType');
+  var mergedClientState = _.conj(oldClientState, newData);
+  
+  var newClientState;
+  if(_.get(mergedClientState, 'signingUp')){
+    newClientState = _.assoc(mergedClientState, 'signInError', false);
+  } else {
+    newClientState = _.assoc(mergedClientState,
+                             'emailError', null,
+                             'passwordError', null,
+                             'confirmError', null);
+  }
+  var newState = _.assoc(oldState, 'clientState', newClientState);
+  return newState;
+}
+
 function handleSignedUp(oldState, event){
-  var newState = handleSignedIn(oldState, event);
+  var credentials = _.get(event, 'credentials');
+  var newState = _.assoc(oldState,
+                         'credentials', credentials,
+                         'clientState', getDefaultClientState());
 
   // force lazy stream to evaluate using onEnd
   Fsio.saveNewUserState(newState).onEnd();
@@ -177,35 +210,12 @@ function handleSignedUp(oldState, event){
   return newState;
 }
 
-function handleSignIn(oldState,event){
-  var newState = _.assoc(oldState, "items", _.vector());
-  newState = handleSignedIn(newState, event);
-  return newState;
-}
-
 function handleSignedIn(oldState, event){
   var credentials = _.get(event, 'credentials');
-  var item = _.get(event, 'item');
-  var oldItems = _.get(oldState, 'items');
-  var newItems;
-  var newState;
-  if(item) {
-    var updatedItems = _.filter(function(oldItem){
-      if(_.get(oldItem, 'id') == _.get(item, 'id')) {
-        return false;
-      } else {
-        return true;
-      }
-    }, oldItems);
-    newItems = _.conj(updatedItems, item);
-  } else {
-    newItems = oldItems;
-  }
-  if(newItems) {
-    newState = _.assoc(oldState, 'credentials', credentials, "items", newItems);
-  } else {
-    newState = _.assoc(oldState, 'credentials', credentials);
-  }
+  var newState = _.assoc(oldState,
+                         'credentials', credentials,
+                         'items', _.vector(),
+                         'clientState', getDefaultClientState());
 
   return newState;
 }
@@ -217,10 +227,13 @@ function handleSignOut(oldState, event){
   return newState;
 }
 
-function signedIn(state){
-  return _.get(state, 'credentials') !== null;
+function handleRemoteAddItem(oldState, event){
+  return handleAddItem(oldState, event);
 }
 
+function signedIn(state){
+  return (_.get(state, 'credentials') !== null);
+}
 
 module.exports = {
   handleStateChanges: handleStateChanges,

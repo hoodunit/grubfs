@@ -1,23 +1,19 @@
 var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
+var State = require('../state');
+var $ = require('jquery-node-browserify');
 
 var Validate = require('../../shared/validate');
 
 var SignInForm = React.createClass({
-  getInitialState: function(){
-    return {signingUp: false, 
-            emailError: null,
-            passwordError: null,
-            confirmError: null};
-  },
   componentDidUpdate: function(prevProps, prevState, rootNode){
-    if(prevState.signingUp === false && this.state.signingUp === true){
+    if(prevProps.signingUp === false && this.props.signingUp === true){
       this.refs.confirmPass.getDOMNode().focus();
     }
   },
   render: function(){
-    var signingUp = this.state.signingUp;
+    var signingUp = this.props.signingUp;
     return React.DOM.form({className: 'sign-in-form well well-lg clearfix'},
                           this.getEmailForm(),
                           this.getPasswordForm(),
@@ -25,14 +21,22 @@ var SignInForm = React.createClass({
                           this.getButtons(signingUp));
   },
   getEmailForm: function(){
-    return this.getInputForm('email', 'email', 'Email address', this.state.emailError);
+    var error;
+    if(this.props.signingUp && this.props.signUpError){
+      error = "Invalid email address or password.";
+    } else if(!this.props.signingUp && this.props.signInError){
+      error = "Invalid email address or password.";
+    } else {
+      error = this.props.emailError;
+    }
+    return this.getInputForm('email', 'email', 'Email address', error);
   },
   getPasswordForm: function(){
-    return this.getInputForm('password', 'password', 'Password', this.state.passwordError);
+    return this.getInputForm('password', 'password', 'Password', this.props.passwordError);
   },
   getConfirmPassForm: function(signingUp){
     if(signingUp){
-      return this.getInputForm('password', 'confirmPass', 'Confirm Password', this.state.confirmError);
+      return this.getInputForm('password', 'confirmPass', 'Confirm Password', this.props.confirmError);
     } else {
       return null;
     }
@@ -92,7 +96,7 @@ var SignInForm = React.createClass({
   },
   onInputKeyUp: function(event){
     if(this.enterWasPressed(event)){
-      if(this.state.signingUp){
+      if(this.props.signingUp){
         this.validateInputAndSignUp();
       } else {
         this.sendSignInEvent();
@@ -104,10 +108,10 @@ var SignInForm = React.createClass({
     return event.keyCode === ENTER_KEYCODE;
   },
   onSignUpClick: function(){
-    if(this.state.signingUp){
+    if(this.props.signingUp){
         this.validateInputAndSignUp();
-    } else {
-      this.setState({signingUp: true});
+      } else {
+        this.sendSignInStatusChangeEvent({signingUp: true});
     }
   },
   validateInputAndSignUp: function(){
@@ -138,9 +142,9 @@ var SignInForm = React.createClass({
       valid = false;
       emailError = 'Invalid email address.';
     }
-    this.setState({passwordError: passwordError,
-                   confirmError: confirmError,
-                   emailError: emailError});
+    this.sendSignInStatusChangeEvent({passwordError: passwordError,
+                                      confirmError: confirmError,
+                                      emailError: emailError});
     return valid;
   },
   sendSignUpEvent: function(email, password, confirmPass){
@@ -162,10 +166,14 @@ var SignInForm = React.createClass({
     outgoingEvents.push(event);
   },
   onCancelClick: function(){
-    this.setState({signingUp: false,
-                   emailError: null,
-                   passwordError: null,
-                   confirmError: null});
+    this.sendSignInStatusChangeEvent({signingUp: false,
+                                      emailError: null,
+                                      passwordError: null,
+                                      confirmError: null});
+  },
+  sendSignInStatusChangeEvent: function(data){
+    var event = _.assoc(_.js_to_clj(data), 'eventType', 'signInStatusChange');
+    outgoingEvents.push(event);
   }
 });
 
