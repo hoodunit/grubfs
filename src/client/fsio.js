@@ -152,11 +152,9 @@ function uploadItem(token, item){
   return FsioAPI.uploadFile(token, filename, item);
 }
 
-
 function loadCurrentRemoteState(event) {
-  var email = _.get_in(event, ['credentials', 'email']);
-  var password = _.get_in(event, ['credentials', 'password']);
-  var remoteItems = FsioAPI.downloadRemoteItems(email, password);
+  var token = _.get_in(event, ['credentials', 'token']);
+  var remoteItems = FsioAPI.downloadRemoteItems(token);
   var resetStateEvents = remoteItems.map(makeResetStateEvent);
 
   return resetStateEvents;

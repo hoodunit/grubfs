@@ -197,10 +197,8 @@ function downloadFile(username, password, filename){
   return downloadedFile;
 }
 
-function downloadRemoteItems(username, password){
-  var token = signIn(username, password);
-
-  var items = token.flatMap(listFolderItems).map(".items");
+function downloadRemoteItems(token){
+  var items = listFolderItems(token).map(".items");
   var folderItemStream = Bacon.combineTemplate({
     token: token,
     items: items

@@ -81,8 +81,10 @@ describe('Fsio', function(){
     before(function(done){
       username = Util.randomUser();
       password = "mytestpassword";
-      Util.createUser(username, password).onValue(function(){
-        credentials = _.hash_map('email', username, 'password', password);
+      Util.createUser(username, password)
+          .flatMap(FsioAPI.signIn, username, password)
+          .onValue(function(token){
+        credentials = _.hash_map('email', username, 'token', token);
 
         var state = _.hash_map('items', items,
                              'credentials', credentials);

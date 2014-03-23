@@ -28,6 +28,16 @@ function handleSignInEvents(events){
   return signedInEvents.merge(resetStateEvents);
 }
 
+function getResetStateEvents(initialState){
+  var initEvents = Bacon.once(makeInitEvents(initialState));
+  
+  if(State.signedIn(initialState)) {
+    return initEvents.flatMap(Fsio.loadCurrentRemoteState);
+  } else {
+    return Bacon.never();
+  }
+}
+
 function makeInitEvents(initialState) {
   return _.hash_map('credentials', _.get(initialState, 'credentials'), 'eventType', 'init');
 }
@@ -36,14 +46,7 @@ function initialize(){
   var initialState = State.getInitialState();
   render(initialState);
 
-  var initEvents = Bacon.once(makeInitEvents(initialState));
-  
-  var resetStateEvents;
-  if(State.signedIn(initialState)) {
-    resetStateEvents = initEvents.flatMap(Fsio.loadCurrentRemoteState);
-  } else {
-    resetStateEvents = Bacon.never();
-  }
+  var resetStateEvents = getResetStateEvents(initialState);
   
   var viewEvents = View.outgoingEvents;
   
