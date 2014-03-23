@@ -121,6 +121,32 @@ function signIn(page){
   .done();
 }
 
+function signOutOnTokenExpiration(page){
+  page
+  .open(baseUrl)
+  .waitForElement('.email')
+  .type('#email', testUser.email)
+  .type('#password', testUser.password)
+  .click('#signIn')
+  // Using this because waitForElement doesn't work here
+  .waitFor(function(){
+    return Boolean(document.querySelector('#signOut'));
+  }, [], 10000)
+  .assert.doesntExist('#signIn', 'Sign in button is not visible after signing in')
+  .assert.doesntExist('#signUp', 'Sign up button is not visible after signing in')
+  .execute(function() {
+    var stateJSON = localStorage.getItem('state');
+    var state = JSON.parse(stateJSON);
+    state.credentials.token = 'invalidtoken';
+    var newStateJSON = JSON.stringify(state);
+    localStorage.setItem('state', newStateJSON);
+  })
+  .open(baseUrl)
+  .assert.visible('#signUp', 'User is signed out as sign up button is visible')
+  .assert.doesntExist('#signOut', 'User is signed out as sign out button is not visible')
+  .done();
+}
+
 function saveInLocalStorage(page) {
   page
     .open(baseUrl)
@@ -145,10 +171,11 @@ function saveInLocalStorage(page) {
 }
 
 module.exports = {
-  'User can clear the list and add a new item': clearAndAdd,
-  'User can delete a grocery item': deleteItem,
-  'User can edit a grocery item (desktop)': editItem,
-  'User can sign up with a new email address': signUp,
-  'User can sign in with an existing email address': signIn,
-  'State is persisted in localStorage': saveInLocalStorage
+  // 'User can clear the list and add a new item': clearAndAdd,
+  // 'User can delete a grocery item': deleteItem,
+  // 'User can edit a grocery item (desktop)': editItem,
+  // 'User can sign up with a new email address': signUp,
+  // 'User can sign in with an existing email address': signIn,
+  'User is signed out if token expires': signOutOnTokenExpiration
+  // 'State is persisted in localStorage': saveInLocalStorage
 };
