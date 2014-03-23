@@ -197,7 +197,7 @@ function downloadFile(username, password, filename){
   return downloadedFile;
 }
 
-function downloadFileList(username, password){
+function downloadRemoteItems(username, password){
   var token = signIn(username, password);
 
   var items = token.flatMap(listFolderItems).map(".items");
@@ -205,8 +205,8 @@ function downloadFileList(username, password){
     token: token,
     items: items
   }).changes();
-  var signedInEventsNew = folderItemStream.flatMap(downloadFileFromList);
-  return signedInEventsNew;
+  var remoteItemsEvents = folderItemStream.flatMap(downloadItemsFromList);
+  return remoteItemsEvents;
 }
 
 function listFolderItems(token) {
@@ -218,19 +218,37 @@ function listFolderItems(token) {
   return sendRequest(authRequest);
 }
 
-function downloadFileFromList(folderItemStream) {
-  var fileList = _.js_to_clj(folderItemStream.items);
+function downloadItemsFromList(folderItemStream) {
   var token = folderItemStream.token;
-  var fileStream = null;
-  _.each(_.js_to_clj(fileList), function(item) {
-      var filename = _.get(item, "full_name");
-      if(!fileStream) {
-        fileStream = Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse);
-      } else {
-        fileStream = fileStream.merge(Bacon.once(token).flatMap(_downloadFile, filename).map(JSON.parse));
-      }
+  
+  // BaconJS bug? folderItemStream.items instanceof Array == false workaround
+  var itemsArray = [];
+  folderItemStream.items.forEach(function(item) {
+    itemsArray.push(item);
   });
-  return fileStream;
+  
+  var items = Bacon.fromArray(itemsArray);
+  var itemNames = items.map(".full_name");
+
+  // make a stream of streams that are concatenated instead of
+  // directly flatMapping to preserve the order of downloads
+  var downloadStreams = itemNames.map(function(filename) {
+    return _downloadFile(filename, token);
+  });
+
+  var concatenatedDownloadStreams = downloadStreams.reduce(Bacon.never(), function(streams, stream) {
+    return streams.concat(stream);
+  });
+
+  var concatenatedDownloads = concatenatedDownloadStreams.flatMap(function(concatenatedDownloadStream) {
+    return concatenatedDownloadStream;
+  });
+  
+  var downloadedItems = concatenatedDownloads.map(JSON.parse);
+  
+  var downloadedItemsArray = downloadedItems.reduce(_.vector(), _.conj);
+  
+  return downloadedItemsArray;
 }
 
 function _downloadFile(filename, token){
@@ -311,7 +329,7 @@ module.exports = {
   deleteUser: deleteUser,
   uploadFile: uploadFile,
   downloadFile: downloadFile,
-  downloadFileList: downloadFileList,
+  downloadRemoteItems: downloadRemoteItems,
   deleteFile: deleteFile,
   getFileInfo: getFileInfo,
   errors: errors,

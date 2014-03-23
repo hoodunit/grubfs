@@ -63,6 +63,57 @@ describe('Fsio', function(){
     });
   });
 
+  describe('loadCurrentRemoteState', function(){
+    var username;
+    var password;
+    var credentials;
+    var items = _.vector(
+      _.hash_map('id', 'testid1',
+                 'name', '1 packages of tomato puree',
+                 'completed', false),
+      _.hash_map('id', 'testid2',
+                 'name', '4 yellow onions',
+                 'completed', true),
+      _.hash_map('id', 'testid3',
+                 'name', '2 dl cream',
+                 'completed', false));
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        credentials = _.hash_map('email', username, 'password', password);
+
+        var state = _.hash_map('items', items,
+                             'credentials', credentials);
+        var response = Fsio.saveNewUserState(state);
+        
+        response.onEnd(function(result){
+          done();
+        });
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should return the added items', function(done){
+      var initEvent = _.hash_map('credentials', credentials, 'eventType', 'init');
+      var resetStateEvent = Fsio.loadCurrentRemoteState(initEvent);
+      resetStateEvent.onError(function(error){
+        error.should.not.exist;
+      });
+
+      resetStateEvent.onValue(function(event){
+        _.clj_to_js(items).should.deep.equal(_.clj_to_js(_.get(event, 'items')));
+        done();
+      });
+    });
+  });
+
   describe('Sync added items to server', function(){
     var username;
     var password;
