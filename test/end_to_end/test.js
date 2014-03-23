@@ -137,7 +137,8 @@ function signOutOnTokenExpiration(page){
   .execute(function() {
     var stateJSON = localStorage.getItem('state');
     var state = JSON.parse(stateJSON);
-    state.credentials.token = 'invalidtoken';
+    var invalidToken = '12a9f76d-9a8d-d4d0-166a-042fb363dd26';
+    state.credentials.token = invalidToken;
     var newStateJSON = JSON.stringify(state);
     localStorage.setItem('state', newStateJSON);
   })
