@@ -35,35 +35,32 @@ function handleSignInEvents(events){
   return signedInEvents;
 }
 
+//Recursion, process present notification and listen to next notification.
 function listenNotification(preNotification) {
   var notificationEvents = Fsio.getNotification(preNotification);
   var preStateId = _.get_in(preNotification, ['notification', 'notifications', 0, 'state_id']);
 
+  //Avoid Fsio error 403:scan file not complete.
   setTimeout(syncFromServer, 1000, preNotification);
 
   LAST_SEEN_STATE_ID = preStateId;
 
+  //When a notification comes, listen to the next one.
   notificationEvents.onValue(function(notification) {
     listenNotification(notification);
   });
 }
 
+//Sync state from Fsio based on LAST_SEEN_JOURNAL_ID
 function syncFromServer(event) {
   var initialState = State.getInitialState();
   var journalEvent = Bacon.once(event).flatMap(Fsio.getJournals, false, LAST_SEEN_JOURNAL_ID);
   journalEvent.onValue(function(journals) {
+    //Get the newest journal_id, the last item of items array is the newest journal record.
     var newJournalId = _.get(_.last(_.get_in(journals, ['journals', 'items'])), 'journal_id');
     LAST_SEEN_JOURNAL_ID = newJournalId ? newJournalId : LAST_SEEN_JOURNAL_ID;
 
     var syncStateEvents = Fsio.syncFromServer(journals);
-syncStateEvents.onValue(function(val) {
-  console.log('syncStateEvents');
-  console.log(val);
-});
-    /*syncStateEvents.onValue(function(val) {*/
-      //console.log('syncStateEvents');
-      //console.log(val);
-    /*});*/
     var changedStates = State.handleStateChanges(initialState, syncStateEvents);
     changedStates.onValue(render);
   });
@@ -83,11 +80,13 @@ function initialize(){
   var getInitialStateEvents = signedInEvents.flatMap(Fsio.downloadFileList);
 
   var notificationEvents = signedInEvents.flatMap(Fsio.getNotification);
+  //First time user signed in, begin listen to notification.
   notificationEvents.onValue(function(notification) {
     listenNotification(notification);
   });
 
   var journalEvent = signedInEvents.flatMap(Fsio.getJournals, true, LAST_SEEN_JOURNAL_ID);
+  //First time user signed in, get the initial journal ID by setting 'initial_sync' true.
   journalEvent.onValue(function(journals) {
     LAST_SEEN_JOURNAL_ID = _.get_in(journals, ['journals', 'journal_max']) - 1;
   });

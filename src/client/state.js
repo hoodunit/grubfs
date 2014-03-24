@@ -68,6 +68,7 @@ function handleStateChanges(initialState, events, toRemote){
     var oldState = state;
     state = updateStateFromEvent(state, event);
     if(!_.equals(oldState, state)){
+      console.log('stateChanged!!');
       changedStates.push(state);
     }
     if(signedIn(state) && toRemote){
@@ -122,12 +123,13 @@ function handleAddItem(oldState, event){
                            'name', _.get(event, 'name'),
                            'completed', completed);
   var oldItems = _.get(oldState, 'items');
+  console.log(oldItems);
   var updatedItems = _.filter(function(oldItem){
     return _.get(oldItem, 'id') == _.get(newItem, 'id') ? false : true;
   }, oldItems);
   var newItems = _.conj(updatedItems, newItem);
-  console.log(newItems);
   var newState = _.assoc(oldState, 'items', newItems);
+  console.log(newState);
 
   return newState;
 }
