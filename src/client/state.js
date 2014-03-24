@@ -69,15 +69,14 @@ function handleStateChanges(initialState, events, toRemote){
     state = updateStateFromEvent(state, event);
     if(!_.equals(oldState, state)){
       console.log('stateChanged!!');
-      changedStates.push(state);
+      changedStates.plug(Bacon.once(state));
+      saveStateLocally(state);
     }
     if(signedIn(state) && toRemote){
       var eventWithState = _.assoc(event, 'state', state);
       toRemote.push(eventWithState);
     }
   });
-  
-  changedStates.onValue(saveStateLocally);
   
   return changedStates;
 }
