@@ -77,13 +77,6 @@ function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
   return request;
 }
 
-function hashChallenge(password, challenge){
-  var shaObj = new jsSHA(challenge, "B64");
-  var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
-
-  return hmac;
-}
-
 function signUp(username, password, adminUser, adminPass){
   var adminToken = signInAsAdmin(adminUser, adminPass);
   var newUserStatus = createUser(adminToken, username, password);
