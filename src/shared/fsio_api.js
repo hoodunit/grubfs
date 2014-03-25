@@ -77,13 +77,6 @@ function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
   return request;
 }
 
-function hashChallenge(password, challenge){
-  var shaObj = new jsSHA(challenge, "B64");
-  var hmac = shaObj.getHMAC(password, "TEXT", "SHA-256", "HEX");
-
-  return hmac;
-}
-
 function signUp(username, password, adminUser, adminPass){
   var adminToken = signInAsAdmin(adminUser, adminPass);
   var newUserStatus = createUser(adminToken, username, password);
@@ -135,14 +128,7 @@ function addAuthToUser(adminToken, username, password, userKey){
   return authRequest;
 }
 
-function deleteUser(username, adminUser, adminPass){
-  var adminToken = signInAsAdmin(adminUser, adminPass);
-  var userInfo = adminToken.flatMap(_deleteUser, username);
-
-  return userInfo;
-}
-
-function _deleteUser(username, adminToken){
+function deleteUser(username, adminToken){
   var userKey = '/operators/' + constants.OPERATOR_ID + '/users/uname:' + username;
   var url = constants.FSIO_BASE_URL + '/admin' + userKey;
 
@@ -165,8 +151,7 @@ function getUserInfo(username, adminToken){
   return sendRequest(request);
 }
 
-
-function uploadFile(token, filename, data){
+function uploadFile(filename, data, token){
   var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
   var request = {url: url,
                  type: 'PUT',
@@ -176,13 +161,7 @@ function uploadFile(token, filename, data){
   return sendRequest(authRequest);
 }
 
-function getFileInfo(username, password, filename){
-  var token = signIn(username, password);
-  var fileInfo = token.flatMap(_getFileInfo, filename);
-  return fileInfo;
-}
-
-function _getFileInfo(filename, token){
+function getFileInfo(filename, token){
   var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
   var request = {url: url,
                  type: 'GET'};
@@ -191,10 +170,13 @@ function _getFileInfo(filename, token){
   return sendRequest(authRequest);
 }
 
-function downloadFile(username, password, filename){
-  var token = signIn(username, password);
-  var downloadedFile = token.flatMap(_downloadFile, filename).map(JSON.parse);
-  return downloadedFile;
+function downloadFile(filename, token){
+  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+
+  return sendRequest(authRequest).map(JSON.parse);
 }
 
 function downloadRemoteItems(token){
@@ -218,7 +200,7 @@ function listFolderItems(token) {
 
 function downloadItemsFromList(folderItemStream) {
   var token = folderItemStream.token;
-  
+
   // BaconJS bug? folderItemStream.items instanceof Array == false workaround
   var itemsArray = [];
   folderItemStream.items.forEach(function(item) {
@@ -228,37 +210,16 @@ function downloadItemsFromList(folderItemStream) {
   var items = Bacon.fromArray(itemsArray);
   var itemNames = items.map(".full_name");
 
-  // make a stream of streams that are concatenated instead of
-  // directly flatMapping to preserve the order of downloads
-  var downloadStreams = itemNames.map(function(filename) {
-    return _downloadFile(filename, token);
+  var downloadedItems = itemNames.flatMap(function(filename){
+    return downloadFile(filename, token);
   });
-
-  var concatenatedDownloadStreams = downloadStreams.reduce(Bacon.never(), function(streams, stream) {
-    return streams.concat(stream);
-  });
-
-  var concatenatedDownloads = concatenatedDownloadStreams.flatMap(function(concatenatedDownloadStream) {
-    return concatenatedDownloadStream;
-  });
-  
-  var downloadedItems = concatenatedDownloads.map(JSON.parse);
   
   var downloadedItemsArray = downloadedItems.reduce(_.vector(), _.conj);
   
   return downloadedItemsArray;
 }
 
-function _downloadFile(filename, token){
-  var url = constants.FSIO_DATA_URL + '/data/me/files/' + filename;
-  var request = {url: url,
-                 type: 'GET'};
-  var authRequest = makeAuthorizedRequest(request, token);
-
-  return sendRequest(authRequest);
-}
-
-function deleteFile(token, filename){
+function deleteFile(filename, token){
   var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename;
   var origRequest = {url: url,
                      type: 'DELETE'};

@@ -45,8 +45,7 @@ describe('Fsio', function(){
                    'completed', false));
       
       FsioAPI.signIn(username, password).onValue(function(token) {
-        var credentials = _.hash_map('email', username, 'password', password, 'token', token);
-
+        var credentials = _.hash_map('email', username, 'token', token);
         var state = _.hash_map('items', items,
                                'credentials', credentials);
         
@@ -69,7 +68,7 @@ describe('Fsio', function(){
     var credentials;
     var items = _.vector(
       _.hash_map('id', 'testid1',
-                 'name', '1 packages of tomato puree',
+                 'name', '1 package of tomato puree',
                  'completed', false),
       _.hash_map('id', 'testid2',
                  'name', '4 yellow onions',
@@ -104,13 +103,20 @@ describe('Fsio', function(){
 
     it('should return the added items', function(done){
       var initEvent = _.hash_map('credentials', credentials, 'eventType', 'init');
-      var resetStateEvent = Fsio.loadCurrentRemoteState(initEvent);
+      // Delay for file scanning
+      var resetStateEvent = Bacon.later(2000, null)
+        .flatMapFirst(function(){ return Fsio.loadCurrentRemoteState(initEvent);});
+
       resetStateEvent.onError(function(error){
+        console.log('error:', error);
         error.should.not.exist;
       });
 
       resetStateEvent.onValue(function(event){
-        _.clj_to_js(items).should.deep.equal(_.clj_to_js(_.get(event, 'items')));
+        var receivedItems = _.get(event, 'items');
+        _.each(receivedItems, function(item){
+          _.some(_.equals, items).should.equal(true);
+        });
         done();
       });
     });
@@ -142,17 +148,20 @@ describe('Fsio', function(){
       var filename = 'items/item1';
       
       
-      var result = FsioAPI.signIn(username, password).flatMap(function(token) {
-        return Fsio.syncItemToServer(token, item);
+      var result = FsioAPI.signIn(username, password)
+        .flatMapFirst(function(token) {
+          return Fsio.syncItemToServer(token, item);
       });
       
-      downloadedFile = result.delay(500).flatMap(FsioAPI.downloadFile, username, 
-                                                                password, filename);
+      downloadedFile = result.delay(500)
+                             .flatMapFirst(FsioAPI.signIn, username, password)
+                             .flatMapFirst(FsioAPI.downloadFile, filename);
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(item);
       });
       downloadedFile.onError(function(error){
+        console.log('error:', error);
         error.should.not.exist;
       });
       downloadedFile.onEnd(function(){ 
@@ -188,9 +197,8 @@ describe('Fsio', function(){
       var fileKey = '/me/files/items/item11';
       
       
-      var uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
-        return FsioAPI.uploadFile(token, filename, fileData);
-      });
+      var uploadedFile = FsioAPI.signIn(username, password)
+                                .flatMap(FsioAPI.uploadFile, filename, fileData);
 
       uploadedFile.onError(function(error){
         error.should.not.exist;
@@ -206,8 +214,9 @@ describe('Fsio', function(){
         error.should.not.exist;
       });
 
-      downloadedFile = uploadedFile.delay(500).flatMap(FsioAPI.downloadFile, username, 
-                                                                password, filename);
+      downloadedFile = uploadedFile.delay(500)
+        .flatMapFirst(FsioAPI.signIn, username, password)
+        .flatMapFirst(FsioAPI.downloadFile, filename);
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(fileData);
@@ -226,8 +235,9 @@ describe('Fsio', function(){
         error.should.not.exist;
       });
 
-      downloadedFile = uploadedFile.delay(500).flatMap(FsioAPI.downloadFile, username, 
-                                                                password, filename);
+      downloadedFile = uploadedFile.delay(500)
+        .flatMapFirst(FsioAPI.signIn, username, password)
+        .flatMapFirst(FsioAPI.downloadFile, filename);
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(fileData);
@@ -243,15 +253,12 @@ describe('Fsio', function(){
 
   describe('Sync clearing items to server', function(){
     it('should call FSIO API to delete items directory', function(done){
-      var username = 'testusername';
-      var password = 'testpassword';
-
+      var token = 'testtoken';
       var stub = Sinon.stub(Fsio.test.FsioAPI, 'deleteFile').returns(Bacon.never());
-      
-      var result = Fsio.clearItems(username, password);
+      var result = Fsio.clearItems(token);
       
       result.onEnd(function(){
-        stub.calledWith(username, password, 'items').should.equal(true);
+        stub.calledWith('items', token);
         done();
       });
     });

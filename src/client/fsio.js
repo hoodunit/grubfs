@@ -12,7 +12,7 @@ function signUp(event){
   var authCredentials = _signUp(email, password);
 
   var signedUpEvents = authCredentials.skipErrors().map(_.js_to_clj)
-    .map(addUserInfoToCredentials, email, password)
+    .map(addUserInfoToCredentials, email)
     .map(makeSignedUpEvent);
   
   var signUpFailedEvents = 
@@ -48,7 +48,7 @@ function signIn(event){
   var token = FsioAPI.signIn(email, password, false);
 
   var signedInEvents = token.skipErrors().map(_.hash_map, 'token')
-  .map(addUserInfoToCredentials, email, password)
+  .map(addUserInfoToCredentials, email)
   .map(makeSignedInEvent);
 
   var signInFailedEvents = token.errors()
@@ -65,10 +65,8 @@ function checkSignIn(token) {
   return (_.get(token, 'credentials') !== null);
 }
 
-function addUserInfoToCredentials(email, password, credentials){
-  return _.assoc(credentials,
-                 'email', email,
-                 'password', password);
+function addUserInfoToCredentials(email, credentials){
+  return _.assoc(credentials, 'email', email);
 }
 
 function makeSignedUpEvent(credentials){
@@ -124,7 +122,7 @@ function handleDeleteItem(event){
   var itemId = _.get(event, 'id');
   var filename = 'items/' + itemId;
 
-  var response = FsioAPI.deleteFile(token, filename);
+  var response = FsioAPI.deleteFile(filename, token);
   return response;
 }
 
@@ -149,7 +147,7 @@ function saveNewUserState(state){
 
 function uploadItem(token, item){
   var filename = 'items/' + item.id;
-  return FsioAPI.uploadFile(token, filename, item);
+  return FsioAPI.uploadFile(filename, item, token);
 }
 
 function loadCurrentRemoteState(event) {
@@ -166,9 +164,9 @@ function makeResetStateEvent(items){
   return event;
 }
 
-function clearItems(email, password){
+function clearItems(token){
   var itemsFile = 'items';
-  return FsioAPI.deleteFile(email, password, itemsFile);
+  return FsioAPI.deleteFile(itemsFile, token);
 }
 
 module.exports = {
