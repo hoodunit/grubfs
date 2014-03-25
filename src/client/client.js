@@ -6,6 +6,7 @@ var View = require('./view/view');
 var Util = require('./util.js');
 var State = require('./state');
 var Fsio = require('./fsio');
+var FsioAPI = require('../shared/fsio_api');
 
 function render(state){
   View.render(state);
@@ -28,48 +29,40 @@ function handleSignInEvents(events){
   return signedInEvents.merge(resetStateEvents);
 }
 
-function getResetStateEvents(initialState){
-  var initEvents = Bacon.once(makeInitEvents(initialState));
-  
-  if(State.signedIn(initialState)) {
-    return initEvents.flatMap(Fsio.loadCurrentRemoteState);
-  } else {
+function signOutOnTokenExpiration(error){
+  if(error.code === FsioAPI.errors.AUTHORIZATION_INVALID){
+    return _.hash_map('eventType', 'signOut');
+  } else{
     return Bacon.never();
   }
 }
 
-function makeInitEvents(initialState) {
-  return _.hash_map('credentials', _.get(initialState, 'credentials'), 'eventType', 'init');
+function makeInitEvent() {
+  return _.hash_map('eventType', 'initialSync');
 }
 
 function initialize(){
   var initialState = State.getInitialState();
   render(initialState);
 
-  var resetStateEvents = getResetStateEvents(initialState);
-  
+  var initEvents = new Bacon.Bus();
   var viewEvents = View.outgoingEvents;
-  
   var toRemoteEvents = new Bacon.Bus();
   var fromRemoteEvents = toRemoteEvents.flatMap(Fsio.syncStateWithFsio);
-  var signedOutEvents = fromRemoteEvents.mapError(function(e) {
-    if(e.status == 401){
-      return _.hash_map('eventType', 'signOut');
-    } else{
-      return _.hash_map();
-    }
-  }).filter(function(event) {
-    return _.get(event, 'eventType') == "signOut";
-  });
+  var signedOutEvents = fromRemoteEvents.errors()
+    .mapError(_.identity)
+    .flatMap(signOutOnTokenExpiration);
   
   var signedUpEvents = handleSignUpEvents(viewEvents);
   var signedInEvents = handleSignInEvents(viewEvents);
 
   var toStateEvents = Bacon.mergeAll(viewEvents, signedUpEvents, signedInEvents, 
-                                     resetStateEvents, signedOutEvents);
+                                     initEvents, signedOutEvents);
   var changedStates = State.handleStateChanges(initialState, toStateEvents, toRemoteEvents);
   
   changedStates.onValue(render);
+
+  initEvents.push(makeInitEvent());
 }
 
 

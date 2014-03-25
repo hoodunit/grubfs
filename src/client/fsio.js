@@ -90,13 +90,18 @@ function syncStateWithFsio(event){
 }
 
 function getEventHandler(event){
-  var eventHandlers = _.hash_map('addItem', handleAddItem,
+  var eventHandlers = _.hash_map('initialSync', handleInitialSync,
+                                 'addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'updateItem', handleUpdateItem,
                                  'deleteItem', handleDeleteItem);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
+}
+
+function handleInitialSync(event){
+  return loadCurrentRemoteState(event);
 }
 
 function handleAddItem(event){
