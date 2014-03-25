@@ -95,7 +95,8 @@ function getEventHandler(event){
   var eventHandlers = _.hash_map('addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'updateItem', handleUpdateItem,
-                                 'deleteItem', handleDeleteItem);
+                                 'deleteItem', handleDeleteItem,
+                                 'emptyList', handleEmptyList);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -171,9 +172,15 @@ function makeResetStateEvent(items){
   return event;
 }
 
+function handleEmptyList(event){
+  var email = _.get_in(event, ['state', 'credentials', 'email']);
+  var password = _.get_in(event, ['state', 'credentials', 'password']);
+  return clearItems(email, password);
+}
+
 function clearItems(email, password){
-  var itemsFile = 'items';
-  return FsioAPI.deleteFile(email, password, itemsFile);
+  var itemsFolder = 'items';
+  return FsioAPI.deleteFilesFromFolder(email, password, itemsFolder);
 }
 
 module.exports = {
