@@ -1,6 +1,5 @@
 var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
-var jsSHA = require('jssha');
 var _ = require('mori');
 
 var FsioAPI = require('../shared/fsio_api');
