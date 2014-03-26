@@ -77,7 +77,9 @@ function editItem(page) {
 function signUp(page){
   var adminUser = process.env.FSIO_USER_NAME;
   var adminPass = process.env.FSIO_PASSWORD;
-  FsioAPI.deleteUser(testUser.email, adminUser, adminPass).onEnd(function(){
+  FsioAPI.signInAsAdmin(adminUser, adminPass)
+    .flatMapFirst(FsioAPI.deleteUser, testUser.email)
+    .onEnd(function(){
   page
   .open(baseUrl)
   .waitForElement('.email')
@@ -121,6 +123,33 @@ function signIn(page){
   .done();
 }
 
+function signOutOnTokenExpiration(page){
+  page
+  .open(baseUrl)
+  .waitForElement('.email')
+  .type('#email', testUser.email)
+  .type('#password', testUser.password)
+  .click('#signIn')
+  // Using this because waitForElement doesn't work here
+  .waitFor(function(){
+    return Boolean(document.querySelector('#signOut'));
+  }, [], 10000)
+  .assert.doesntExist('#signIn', 'Sign in button is not visible after signing in')
+  .assert.doesntExist('#signUp', 'Sign up button is not visible after signing in')
+  .execute(function() {
+    var stateJSON = localStorage.getItem('state');
+    var state = JSON.parse(stateJSON);
+    var invalidToken = '12a9f76d-9a8d-d4d0-166a-042fb363dd26';
+    state.credentials.token = invalidToken;
+    var newStateJSON = JSON.stringify(state);
+    localStorage.setItem('state', newStateJSON);
+  })
+  .open(baseUrl)
+  .assert.visible('#signUp', 'User is signed out as sign up button is visible')
+  .assert.doesntExist('#signOut', 'User is signed out as sign out button is not visible')
+  .done();
+}
+
 function saveInLocalStorage(page) {
   page
     .open(baseUrl)
@@ -150,5 +179,6 @@ module.exports = {
   'User can edit a grocery item (desktop)': editItem,
   'User can sign up with a new email address': signUp,
   'User can sign in with an existing email address': signIn,
+  'User is signed out if token expires': signOutOnTokenExpiration,
   'State is persisted in localStorage': saveInLocalStorage
 };
