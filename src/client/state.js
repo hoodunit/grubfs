@@ -2,8 +2,9 @@ var _ = require('mori');
 var Bacon = require('baconjs');
 var $ = require('jquery-node-browserify');
 
-var Fsio = require('./fsio');
 var Util = require('./util');
+
+var DEBUG = false;
 
 function getInitialState(){
   var localStorageState = getLocalStorageState();
@@ -82,7 +83,9 @@ function handleStateChanges(initialState, events, toRemote){
     if(!_.equals(oldState, state)){
       changedStates.push(state);
     }
-    if(signedIn(state)){
+    if(signedIn(state) ||
+       _.equals(_.get(event, 'eventType'), 'signIn') ||
+       _.equals(_.get(event, 'eventType'), 'signUp')){
       var eventWithState = _.assoc(event, 'state', state);
       toRemote.push(eventWithState);
     }
@@ -98,8 +101,20 @@ function updateStateFromEvent(oldState, event){
 
   if(eventHandler){
     var newState = eventHandler(oldState, event);
+
+    if(DEBUG){
+      console.log('State handled event:', _.clj_to_js(event));
+      console.log('New state:', _.clj_to_js(newState));
+    }
+
     return newState;
   } else {
+
+    if(DEBUG){
+      console.log('State ignored event:', _.clj_to_js(event));
+      console.log('State:', _.clj_to_js(oldState));
+    }
+
     return oldState;
   }
 }
@@ -203,9 +218,6 @@ function handleSignedUp(oldState, event){
   var newState = _.assoc(oldState,
                          'credentials', credentials,
                          'clientState', getDefaultClientState());
-
-  // force lazy stream to evaluate using onEnd
-  Fsio.saveNewUserState(newState).onEnd();
   
   return newState;
 }

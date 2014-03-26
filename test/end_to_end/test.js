@@ -77,7 +77,9 @@ function editItem(page) {
 function signUp(page){
   var adminUser = process.env.FSIO_USER_NAME;
   var adminPass = process.env.FSIO_PASSWORD;
-  FsioAPI.deleteUser(testUser.email, adminUser, adminPass).onEnd(function(){
+  FsioAPI.signInAsAdmin(adminUser, adminPass)
+    .flatMapFirst(FsioAPI.deleteUser, testUser.email)
+    .onEnd(function(){
   page
   .open(baseUrl)
   .waitForElement('.email')
@@ -172,11 +174,11 @@ function saveInLocalStorage(page) {
 }
 
 module.exports = {
-  // 'User can clear the list and add a new item': clearAndAdd,
-  // 'User can delete a grocery item': deleteItem,
-  // 'User can edit a grocery item (desktop)': editItem,
-  // 'User can sign up with a new email address': signUp,
-  // 'User can sign in with an existing email address': signIn,
-  'User is signed out if token expires': signOutOnTokenExpiration
-  // 'State is persisted in localStorage': saveInLocalStorage
+  'User can clear the list and add a new item': clearAndAdd,
+  'User can delete a grocery item': deleteItem,
+  'User can edit a grocery item (desktop)': editItem,
+  'User can sign up with a new email address': signUp,
+  'User can sign in with an existing email address': signIn,
+  'User is signed out if token expires': signOutOnTokenExpiration,
+  'State is persisted in localStorage': saveInLocalStorage
 };

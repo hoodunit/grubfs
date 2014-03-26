@@ -14,7 +14,7 @@ var Util = require('../util/util');
 describe('Fsio', function(){
   this.timeout(10000);
   
-  describe('saveNewUserState', function(){
+  describe('Sync new user initial state', function(){
     var username;
     var password;
 
@@ -48,8 +48,10 @@ describe('Fsio', function(){
         var credentials = _.hash_map('email', username, 'token', token);
         var state = _.hash_map('items', items,
                                'credentials', credentials);
+        var signedUpEvent = _.hash_map('eventType', 'signedUp',
+                                       'state', state);
         
-        var response = Fsio.saveNewUserState(state);
+        var response = Fsio.syncStateWithFsio(signedUpEvent);
 
         response.onError(function(error){
           error.should.not.exist;
@@ -86,8 +88,8 @@ describe('Fsio', function(){
         credentials = _.hash_map('email', username, 'token', token);
 
         var state = _.hash_map('items', items,
-                             'credentials', credentials);
-        var response = Fsio.saveNewUserState(state);
+                               'credentials', credentials);
+        var response = Fsio.test.saveNewUserState(state);
         
         response.onEnd(function(result){
           done();
@@ -102,13 +104,14 @@ describe('Fsio', function(){
     });
 
     it('should return the added items', function(done){
-      var initEvent = _.hash_map('credentials', credentials, 'eventType', 'init');
+      var state = _.hash_map('credentials', credentials);
+      var initEvent = _.hash_map('eventType', 'initialSync',
+                                 'state', state);
       // Delay for file scanning
       var resetStateEvent = Bacon.later(2000, null)
-        .flatMapFirst(function(){ return Fsio.loadCurrentRemoteState(initEvent);});
+        .flatMapFirst(function(){ return Fsio.syncStateWithFsio(initEvent);});
 
       resetStateEvent.onError(function(error){
-        console.log('error:', error);
         error.should.not.exist;
       });
 
@@ -150,7 +153,7 @@ describe('Fsio', function(){
       
       var result = FsioAPI.signIn(username, password)
         .flatMapFirst(function(token) {
-          return Fsio.syncItemToServer(token, item);
+          return Fsio.test.syncItemToServer(token, item);
       });
       
       downloadedFile = result.delay(500)
@@ -161,7 +164,6 @@ describe('Fsio', function(){
         downloadedFileData.should.deep.equal(item);
       });
       downloadedFile.onError(function(error){
-        console.log('error:', error);
         error.should.not.exist;
       });
       downloadedFile.onEnd(function(){ 
@@ -207,7 +209,7 @@ describe('Fsio', function(){
       //complete item
       fileData.completed = true;
       uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
-        return Fsio.syncItemToServer(token, fileData);
+        return Fsio.test.syncItemToServer(token, fileData);
       });
 
       uploadedFile.onError(function(error){
@@ -228,7 +230,7 @@ describe('Fsio', function(){
       //edit item name
       fileData.name = 'chicken breast';
       uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
-        return Fsio.syncItemToServer(token, fileData);
+        return Fsio.test.syncItemToServer(token, fileData);
       });
 
       uploadedFile.onError(function(error){
@@ -255,7 +257,7 @@ describe('Fsio', function(){
     it('should call FSIO API to delete items directory', function(done){
       var token = 'testtoken';
       var stub = Sinon.stub(Fsio.test.FsioAPI, 'deleteFile').returns(Bacon.never());
-      var result = Fsio.clearItems(token);
+      var result = Fsio.test.clearItems(token);
       
       result.onEnd(function(){
         stub.calledWith('items', token);

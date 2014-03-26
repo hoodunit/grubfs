@@ -4,41 +4,75 @@ var jsSHA = require('jssha');
 var _ = require('mori');
 
 var FsioAPI = require('../shared/fsio_api');
+var ServerAPI = require('./server_api');
 
-function signUp(event){
-  var email = _.get(event, 'email');
-  var password = _.get(event, 'password');
-  
-  var authCredentials = _signUp(email, password);
+var DEBUG = false;
 
-  var signedUpEvents = authCredentials.skipErrors().map(_.js_to_clj)
-    .map(addUserInfoToCredentials, email)
-    .map(makeSignedUpEvent);
-  
-  var signUpFailedEvents = 
-    authCredentials.errors()
-                   .mapError(_.js_to_clj)
-                   .map(function(){
-                     return _.hash_map('eventType', 'signInStatusChange',
-                                       'signUpError', true);
-                   });
+function syncStateWithFsio(event){
+  var eventHandler = getEventHandler(event);
 
-  return Bacon.mergeAll(signedUpEvents, signUpFailedEvents);
+  if(eventHandler){
+    var returnedEvents = eventHandler(event);
+    var errors = returnedEvents.errors()
+      .mapError(_.identity);
+    var signedOutEvents = errors.filter(function(error){
+      return error.code === FsioAPI.errors.AUTHORIZATION_INVALID;
+    }).map(function(){
+      return _.hash_map('eventType', 'signOut');
+    });
+    
+    if(DEBUG) console.log('FSIO handled event:', _.clj_to_js(event));
+
+    return returnedEvents.merge(signedOutEvents);
+  } else {
+    if(DEBUG) console.log('FSIO ignored event:', _.clj_to_js(event));
+    return Bacon.never();
+  }
 }
 
-function _signUp(email, password){
-  var serverUrl = document.location.origin;
-  var url = serverUrl + '/event';
-  var requestData = {email: email, password: password};
+function getEventHandler(event){
+  var eventHandlers = _.hash_map('initialSync', handleInitialSync,
+                                 'signIn', handleSignIn,
+                                 'signUp', handleSignUp,
+                                 'signedUp', handleSignedUp,
+                                 'signedIn', handleSignedIn,
+                                 'addItem', handleAddItem,
+                                 'completeItem', handleCompleteItem,
+                                 'updateItem', handleUpdateItem,
+                                 'deleteItem', handleDeleteItem);
+  var eventType = _.get(event, 'eventType');
+  var handler = _.get(eventHandlers, eventType);
+  return handler;
+}
 
-  var request = {
-    url: url,
-    type: 'POST',
-    dataType: 'json',
-    data: requestData
-  };
+function signOutOnTokenExpiration(error){
+  if(error.code === FsioAPI.errors.AUTHORIZATION_INVALID){
+    return _.hash_map('eventType', 'signOut');
+  } else{
+    return Bacon.never();
+  }
+}
 
-  return Bacon.fromPromise($.ajax(request));
+function handleInitialSync(event){
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
+  return loadCurrentRemoteState(token);
+}
+
+function loadCurrentRemoteState(token){
+  var remoteItems = FsioAPI.downloadRemoteItems(token);
+  var resetStateEvents = remoteItems.map(makeResetStateEvent);
+
+  return resetStateEvents;
+}
+
+function makeResetStateEvent(items){
+  var itemData = _.js_to_clj(items);
+  var event = _.hash_map('items', itemData, 'eventType', 'resetState');
+  return event;
+}
+
+function handleSignIn(event){
+  return signIn(event);
 }
 
 function signIn(event){
@@ -47,9 +81,10 @@ function signIn(event){
 
   var token = FsioAPI.signIn(email, password, false);
 
-  var signedInEvents = token.skipErrors().map(_.hash_map, 'token')
-  .map(addUserInfoToCredentials, email)
-  .map(makeSignedInEvent);
+  var signedInEvents = token.skipErrors()
+    .map(_.hash_map, 'token')
+    .map(addUserInfoToCredentials, email)
+    .map(makeSignedInEvent);
 
   var signInFailedEvents = token.errors()
                                 .mapError(_.js_to_clj)
@@ -79,29 +114,47 @@ function makeSignedInEvent(credentials){
                     'credentials', credentials);
 }
 
-function syncStateWithFsio(event){
-  var eventHandler = getEventHandler(event);
-
-  if(eventHandler){
-    return eventHandler(event);
-  } else {
-    return Bacon.never();
-  }
+function handleSignUp(event){
+  return signUp(event);
 }
 
-function getEventHandler(event){
-  var eventHandlers = _.hash_map('initialSync', handleInitialSync,
-                                 'addItem', handleAddItem,
-                                 'completeItem', handleCompleteItem,
-                                 'updateItem', handleUpdateItem,
-                                 'deleteItem', handleDeleteItem);
-  var eventType = _.get(event, 'eventType');
-  var handler = _.get(eventHandlers, eventType);
-  return handler;
+function signUp(event){
+  var email = _.get(event, 'email');
+  var password = _.get(event, 'password');
+  
+  var token = signUpAndSignIn(email, password);
+
+  var signedUpEvents = token.skipErrors()
+    .map(_.hash_map, 'token')
+    .map(addUserInfoToCredentials, email)
+    .map(makeSignedUpEvent);
+  
+  var signUpFailedEvents = token.errors()
+    .mapError(_.js_to_clj)
+    .map(function(){
+      return _.hash_map('eventType', 'signInStatusChange',
+                        'signUpError', true);
+    });
+
+  return Bacon.mergeAll(signedUpEvents, signUpFailedEvents);
 }
 
-function handleInitialSync(event){
-  return loadCurrentRemoteState(event);
+function signUpAndSignIn(email, password){
+  var signedUpInfo = ServerAPI.signUp(email, password);
+  var token = signedUpInfo.flatMapFirst(function(){
+    return FsioAPI.signIn(email, password);
+  });
+  return token;
+}
+
+function handleSignedIn(event){
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
+  return loadCurrentRemoteState(token);
+}
+
+function handleSignedUp(event){
+  var state = _.get(event, 'state');
+  return saveNewUserState(state).errors();
 }
 
 function handleAddItem(event){
@@ -119,7 +172,9 @@ function handleUpdateItem(event){
 function handleAddedOrUpdatedItem(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   var updatedItem = getItemById(_.get_in(event, ['state', 'items']), _.get(event, 'id'));
-  return uploadItem(token, _.clj_to_js(updatedItem));
+  
+  var response = uploadItem(token, _.clj_to_js(updatedItem));
+  return response.errors();
 }
 
 function handleDeleteItem(event){
@@ -128,7 +183,7 @@ function handleDeleteItem(event){
   var filename = 'items/' + itemId;
 
   var response = FsioAPI.deleteFile(filename, token);
-  return response;
+  return response.errors();
 }
 
 function getItemById(items, id){
@@ -155,34 +210,17 @@ function uploadItem(token, item){
   return FsioAPI.uploadFile(filename, item, token);
 }
 
-function loadCurrentRemoteState(event) {
-  var token = _.get_in(event, ['credentials', 'token']);
-  var remoteItems = FsioAPI.downloadRemoteItems(token);
-  var resetStateEvents = remoteItems.map(makeResetStateEvent);
-
-  return resetStateEvents;
-}
-
-function makeResetStateEvent(items){
-  var itemData = _.js_to_clj(items);
-  var event = _.hash_map('items', itemData, 'eventType', 'resetState');
-  return event;
-}
-
 function clearItems(token){
   var itemsFile = 'items';
   return FsioAPI.deleteFile(itemsFile, token);
 }
 
 module.exports = {
-  signIn: signIn,
-  signUp: signUp,
-  syncItemToServer: syncItemToServer,
-  clearItems: clearItems,
-  saveNewUserState: saveNewUserState,
-  loadCurrentRemoteState: loadCurrentRemoteState,
   syncStateWithFsio: syncStateWithFsio,
   test: {
-    FsioAPI: FsioAPI
+    FsioAPI: FsioAPI,
+    saveNewUserState: saveNewUserState,
+    syncItemToServer: syncItemToServer,
+    clearItems: clearItems
   }
 };
