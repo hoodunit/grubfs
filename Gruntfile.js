@@ -5,6 +5,7 @@ module.exports = function(grunt) {
       files: ['Gruntfile.js', 
               'src/**/*.js',
               'test/unit_server/**/*.js',
+              'test/unit_shared/**/*.js',
               'test/unit_client/**/*.js',
               'test/end_to_end/**/*.js'],
       options: {
