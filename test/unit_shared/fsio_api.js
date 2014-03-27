@@ -314,4 +314,43 @@ describe('shared Fsio API', function(){
       });
     });
   });
+
+  describe('journaling', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should return journal entries', function(done){
+      var initialSync = true;
+      var journalId = null;
+      var journalEntries = FsioAPI.signIn(username, password)
+        .map('.token')
+        .flatMapFirst(FsioAPI.retrieveJournalEntries, initialSync, journalId);
+
+      journalEntries.onValue(function(entries){
+        entries.journal_max.should.equal(1);
+      });
+    
+      journalEntries.onError(function(error){
+        error.should.not.exist;
+      });
+      
+      journalEntries.onEnd(function(){
+        done();
+      });
+    });
+  });
 });

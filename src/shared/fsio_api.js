@@ -261,6 +261,21 @@ function getNextNotification(userUuid, deviceId, stateId, token){
   var authRequest = makeAuthorizedRequest(request, token);
   return sendRequest(authRequest);
 }
+
+function retrieveJournalEntries(initialSync, journalId, token) {
+  var url = constants.FSIO_BASE_URL + 
+    '/content/me/journal?limit=' + 100 + 
+    '&initial_sync=' + initialSync + 
+    '&related_objects=file';
+
+  var request = {url: url,
+                 type: 'GET'};
+  var authRequest = makeAuthorizedRequest(request, token);
+  
+  console.log('request:', authRequest);
+  
+  return sendRequest(authRequest);
+}
   
 function deleteFilesFromFolder(filename, token){
   var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename + '?name=*';
@@ -339,6 +354,7 @@ module.exports = {
   getNextNotification: getNextNotification,
   deleteFilesFromFolder: deleteFilesFromFolder,
   getFileInfo: getFileInfo,
+  retrieveJournalEntries: retrieveJournalEntries,
   errors: errors,
   test: {
     hashChallenge: hashChallenge
