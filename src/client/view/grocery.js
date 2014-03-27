@@ -2,7 +2,7 @@ var React = require('react');
 var _ = require('mori');
 var Bacon = require('baconjs');
 
-var Util = require('../util');
+var Util = require('../../shared/util');
 var GroceryItem = require('./grocery_item');
 var UserInfo = require('./user_info');
 

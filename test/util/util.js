@@ -10,7 +10,9 @@ function createUser(username, password){
 
 function deleteUser(username){
   var response = FsioAPI.signInAsAdmin(adminUser, adminPass)
-                        .flatMapFirst(FsioAPI.deleteUser, username);
+                        .flatMapFirst(function(signedInInfo){
+                          return FsioAPI.deleteUser(username, signedInInfo.token);
+                        });
   return response;
 }
 

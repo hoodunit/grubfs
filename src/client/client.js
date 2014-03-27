@@ -1,12 +1,9 @@
 var _ = require('mori');
-var React = require('react');
 var Bacon = require('baconjs');
 
 var View = require('./view/view');
-var Util = require('./util.js');
 var State = require('./state');
 var Fsio = require('./fsio');
-var FsioAPI = require('../shared/fsio_api');
 
 function render(state){
   View.render(state);

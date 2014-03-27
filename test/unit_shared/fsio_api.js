@@ -64,7 +64,8 @@ describe('shared Fsio API', function(){
         return FsioAPI.signIn(username, password);
       });
 
-      response.onValue(function(token){
+      response.onValue(function(signedInInfo){
+        var token = signedInInfo.token;
         token.should.exist;
         done();
       });
@@ -84,7 +85,8 @@ describe('shared Fsio API', function(){
       var username = process.env.FSIO_USER_NAME;
       var password = process.env.FSIO_PASSWORD;
       
-      FsioAPI.signInAsAdmin(username, password).onValue(function(token){
+      FsioAPI.signInAsAdmin(username, password).onValue(function(signedInInfo){
+        var token = signedInInfo.token;
         token.should.exist;
         done();
       });
@@ -96,8 +98,8 @@ describe('shared Fsio API', function(){
       
       var response = FsioAPI.signIn(username, password);
         
-      response.onValue(function(token){
-        token.should.not.exist;
+      response.onValue(function(signedInInfo){
+        signedInInfo.should.not.exist;
       });
 
       response.onError(function(error){
@@ -120,7 +122,9 @@ describe('shared Fsio API', function(){
       var newUser = Util.createUser(username, password);
       var response = newUser.flatMapFirst(function(){
         return FsioAPI.signInAsAdmin(adminUser, adminPass)
-                      .flatMapFirst(FsioAPI.deleteUser, username);
+                      .flatMapFirst(function(signedInInfo){
+                        return FsioAPI.deleteUser(username, signedInInfo.token);
+                      });
       });
       
       response.onValue(function(value){
@@ -158,8 +162,10 @@ describe('shared Fsio API', function(){
                       name: 'test item'};
       var fileKey = '/me/files/items/testfileid';
       
-      var token = FsioAPI.signIn(username, password);
-      var uploadedFileInfo = token.flatMapFirst(FsioAPI.uploadFile, filename, fileData);
+      var signedIn = FsioAPI.signIn(username, password);
+      var uploadedFileInfo = signedIn.flatMapFirst(function(signedInInfo){
+        return FsioAPI.uploadFile(filename, fileData, signedInInfo.token);
+      });
 
       uploadedFileInfo.onValue(function(uploadedFileData){
         uploadedFileData.object_type.should.exist;
@@ -172,7 +178,9 @@ describe('shared Fsio API', function(){
       // Else may return error "File scanning incomplete"
       var downloadedFile = uploadedFileInfo.delay(1500)
                                            .flatMapFirst(FsioAPI.signIn, username, password)
-                                           .flatMapFirst(FsioAPI.downloadFile, filename);
+                                           .flatMapFirst(function(signedInInfo){
+                                             return FsioAPI.downloadFile(filename, signedInInfo.token);
+                                           });
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(fileData);
@@ -213,8 +221,10 @@ describe('shared Fsio API', function(){
                       name: 'item'};
       var fileKey = '/me/files/items/item2';
       
-      var token = FsioAPI.signIn(username, password);
-      var uploadedFileInfo = token.flatMapFirst(FsioAPI.uploadFile, filename, fileData);
+      var signedInInfo = FsioAPI.signIn(username, password);
+      var uploadedFileInfo = signedInInfo.flatMapFirst(function(signedInInfo){
+        return FsioAPI.uploadFile(filename, fileData, signedInInfo.token);
+      });
 
       uploadedFileInfo.onValue(function(uploadedFileData){
         uploadedFileData.object_type.should.exist;
@@ -225,11 +235,15 @@ describe('shared Fsio API', function(){
     
       var deletedFileInfo = uploadedFileInfo.delay(1500)
                                             .flatMapFirst(FsioAPI.signIn, username, password)
-                                            .flatMapFirst(FsioAPI.deleteFile, filename);
+                                            .flatMapFirst(function(signedInInfo){
+                                              return FsioAPI.deleteFile(filename, signedInInfo.token);
+                                            });
  
       var downloadedFile = deletedFileInfo.delay(1500)
                                           .flatMapFirst(FsioAPI.signIn, username, password)
-                                          .flatMapFirst(FsioAPI.downloadFile, filename);
+                                          .flatMapFirst(function(signedInInfo){
+                                            return FsioAPI.downloadFile(filename, signedInInfo.token);
+                                          });
 
       downloadedFile.onError(function(error){
         error.code.should.equal(FsioAPI.errors.OBJECT_NOT_FOUND);

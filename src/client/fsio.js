@@ -1,5 +1,4 @@
 var Bacon = require('baconjs');
-var $ = require('jquery-node-browserify');
 var _ = require('mori');
 
 var FsioAPI = require('../shared/fsio_api');
@@ -38,7 +37,9 @@ function getEventHandler(event){
                                  'addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'updateItem', handleUpdateItem,
-                                 'deleteItem', handleDeleteItem);
+                                 'deleteItem', handleDeleteItem,
+                                 'startRealTimeSync', handleStartRealTimeSync,
+                                 'notification', handleNotification);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -54,7 +55,9 @@ function signOutOnTokenExpiration(error){
 
 function handleInitialSync(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  return loadCurrentRemoteState(token);
+  var resetStateEvents = loadCurrentRemoteState(token);
+  var startRealTimeSyncEvents = resetStateEvents.flatMap(makeStartRealTimeSyncEvent);
+  return Bacon.mergeAll(resetStateEvents, startRealTimeSyncEvents);
 }
 
 function loadCurrentRemoteState(token){
@@ -78,28 +81,34 @@ function signIn(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
 
-  var token = FsioAPI.signIn(email, password, false);
+  var signedInInfo = FsioAPI.signIn(email, password, false);
 
-  var signedInEvents = token.skipErrors()
-    .map(_.hash_map, 'token')
-    .map(addUserInfoToCredentials, email)
+  var signedInEvents = signedInInfo.skipErrors()
+    .map(_.js_to_clj)
+    .map(addEmailToCredentials, email)
     .map(makeSignedInEvent);
+  
+  var startRealTimeSyncEvents = signedInEvents.flatMap(makeStartRealTimeSyncEvent);
 
-  var signInFailedEvents = token.errors()
+  var signInFailedEvents = signedInInfo.errors()
                                 .mapError(_.js_to_clj)
                                 .map(function(){
                                   return _.hash_map('eventType', 'signInStatusChange',
                                                     'signInError', true);
                                 });
 
-  return Bacon.mergeAll(signedInEvents, signInFailedEvents);
+  return Bacon.mergeAll(signedInEvents, startRealTimeSyncEvents, signInFailedEvents);
+}
+
+function makeStartRealTimeSyncEvent() {
+  return _.hash_map('eventType', 'startRealTimeSync');
 }
 
 function checkSignIn(token) {
   return (_.get(token, 'credentials') !== null);
 }
 
-function addUserInfoToCredentials(email, credentials){
+function addEmailToCredentials(email, credentials){
   return _.assoc(credentials, 'email', email);
 }
 
@@ -121,14 +130,14 @@ function signUp(event){
   var email = _.get(event, 'email');
   var password = _.get(event, 'password');
   
-  var token = signUpAndSignIn(email, password);
+  var signedInInfo = signUpAndSignIn(email, password);
 
-  var signedUpEvents = token.skipErrors()
-    .map(_.hash_map, 'token')
-    .map(addUserInfoToCredentials, email)
+  var signedUpEvents = signedInInfo.skipErrors()
+    .map(_.js_to_clj)
+    .map(addEmailToCredentials, email)
     .map(makeSignedUpEvent);
   
-  var signUpFailedEvents = token.errors()
+  var signUpFailedEvents = signedInInfo.errors()
     .mapError(_.js_to_clj)
     .map(function(){
       return _.hash_map('eventType', 'signInStatusChange',
@@ -140,10 +149,10 @@ function signUp(event){
 
 function signUpAndSignIn(email, password){
   var signedUpInfo = ServerAPI.signUp(email, password);
-  var token = signedUpInfo.flatMapFirst(function(){
+  var signedInInfo = signedUpInfo.flatMapFirst(function(){
     return FsioAPI.signIn(email, password);
   });
-  return token;
+  return signedInInfo;
 }
 
 function handleSignedIn(event){
@@ -185,6 +194,18 @@ function handleDeleteItem(event){
   return response.errors();
 }
 
+function handleStartRealTimeSync(event){
+  var userUuid = _.get_in(event, ['state', 'credentials', 'u_uuid']);
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
+  return startListenNotifications(userUuid, token);
+}
+
+function handleNotification(event){
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
+  var resetStateEvents = loadCurrentRemoteState(token);
+  return resetStateEvents;
+}
+
 function getItemById(items, id){
   return _.first(_.filter(function(item){
     return _.equals(_.get(item, 'id'), id);
@@ -212,6 +233,30 @@ function uploadItem(token, item){
 function clearItems(token){
   var itemsFile = 'items';
   return FsioAPI.deleteFile(itemsFile, token);
+}
+
+function startListenNotifications(userUuid, token) {
+  var notifications = new Bacon.Bus();
+  listenNotifications(notifications, userUuid, token);
+  return notifications;
+}
+
+function listenNotifications(notifications, userUuid, token) {
+  var nextNotificationEvent = getNextNotification(userUuid, token);
+  notifications.plug(nextNotificationEvent);
+  nextNotificationEvent.onValue(function(notificationEvent) {
+    listenNotifications(notifications, userUuid, token);
+  });
+}
+
+function getNextNotification(userUuid, token) {
+  var nextNotification = FsioAPI.getNextNotification(userUuid, token);
+  return nextNotification.flatMap(makeNotificationEvent);
+}
+
+function makeNotificationEvent(notification) {
+  var event = _.hash_map('notification', notification, 'eventType', 'notification');
+  return event;
 }
 
 module.exports = {

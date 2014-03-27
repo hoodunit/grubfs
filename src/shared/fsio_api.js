@@ -3,9 +3,12 @@ var $ = require('jquery-node-browserify');
 var jsSHA = require('jssha');
 var _ = require('mori');
 
+var Util = require('./util');
+
 var constants = {
   FSIO_BASE_URL: 'https://api-fip.sp.f-secure.com/v2',
   FSIO_DATA_URL: 'https://data-fip.sp.f-secure.com/v2',
+  FSIO_UEB_URL: 'https://ueb-fip.sp.f-secure.com/v2',
   OPERATOR_ID: 67901,
   CRAM_CHALLENGE_URL: '/token/cram/challenge',
   CRAM_CHALLENGE_RESP_URL: '/token/cram/user',
@@ -33,12 +36,10 @@ function signInAsAdmin(email, password){
 function _signIn(email, password, isAdmin){
   var challenge = requestAuthorizationChallenge(email);
   var challengeResponse = challenge.map(hashChallenge, password);
-  var signInData = Bacon.combineWith(sendChallengeResponse, 
-                                     email, challenge, isAdmin, challengeResponse)
-                        .flatMapLatest(sendRequest);
-  var token = signInData.map('.token');
-  
-  return token;
+  var signedInInfo = Bacon.combineWith(sendChallengeResponse, 
+                                       email, challenge, isAdmin, challengeResponse)
+                        .flatMapLatest(sendRequest);  
+  return signedInInfo;
 }
 
 function requestAuthorizationChallenge(email){
@@ -79,7 +80,8 @@ function sendChallengeResponse(email, challenge, isAdmin, challengeResponse){
 }
 
 function signUp(username, password, adminUser, adminPass){
-  var adminToken = signInAsAdmin(adminUser, adminPass);
+  var signedInInfo = signInAsAdmin(adminUser, adminPass);
+  var adminToken = signedInInfo.map('.token');
   var newUserStatus = createUser(adminToken, username, password);
   return newUserStatus;
 }
@@ -231,6 +233,39 @@ function deleteFile(filename, token){
   return sendRequest(authRequest);
 }
 
+function getDeviceId(){
+  var deviceId = localStorage.getItem('deviceId');
+  if(deviceId === null) {
+    deviceId = Util.generateUUID();
+    localStorage.setItem('deviceId', deviceId);
+  }
+  return deviceId;
+}
+
+function getNextNotification(userUuid, token){
+  var url = constants.FSIO_UEB_URL + '/notification/uid:' + userUuid + '/notifications';
+  
+  var message = {
+    device_id: getDeviceId(),
+    include_content_types: [
+      'fsio:file'
+    ],
+    keep_alive_threshold: 300
+  };
+
+  var origRequest = {
+    url: url,
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(message)
+  };
+
+  var request = setContentLengthIfRunningInNode(origRequest);
+  
+  var authRequest = makeAuthorizedRequest(request, token);
+  return sendRequest(authRequest);
+}
+
 // Hackish workaround to get some requests to work on both browser and Node.
 // FSIO requires content-length header for some requests.
 // Browser automatically sets this and does not allow you to set it.
@@ -260,6 +295,7 @@ function makeAuthorizedRequest(request, token){
 }
 
 function sendRequest(request){
+  request.cache = false;
   var response = Bacon.fromPromise($.ajax(request));
   return parseFsioErrors(response);
 }
@@ -291,6 +327,7 @@ module.exports = {
   downloadFile: downloadFile,
   downloadRemoteItems: downloadRemoteItems,
   deleteFile: deleteFile,
+  getNextNotification: getNextNotification,
   getFileInfo: getFileInfo,
   errors: errors,
   test: {

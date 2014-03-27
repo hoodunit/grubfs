@@ -1,8 +1,7 @@
 var _ = require('mori');
 var Bacon = require('baconjs');
-var $ = require('jquery-node-browserify');
 
-var Util = require('./util');
+var Util = require('../shared/util');
 
 var DEBUG = false;
 

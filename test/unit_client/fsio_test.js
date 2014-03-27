@@ -44,8 +44,8 @@ describe('Fsio', function(){
                    'name', '2 dl cream',
                    'completed', false));
       
-      FsioAPI.signIn(username, password).onValue(function(token) {
-        var credentials = _.hash_map('email', username, 'token', token);
+      FsioAPI.signIn(username, password).onValue(function(signedInInfo) {
+        var credentials = _.hash_map('email', username, 'token', signedInInfo.token, 'u_uuid', signedInInfo.u_uuid);
         var state = _.hash_map('items', items,
                                'credentials', credentials);
         var signedUpEvent = _.hash_map('eventType', 'signedUp',
@@ -84,8 +84,8 @@ describe('Fsio', function(){
       password = "mytestpassword";
       Util.createUser(username, password)
           .flatMap(FsioAPI.signIn, username, password)
-          .onValue(function(token){
-        credentials = _.hash_map('email', username, 'token', token);
+          .onValue(function(signedInInfo){
+        credentials = _.hash_map('email', username, 'token', signedInInfo.token, 'u_uuid', signedInInfo.u_uuid);
 
         var state = _.hash_map('items', items,
                                'credentials', credentials);
@@ -109,7 +109,10 @@ describe('Fsio', function(){
                                  'state', state);
       // Delay for file scanning
       var resetStateEvent = Bacon.later(2000, null)
-        .flatMapFirst(function(){ return Fsio.syncStateWithFsio(initEvent);});
+        .flatMapFirst(function(){ return Fsio.syncStateWithFsio(initEvent);})
+        .filter(function(event){
+          return _.get(event, 'eventType') === 'resetState';
+        });
 
       resetStateEvent.onError(function(error){
         error.should.not.exist;
@@ -152,13 +155,15 @@ describe('Fsio', function(){
       
       
       var result = FsioAPI.signIn(username, password)
-        .flatMapFirst(function(token) {
-          return Fsio.test.syncItemToServer(token, item);
+        .flatMapFirst(function(signedInInfo) {
+          return Fsio.test.syncItemToServer(signedInInfo.token, item);
       });
       
       downloadedFile = result.delay(500)
                              .flatMapFirst(FsioAPI.signIn, username, password)
-                             .flatMapFirst(FsioAPI.downloadFile, filename);
+                             .flatMapFirst(function(signedInInfo){
+                               return FsioAPI.downloadFile(filename, signedInInfo.token);
+                            });
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(item);
@@ -200,7 +205,9 @@ describe('Fsio', function(){
       
       
       var uploadedFile = FsioAPI.signIn(username, password)
-                                .flatMap(FsioAPI.uploadFile, filename, fileData);
+      .flatMap(function(signedInInfo){
+        return FsioAPI.uploadFile(filename, fileData, signedInInfo.token);
+      });
 
       uploadedFile.onError(function(error){
         error.should.not.exist;
@@ -208,8 +215,8 @@ describe('Fsio', function(){
       
       //complete item
       fileData.completed = true;
-      uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
-        return Fsio.test.syncItemToServer(token, fileData);
+      uploadedFile = FsioAPI.signIn(username, password).flatMap(function(signedInInfo) {
+        return Fsio.test.syncItemToServer(signedInInfo.token, fileData);
       });
 
       uploadedFile.onError(function(error){
@@ -218,7 +225,9 @@ describe('Fsio', function(){
 
       downloadedFile = uploadedFile.delay(500)
         .flatMapFirst(FsioAPI.signIn, username, password)
-        .flatMapFirst(FsioAPI.downloadFile, filename);
+        .flatMapFirst(function(signedInInfo){
+          return FsioAPI.downloadFile(filename, signedInInfo.token);
+        });
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(fileData);
@@ -229,8 +238,8 @@ describe('Fsio', function(){
 
       //edit item name
       fileData.name = 'chicken breast';
-      uploadedFile = FsioAPI.signIn(username, password).flatMap(function(token) {
-        return Fsio.test.syncItemToServer(token, fileData);
+      uploadedFile = FsioAPI.signIn(username, password).flatMap(function(signedInInfo) {
+        return Fsio.test.syncItemToServer(signedInInfo.token, fileData);
       });
 
       uploadedFile.onError(function(error){
@@ -239,7 +248,9 @@ describe('Fsio', function(){
 
       downloadedFile = uploadedFile.delay(500)
         .flatMapFirst(FsioAPI.signIn, username, password)
-        .flatMapFirst(FsioAPI.downloadFile, filename);
+        .flatMapFirst(function(signedInInfo){
+          return FsioAPI.downloadFile(filename, signedInInfo.token);
+        });
 
       downloadedFile.onValue(function(downloadedFileData){
         downloadedFileData.should.deep.equal(fileData);
