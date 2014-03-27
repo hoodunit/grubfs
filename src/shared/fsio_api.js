@@ -261,7 +261,20 @@ function getNextNotification(userUuid, token){
   };
 
   var request = setContentLengthIfRunningInNode(origRequest);
+
+  var authRequest = makeAuthorizedRequest(request, token);
+  return sendRequest(authRequest);
+}
   
+function deleteFilesFromFolder(filename, token){
+  var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename + '?name=*';
+  var origRequest = {
+    url: url,
+    type: 'DELETE'
+  };
+
+  var request = setContentLengthIfRunningInNode(origRequest);
+
   var authRequest = makeAuthorizedRequest(request, token);
   return sendRequest(authRequest);
 }
@@ -328,6 +341,7 @@ module.exports = {
   downloadRemoteItems: downloadRemoteItems,
   deleteFile: deleteFile,
   getNextNotification: getNextNotification,
+  deleteFilesFromFolder: deleteFilesFromFolder,
   getFileInfo: getFileInfo,
   errors: errors,
   test: {

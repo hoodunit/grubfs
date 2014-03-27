@@ -39,7 +39,8 @@ function getEventHandler(event){
                                  'updateItem', handleUpdateItem,
                                  'deleteItem', handleDeleteItem,
                                  'startRealTimeSync', handleStartRealTimeSync,
-                                 'notification', handleNotification);
+                                 'notification', handleNotification,
+                                 'emptyList', handleEmptyList);
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -231,9 +232,14 @@ function uploadItem(token, item){
   return FsioAPI.uploadFile(filename, item, token);
 }
 
+function handleEmptyList(event){
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
+  return clearItems(token).errors();
+}
+
 function clearItems(token){
-  var itemsFile = 'items';
-  return FsioAPI.deleteFile(itemsFile, token);
+  var itemsFolder = 'items';
+  return FsioAPI.deleteFilesFromFolder(itemsFolder, token);
 }
 
 function startListenNotifications(userUuid, token) {
