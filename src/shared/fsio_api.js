@@ -233,13 +233,18 @@ function deleteFile(filename, token){
   return sendRequest(authRequest);
 }
 
-function getNextNotification(userUuid, deviceId, token){
+function getNextNotification(userUuid, deviceId, stateId, token){
   var url = constants.FSIO_UEB_URL + '/notification/uid:' + userUuid + '/notifications';
   
   var message = {
     device_id: deviceId,
     include_content_types: [
       'fsio:file'
+    ],
+    last_seen_notifications: [
+      { state_id: stateId,
+        content_type: 'fsio:file'
+      }
     ],
     keep_alive_threshold: 300
   };

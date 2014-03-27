@@ -4,7 +4,7 @@ var _ = require('mori');
 var FsioAPI = require('../shared/fsio_api');
 var ServerAPI = require('./server_api');
 
-var DEBUG = false;
+var DEBUG = true;
 
 function syncStateWithFsio(event){
   var eventHandler = getEventHandler(event);
@@ -245,25 +245,28 @@ function clearItems(token){
 
 function startListenNotifications(userUuid, deviceId, token) {
   var notifications = new Bacon.Bus();
-  listenNotifications(notifications, userUuid, deviceId, token);
+  var defaultStateId = '';
+  listenNotifications(notifications, userUuid, deviceId, defaultStateId, token);
   return notifications;
 }
 
-function listenNotifications(notifications, userUuid, deviceId, token) {
-  var nextNotificationEvent = getNextNotification(userUuid, deviceId, token);
+function listenNotifications(notifications, userUuid, deviceId, lastStateId, token) {
+  var nextNotificationEvent = getNextNotification(userUuid, deviceId, lastStateId, token);
   notifications.plug(nextNotificationEvent);
   nextNotificationEvent.onValue(function(notificationEvent) {
-    listenNotifications(notifications, userUuid, deviceId, token);
+    var stateId = _.get_in(notificationEvent, ['notification', 'notifications', 0, 'state_id']);
+    listenNotifications(notifications, userUuid, deviceId, stateId, token);
   });
 }
 
-function getNextNotification(userUuid, deviceId, token) {
-  var nextNotification = FsioAPI.getNextNotification(userUuid, deviceId, token);
+function getNextNotification(userUuid, deviceId, stateId, token) {
+  var nextNotification = FsioAPI.getNextNotification(userUuid, deviceId, stateId, token);
   return nextNotification.flatMap(makeNotificationEvent);
 }
 
 function makeNotificationEvent(notification) {
-  var event = _.hash_map('notification', notification, 'eventType', 'notification');
+  var event = _.hash_map('notification', _.js_to_clj(notification), 
+                         'eventType', 'notification');
   return event;
 }
 
