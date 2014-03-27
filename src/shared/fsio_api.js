@@ -264,16 +264,17 @@ function getNextNotification(userUuid, deviceId, stateId, token){
 
 function retrieveJournalEntries(initialSync, journalId, token) {
   var url = constants.FSIO_BASE_URL + 
-    '/content/me/journal?limit=' + 100 + 
+    '/content/me/journal?' + 
     '&initial_sync=' + initialSync + 
+    '&types=file' + 
     '&related_objects=file';
 
-  var request = {url: url,
-                 type: 'GET'};
-  var authRequest = makeAuthorizedRequest(request, token);
-  
-  console.log('request:', authRequest);
-  
+  var origRequest = {
+    url: url,
+    type: 'GET'
+  };
+
+  var authRequest = makeAuthorizedRequest(origRequest, token);
   return sendRequest(authRequest);
 }
   

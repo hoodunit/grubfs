@@ -4,7 +4,7 @@ var _ = require('mori');
 var FsioAPI = require('../shared/fsio_api');
 var ServerAPI = require('./server_api');
 
-var DEBUG = true;
+var DEBUG = false;
 
 function syncStateWithFsio(event){
   var eventHandler = getEventHandler(event);
