@@ -212,7 +212,7 @@ function uploadItem(token, item){
 
 function handleEmptyList(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  return clearItems(token);
+  return clearItems(token).errors();
 }
 
 function clearItems(token){
