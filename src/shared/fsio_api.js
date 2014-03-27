@@ -231,6 +231,19 @@ function deleteFile(filename, token){
   return sendRequest(authRequest);
 }
 
+function deleteFilesFromFolder(filename, token){
+  var url = constants.FSIO_BASE_URL + '/content/me/files/' + filename + '?name=*';
+  var origRequest = {
+    url: url,
+    type: 'DELETE'
+  };
+
+  var request = setContentLengthIfRunningInNode(origRequest);
+
+  var authRequest = makeAuthorizedRequest(request, token);
+  return sendRequest(authRequest);
+}
+
 // Hackish workaround to get some requests to work on both browser and Node.
 // FSIO requires content-length header for some requests.
 // Browser automatically sets this and does not allow you to set it.
@@ -291,6 +304,7 @@ module.exports = {
   downloadFile: downloadFile,
   downloadRemoteItems: downloadRemoteItems,
   deleteFile: deleteFile,
+  deleteFilesFromFolder: deleteFilesFromFolder,
   getFileInfo: getFileInfo,
   errors: errors,
   test: {
