@@ -3,6 +3,7 @@
 
 var chai = require('chai');
 chai.should();
+var Bacon = require('baconjs');
 
 var FsioAPI = require('../../src/shared/fsio_api.js');
 var Util = require('../util/util');
@@ -254,6 +255,61 @@ describe('shared Fsio API', function(){
       });
       
       downloadedFile.onEnd(function(){ 
+        done();
+      });
+    });
+  });
+
+  describe('notifications', function(){
+    var username;
+    var password;
+
+    before(function(done){
+      username = Util.randomUser();
+      password = "mytestpassword";
+      Util.createUser(username, password).onValue(function(){
+        done();
+      });
+    });
+    
+    after(function(done){
+      Util.deleteUser(username).onValue(function(){
+        done();
+      });
+    });
+
+    it('should return a notification indicating when an item is changed', function(done){
+      var notification = FsioAPI.signIn(username, password)
+        .flatMapFirst(function(signedInInfo){
+          return FsioAPI.getNextNotification(signedInInfo.u_uuid, 
+                                             'testdeviceid',
+                                             signedInInfo.token);
+      });
+
+      var filename = 'items/testfileid';
+      var fileData = {id: 'testfileid',
+                      completed: false,
+                      name: 'test item'};
+      var fileKey = '/me/files/items/testfileid';
+
+      var uploadedFileInfo = Bacon.later(1000, null)
+        .flatMapFirst(function(){ return FsioAPI.signIn(username, password); })
+        .map('.token')
+        .flatMapFirst(FsioAPI.uploadFile, filename, fileData);
+
+      // Trigger file upload
+      uploadedFileInfo.onEnd();
+
+      notification.onValue(function(notificationData){
+        var firstNotification = notificationData.notifications[0];
+        firstNotification.content_type.should.equal('fsio:file');
+      });
+    
+      notification.onError(function(error){
+        error.should.not.exist;
+      });
+      
+      notification.onEnd(function(){
         done();
       });
     });

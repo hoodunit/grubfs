@@ -198,7 +198,8 @@ function handleDeleteItem(event){
 function handleStartRealTimeSync(event){
   var userUuid = _.get_in(event, ['state', 'credentials', 'u_uuid']);
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  return startListenNotifications(userUuid, token);
+  var deviceId = _.get_in(event, ['state', 'deviceId']);
+  return startListenNotifications(userUuid, deviceId, token);
 }
 
 function handleNotification(event){
@@ -242,22 +243,22 @@ function clearItems(token){
   return FsioAPI.deleteFilesFromFolder(itemsFolder, token);
 }
 
-function startListenNotifications(userUuid, token) {
+function startListenNotifications(userUuid, deviceId, token) {
   var notifications = new Bacon.Bus();
-  listenNotifications(notifications, userUuid, token);
+  listenNotifications(notifications, userUuid, deviceId, token);
   return notifications;
 }
 
-function listenNotifications(notifications, userUuid, token) {
-  var nextNotificationEvent = getNextNotification(userUuid, token);
+function listenNotifications(notifications, userUuid, deviceId, token) {
+  var nextNotificationEvent = getNextNotification(userUuid, deviceId, token);
   notifications.plug(nextNotificationEvent);
   nextNotificationEvent.onValue(function(notificationEvent) {
-    listenNotifications(notifications, userUuid, token);
+    listenNotifications(notifications, userUuid, deviceId, token);
   });
 }
 
-function getNextNotification(userUuid, token) {
-  var nextNotification = FsioAPI.getNextNotification(userUuid, token);
+function getNextNotification(userUuid, deviceId, token) {
+  var nextNotification = FsioAPI.getNextNotification(userUuid, deviceId, token);
   return nextNotification.flatMap(makeNotificationEvent);
 }
 

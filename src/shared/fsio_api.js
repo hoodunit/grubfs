@@ -233,20 +233,11 @@ function deleteFile(filename, token){
   return sendRequest(authRequest);
 }
 
-function getDeviceId(){
-  var deviceId = localStorage.getItem('deviceId');
-  if(deviceId === null) {
-    deviceId = Util.generateUUID();
-    localStorage.setItem('deviceId', deviceId);
-  }
-  return deviceId;
-}
-
-function getNextNotification(userUuid, token){
+function getNextNotification(userUuid, deviceId, token){
   var url = constants.FSIO_UEB_URL + '/notification/uid:' + userUuid + '/notifications';
   
   var message = {
-    device_id: getDeviceId(),
+    device_id: deviceId,
     include_content_types: [
       'fsio:file'
     ],
