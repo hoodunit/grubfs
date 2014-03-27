@@ -202,7 +202,8 @@ function handleStartRealTimeSync(event){
 
 function handleNotification(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  var resetStateEvents = loadCurrentRemoteState(token);
+  // delay to avoid "File scanning incomplete" error
+  var resetStateEvents = Bacon.once().delay(1000).flatMap(loadCurrentRemoteState, token);
   return resetStateEvents;
 }
 
