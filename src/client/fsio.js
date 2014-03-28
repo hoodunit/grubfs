@@ -272,7 +272,9 @@ function listenNotifications(notifications, userUuid, deviceId, lastStateId, tok
   var nextNotificationEvent = getNextNotification(userUuid, deviceId, lastStateId, token);
   notifications.plug(nextNotificationEvent);
   nextNotificationEvent.onValue(function(notificationEvent) {
-    var stateId = _.get_in(notificationEvent, ['notification', 'notifications', 0, 'state_id']);
+    var newStateId = _.get_in(notificationEvent, ['notification', 'notifications', 0, 'state_id']);
+    // if notification request returned no new notification use the last id
+    var stateId = newStateId ? newStateId : lastStateId;
     listenNotifications(notifications, userUuid, deviceId, stateId, token);
   });
 }
