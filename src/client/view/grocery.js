@@ -109,7 +109,12 @@ var AddGroceryItemInput = React.createClass({
 var GroceryList = React.createClass({
   render: function() {
     var itemsSorted = _.sort(function(a, b) {
-      return a.completed - b.completed;
+        if (a.completed > b.completed)
+            return 1;
+        else if (a.completed < b.completed)
+            return -1; 
+        else
+            return a.name.toLowerCase() === b.name.toLowerCase() ? 0 : a.name > b.name ? 1 : -1;
     }, this.props.items);
 
     var itemNodes = _.into_array(_.map(function(item) {
