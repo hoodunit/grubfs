@@ -271,24 +271,27 @@ function startListenNotifications(userUuid, deviceId, token) {
   return notifications;
 }
 
-function listenNotifications(notifications, userUuid, deviceId, lastStateId, token) {
-  var nextNotificationEvent = getNextNotification(userUuid, deviceId, lastStateId, token);
-  notifications.plug(nextNotificationEvent);
-  nextNotificationEvent.onValue(function(notificationEvent) {
-    var newStateId = _.get_in(notificationEvent, ['notification', 'notifications', 0, 'state_id']);
+function listenNotifications(notifications, userUuid, deviceId, lastStateId, token){
+  var response = FsioAPI.getNextNotification(userUuid, deviceId, lastStateId, token);
+  var responsesWithNotification = response.map(stateIdFromNotificationResponse).filter(function(stateId){
+    return stateId !== null;
+  });
+  notifications.plug(responsesWithNotification.map(makeNotificationEvent));
+  // long-polling, make new request on response
+  response.onValue(function(notificationResponse){
+    var newStateId = stateIdFromNotificationResponse(notificationResponse);
     // if notification request returned no new notification use the last id
     var stateId = newStateId ? newStateId : lastStateId;
     listenNotifications(notifications, userUuid, deviceId, stateId, token);
   });
 }
 
-function getNextNotification(userUuid, deviceId, stateId, token) {
-  var nextNotification = FsioAPI.getNextNotification(userUuid, deviceId, stateId, token);
-  return nextNotification.flatMap(makeNotificationEvent);
+function stateIdFromNotificationResponse(notificationResponse){
+  return _.get_in(_.js_to_clj(notificationResponse), ['notifications', 0, 'state_id']);
 }
 
-function makeNotificationEvent(notification) {
-  var event = _.hash_map('notification', _.js_to_clj(notification), 
+function makeNotificationEvent(stateId) {
+  var event = _.hash_map('stateId', stateId,
                          'eventType', 'notification');
   return event;
 }
