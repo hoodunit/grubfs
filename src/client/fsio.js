@@ -40,7 +40,9 @@ function getEventHandler(event){
                                  'deleteItem', handleDeleteItem,
                                  'startRealTimeSync', handleStartRealTimeSync,
                                  'notification', handleNotification,
-                                 'emptyList', handleEmptyList);
+                                 'emptyList', handleEmptyList,
+                                 'journalUpdate', handleJournalUpdate
+                                );
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -226,8 +228,30 @@ function handleStartRealTimeSync(event){
 
 function handleNotification(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
+  var journalId = _.get_in(event, ['state', 'journalId']);
+  //FIXME: what if another notification comes before all journal update events have been processed
+  //       there will be another journal update with old journal id, will this break something?
+  //       at least it's waist of resources to redownload some of the entries again
+  var journalUpdateEvents = updateJournal(journalId, token);
+  return journalUpdateEvents;
+}
+
+function handleJournalUpdate(event){
+  var journalId = _.get(event, 'journalId');
+  var key = _.get_in(event, ['entry', 'key']);
+  var token = _.get_in(event, ['state', 'credentials', 'token']);
+  //FIXME: download only the necessary item (key)
+  //FIXME: what if downloads do not complete in order, will something break up?
   var resetStateEvents = resetStateFromRemote(token);
-  return resetStateEvents;
+  var journalUpdatedEvents = resetStateEvents.flatMap(makeJournalUpdatedEvent, journalId);
+  return Bacon.mergeAll(resetStateEvents, journalUpdatedEvents);
+}
+
+function makeJournalUpdatedEvent(journalId) {
+  return _.hash_map(
+    'journalId', journalId,
+    'eventType', 'journalUpdated'
+  );
 }
 
 function getItemById(items, id){
@@ -294,6 +318,63 @@ function makeNotificationEvent(stateId) {
   var event = _.hash_map('stateId', stateId,
                          'eventType', 'notification');
   return event;
+}
+
+function updateJournal(journalId, token){
+  var journalUpdates = new Bacon.Bus();
+  if(journalId === null){
+    initialSyncJournalEntries(journalUpdates, token);
+  } else {
+    newJournalEntries(journalUpdates, journalId, token);
+  }
+  return journalUpdates;
+}
+
+function initialSyncJournalEntries(journalUpdates, token){
+  return retrieveJournalEntries(journalUpdates, -1, -1, token);
+}
+
+function newJournalEntries(journalUpdates, currentJournalId, token){
+  return retrieveJournalEntries(journalUpdates, currentJournalId, -1, token);
+}
+
+function retrieveJournalEntries(journalUpdates, journalIdGt, journalIdLt, token){
+  var response = FsioAPI.retrieveJournalEntries(true, journalIdGt, journalIdLt, token);
+  var entriesFromResponse = response.flatMap(entriesFromJournalResponse);
+  journalUpdates.plug(entriesFromResponse.map(makeJournalUpdateEvent));
+  // if there are entries remaining, recurse to retrieve them
+  response.onValue(function(journalResponse){
+    var remaining = journalResponse.total - journalResponse.count;
+    if(remaining > 0){
+      var highestJournalId = highestJournalIdFromJournalResponse(journalResponse);
+      var journalMax = journalResponse.journal_max;
+      retrieveJournalEntries(journalUpdates, highestJournalId, journalMax, token);
+    }
+  });
+}
+
+function entriesFromJournalResponse(journalResponse){
+  var entries = Bacon.fromArray(journalResponse.items);
+  return entries;
+}
+
+function makeJournalUpdateEvent(journalEntry){
+  var event = _.hash_map(
+    'journalId', journalEntry.journal_id,
+    'entry', _.js_to_clj(journalEntry),
+    'eventType', 'journalUpdate'
+  );
+  return event;
+}
+
+function highestJournalIdFromJournalResponse(journalResponse){
+  var journalIds = journalResponse.items.map(function(journalEntry){
+    return journalEntry.journal_id;
+  });
+  var highest = journalIds.reduce(function(a, b){
+    return Math.max(a, b);
+  }, -1);
+  return highest;
 }
 
 module.exports = {

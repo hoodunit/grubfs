@@ -130,7 +130,9 @@ function getEventHandler(event){
                                  'signedUp', handleSignedUp,
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut,
-                                 'resetState', handleResetState);
+                                 'resetState', handleResetState,
+                                 'journalUpdated', handleJournalUpdated
+                                );
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
   return handler;
@@ -241,6 +243,11 @@ function handleSignOut(oldState, event){
 
 function handleResetState(oldState, event){
   var newState = _.assoc(oldState, 'items', _.get(event, 'items'));
+  return newState;
+}
+
+function handleJournalUpdated(oldState, event){
+  var newState = _.assoc(oldState, 'journalId', Math.max(_.get(oldState, 'journalId'),_.get(event, 'journalId')));
   return newState;
 }
 

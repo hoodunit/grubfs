@@ -274,11 +274,12 @@ function retrieveJournalEntries(initialSync, journalIdGt, journalIdLt, token) {
     ltParam = '&journal_id_lt=' + journalIdLt;
   }
 
-  var url = constants.FSIO_BASE_URL + 
-    '/content/me/journal?' + 
-    '&initial_sync=' + initialSync + 
-    '&types=file' + 
-    '&related_objects=file';
+  var url = constants.FSIO_BASE_URL +
+    '/content/me/journal?limit=100' +
+    '&initial_sync=' + initialSync +
+    '&types=file' +
+    '&related_objects=file' +
+    gtParam + ltParam;
 
   var origRequest = {
     url: url,
