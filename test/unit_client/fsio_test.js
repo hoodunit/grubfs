@@ -105,7 +105,7 @@ describe('Fsio', function(){
 
     it('should return the added items', function(done){
       var state = _.hash_map('credentials', credentials);
-      var initEvent = _.hash_map('eventType', 'initialSync',
+      var initEvent = _.hash_map('eventType', 'appInit',
                                  'state', state);
       // Delay for file scanning
       var resetStateEvent = Bacon.later(2000, null)

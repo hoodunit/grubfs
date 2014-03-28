@@ -29,7 +29,7 @@ function syncStateWithFsio(event){
 }
 
 function getEventHandler(event){
-  var eventHandlers = _.hash_map('initialSync', handleInitialSync,
+  var eventHandlers = _.hash_map('appInit', handleAppInit,
                                  'signIn', handleSignIn,
                                  'signUp', handleSignUp,
                                  'signedUp', handleSignedUp,
@@ -54,7 +54,7 @@ function signOutOnTokenExpiration(error){
   }
 }
 
-function handleInitialSync(event){
+function handleAppInit(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   var resetStateEvents = loadCurrentRemoteState(token);
   var startRealTimeSyncEvents = resetStateEvents.flatMap(makeStartRealTimeSyncEvent);
@@ -106,8 +106,6 @@ function signIn(event){
     .map(_.js_to_clj)
     .map(addEmailToCredentials, email)
     .map(makeSignedInEvent);
-  
-  var startRealTimeSyncEvents = signedInEvents.flatMap(makeStartRealTimeSyncEvent);
 
   var signInFailedEvents = signedInInfo.errors()
                                 .mapError(_.js_to_clj)
@@ -116,7 +114,7 @@ function signIn(event){
                                                     'signInError', true);
                                 });
 
-  return Bacon.mergeAll(signedInEvents, startRealTimeSyncEvents, signInFailedEvents);
+  return Bacon.mergeAll(signedInEvents, signInFailedEvents);
 }
 
 function makeStartRealTimeSyncEvent() {
@@ -176,7 +174,9 @@ function signUpAndSignIn(email, password){
 
 function handleSignedIn(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  return loadCurrentRemoteState(token);
+  var resetStateEvents = loadCurrentRemoteState(token);
+  var startRealTimeSyncEvents = resetStateEvents.flatMap(makeStartRealTimeSyncEvent);
+  return Bacon.mergeAll(resetStateEvents, startRealTimeSyncEvents);
 }
 
 function handleSignedUp(event){

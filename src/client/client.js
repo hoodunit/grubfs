@@ -10,7 +10,7 @@ function render(state){
 }
 
 function makeInitEvent() {
-  return _.hash_map('eventType', 'initialSync');
+  return _.hash_map('eventType', 'appInit');
 }
 
 function initialize(){
