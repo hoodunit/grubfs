@@ -57,7 +57,7 @@ function signOutOnTokenExpiration(error){
 function handleAppInit(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   var resetStateEvents = loadCurrentRemoteState(token);
-  var startRealTimeSyncEvents = resetStateEvents.flatMap(makeStartRealTimeSyncEvent);
+  var startRealTimeSyncEvents = resetStateEvents.flatMapFirst(makeStartRealTimeSyncEvent);
   return Bacon.mergeAll(resetStateEvents, startRealTimeSyncEvents);
 }
 
@@ -175,7 +175,7 @@ function signUpAndSignIn(email, password){
 function handleSignedIn(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   var resetStateEvents = loadCurrentRemoteState(token);
-  var startRealTimeSyncEvents = resetStateEvents.flatMap(makeStartRealTimeSyncEvent);
+  var startRealTimeSyncEvents = resetStateEvents.flatMapFirst(makeStartRealTimeSyncEvent);
   return Bacon.mergeAll(resetStateEvents, startRealTimeSyncEvents);
 }
 
