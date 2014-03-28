@@ -283,6 +283,7 @@ describe('shared Fsio API', function(){
         .flatMapFirst(function(signedInInfo){
           return FsioAPI.getNextNotification(signedInInfo.u_uuid, 
                                              'testdeviceid',
+                                             '',
                                              signedInInfo.token);
       });
 
@@ -335,10 +336,9 @@ describe('shared Fsio API', function(){
 
     it('should return journal entries', function(done){
       var initialSync = true;
-      var journalId = null;
       var journalEntries = FsioAPI.signIn(username, password)
         .map('.token')
-        .flatMapFirst(FsioAPI.retrieveJournalEntries, initialSync, journalId);
+        .flatMapFirst(FsioAPI.retrieveJournalEntries, initialSync, -1, -1);
 
       journalEntries.onValue(function(entries){
         entries.journal_max.should.equal(1);
