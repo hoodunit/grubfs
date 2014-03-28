@@ -263,7 +263,17 @@ function getNextNotification(userUuid, deviceId, stateId, token){
   return sendRequest(authRequest);
 }
 
-function retrieveJournalEntries(initialSync, journalId, token) {
+function retrieveJournalEntries(initialSync, journalIdGt, journalIdLt, token) {
+  var gtParam = '';
+  var ltParam = '';
+
+  if(journalIdGt >= 0) {
+    gtParam = '&journal_id_gt=' + journalIdGt;
+  }
+  if(journalIdLt >= 0) {
+    ltParam = '&journal_id_lt=' + journalIdLt;
+  }
+
   var url = constants.FSIO_BASE_URL + 
     '/content/me/journal?' + 
     '&initial_sync=' + initialSync + 
