@@ -56,12 +56,17 @@ function signOutOnTokenExpiration(error){
 
 function handleAppInit(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  var resetStateEvents = loadCurrentRemoteState(token);
+  var resetStateEvents = resetStateFromRemote(token);
   var startRealTimeSyncEvents = resetStateEvents.flatMapFirst(makeStartRealTimeSyncEvent);
   return Bacon.mergeAll(resetStateEvents, startRealTimeSyncEvents);
 }
 
-function loadCurrentRemoteState(token){
+function resetStateFromRemote(token){
+  var resetStateEvents = loadRemoteState(token).map(makeResetStateEvent);
+  return resetStateEvents;
+}
+
+function loadRemoteState(token){
   var errors = new Bacon.Bus();
   var retryDelays = Bacon.fromArray([100, 1500]);
   var retries = errors.zip(retryDelays, function(error, retryDelay){
@@ -81,9 +86,7 @@ function loadCurrentRemoteState(token){
 
   errors.plug(expectedRemoteItemsErrors);
 
-  var resetStateEvents = remoteItems.take(1).map(makeResetStateEvent);
-
-  return resetStateEvents;
+  return remoteItems.take(1);
 }
 
 function makeResetStateEvent(items){
@@ -174,7 +177,7 @@ function signUpAndSignIn(email, password){
 
 function handleSignedIn(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  var resetStateEvents = loadCurrentRemoteState(token);
+  var resetStateEvents = resetStateFromRemote(token);
   var startRealTimeSyncEvents = resetStateEvents.flatMapFirst(makeStartRealTimeSyncEvent);
   return Bacon.mergeAll(resetStateEvents, startRealTimeSyncEvents);
 }
@@ -223,7 +226,7 @@ function handleStartRealTimeSync(event){
 function handleNotification(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   // delay to avoid "File scanning incomplete" error
-  var resetStateEvents = Bacon.once().delay(0).flatMap(loadCurrentRemoteState, token);
+  var resetStateEvents = Bacon.once().delay(0).flatMap(resetStateFromRemote, token);
   return resetStateEvents;
 }
 

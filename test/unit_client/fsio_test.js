@@ -64,7 +64,7 @@ describe('Fsio', function(){
     });
   });
 
-  describe('loadCurrentRemoteState', function(){
+  describe('resetStateFromRemote', function(){
     var username;
     var password;
     var credentials;
