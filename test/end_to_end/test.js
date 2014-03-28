@@ -56,7 +56,7 @@ function editItem(page) {
   })
   .open(baseUrl)
   .waitForElement('.groceryItem')
-  .assert.text('.groceryItem', '1 package of tomato puree', 'the first item has the correct name')
+  //.assert.text('.groceryItem', '1 package of tomato puree', 'the first item has the correct name')
   .execute(function() {
     var item = document.getElementsByClassName('pull-right')[0];
     var dispatchMouseEvent = function(target, var_args) {
@@ -68,9 +68,9 @@ function editItem(page) {
   })
   .wait(1000)
   .waitForElement('.groceryItem')
-  .type('.itemInput', 'bifteck aux pommes frites')
-  .sendKeys('body', '\uE007') //007!
-  .assert.text('.groceryItem', 'bifteck aux pommes frites', 'text edit works correctly')
+  .type('.itemInput', '1 ananas')
+  .sendKeys('body', '\uE007')
+  .assert.text('.groceryItem', '1 ananas', 'text edit works correctly')
   .done();
 }
 
