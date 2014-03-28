@@ -237,20 +237,38 @@ function handleNotification(event){
 }
 
 function handleJournalUpdate(event){
-  var journalId = _.get(event, 'journalId');
-  var key = _.get_in(event, ['entry', 'key']);
-  var token = _.get_in(event, ['state', 'credentials', 'token']);
-  //FIXME: download only the necessary item (key)
-  //FIXME: what if downloads do not complete in order, will something break up?
-  var resetStateEvents = resetStateFromRemote(token);
-  var journalUpdatedEvents = resetStateEvents.flatMap(makeJournalUpdatedEvent, journalId);
-  return Bacon.mergeAll(resetStateEvents, journalUpdatedEvents);
+  var journalId = _.get_in(event, ['journalEntry', 'journal_id']);
+  var operation = _.get_in(event, ['journalEntry', 'operation']);
+  var key = _.get_in(event, ['journalEntry', 'key']);
+  var itemId = key.split('/').pop();
+
+  if(operation === 'create'){
+    var token = _.get_in(event, ['state', 'credentials', 'token']);
+    var fileName = 'items/' + itemId;
+    //FIXME: file scan uncomplete
+    var item = FsioAPI.downloadFile(fileName, token);
+    //FIXME: what if downloads do not complete in order, will something break up?
+    var remoteItemEvents = item.flatMap(makeRemoteItemEvent, journalId);
+    return remoteItemEvents;
+  } else if (operation === 'delete'){
+    var remoteItemDeleteEvents = Bacon.once(makeRemoteItemDeleteEvent(journalId, itemId));
+    return remoteItemDeleteEvents;
+  }
 }
 
-function makeJournalUpdatedEvent(journalId) {
+function makeRemoteItemEvent(journalId, item) {
   return _.hash_map(
     'journalId', journalId,
-    'eventType', 'journalUpdated'
+    'item', _.js_to_clj(item),
+    'eventType', 'remoteItem'
+  );
+}
+
+function makeRemoteItemDeleteEvent(journalId, itemId) {
+  return _.hash_map(
+    'journalId', journalId,
+    'id', itemId,
+    'eventType', 'remoteItemDelete'
   );
 }
 
@@ -331,15 +349,15 @@ function updateJournal(journalId, token){
 }
 
 function initialSyncJournalEntries(journalUpdates, token){
-  return retrieveJournalEntries(journalUpdates, -1, -1, token);
+  return retrieveJournalEntries(journalUpdates, true, -1, -1, token);
 }
 
 function newJournalEntries(journalUpdates, currentJournalId, token){
-  return retrieveJournalEntries(journalUpdates, currentJournalId, -1, token);
+  return retrieveJournalEntries(journalUpdates, false, currentJournalId, -1, token);
 }
 
-function retrieveJournalEntries(journalUpdates, journalIdGt, journalIdLt, token){
-  var response = FsioAPI.retrieveJournalEntries(true, journalIdGt, journalIdLt, token);
+function retrieveJournalEntries(journalUpdates, initialSync, journalIdGt, journalIdLt, token){
+  var response = FsioAPI.retrieveJournalEntries(initialSync, journalIdGt, journalIdLt, token);
   var entriesFromResponse = response.flatMap(entriesFromJournalResponse);
   journalUpdates.plug(entriesFromResponse.map(makeJournalUpdateEvent));
   // if there are entries remaining, recurse to retrieve them
@@ -348,7 +366,7 @@ function retrieveJournalEntries(journalUpdates, journalIdGt, journalIdLt, token)
     if(remaining > 0){
       var highestJournalId = highestJournalIdFromJournalResponse(journalResponse);
       var journalMax = journalResponse.journal_max;
-      retrieveJournalEntries(journalUpdates, highestJournalId, journalMax, token);
+      retrieveJournalEntries(journalUpdates, initialSync, highestJournalId, journalMax, token);
     }
   });
 }
@@ -360,8 +378,7 @@ function entriesFromJournalResponse(journalResponse){
 
 function makeJournalUpdateEvent(journalEntry){
   var event = _.hash_map(
-    'journalId', journalEntry.journal_id,
-    'entry', _.js_to_clj(journalEntry),
+    'journalEntry', _.js_to_clj(journalEntry),
     'eventType', 'journalUpdate'
   );
   return event;

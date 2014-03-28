@@ -278,7 +278,6 @@ function retrieveJournalEntries(initialSync, journalIdGt, journalIdLt, token) {
     '/content/me/journal?limit=100' +
     '&initial_sync=' + initialSync +
     '&types=file' +
-    '&related_objects=file' +
     gtParam + ltParam;
 
   var origRequest = {

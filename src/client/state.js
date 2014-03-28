@@ -131,7 +131,8 @@ function getEventHandler(event){
                                  'signedIn', handleSignedIn,
                                  'signOut', handleSignOut,
                                  'resetState', handleResetState,
-                                 'journalUpdated', handleJournalUpdated
+                                 'remoteItem', handleRemoteItem,
+                                 'remoteItemDelete', handleRemoteItemDelete
                                 );
   var eventType = _.get(event, 'eventType');
   var handler = _.get(eventHandlers, eventType);
@@ -246,8 +247,38 @@ function handleResetState(oldState, event){
   return newState;
 }
 
-function handleJournalUpdated(oldState, event){
-  var newState = _.assoc(oldState, 'journalId', Math.max(_.get(oldState, 'journalId'),_.get(event, 'journalId')));
+function handleRemoteItem(oldState, event){
+  var oldItems = _.get(oldState, 'items');
+
+  var newJournalId = Math.max(_.get(oldState, 'journalId'), _.get(event, 'journalId'));
+
+  var newItem = _.get(event, 'item');
+
+  var id = _.get(newItem, 'id');
+  var updatedItems = _.remove(function(item) {
+    return _.get(item, 'id') === id;
+  }, oldItems);
+
+  var newItems = _.conj(updatedItems, newItem);
+  var newState = _.assoc(oldState,
+                         'journalId', newJournalId,
+                         'items', newItems);
+  return newState;
+}
+
+function handleRemoteItemDelete(oldState, event){
+  var oldItems = _.get(oldState, 'items');
+
+  var newJournalId = Math.max(_.get(oldState, 'journalId'), _.get(event, 'journalId'));
+
+  var id = _.get(event, 'id');
+  var newItems = _.remove(function(item) {
+    return _.get(item, 'id') === id;
+  }, oldItems);
+
+  var newState = _.assoc(oldState,
+                         'journalId', newJournalId,
+                         'items', newItems);
   return newState;
 }
 
