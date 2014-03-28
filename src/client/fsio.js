@@ -62,8 +62,26 @@ function handleInitialSync(event){
 }
 
 function loadCurrentRemoteState(token){
-  var remoteItems = FsioAPI.downloadRemoteItems(token);
-  var resetStateEvents = remoteItems.map(makeResetStateEvent);
+  var errors = new Bacon.Bus();
+  var retryDelays = Bacon.fromArray([100, 1500]);
+  var retries = errors.zip(retryDelays, function(error, retryDelay){
+    return retryDelay;
+  });
+
+  var tries = Bacon.once(0).merge(retries);
+
+  var remoteItems = tries.flatMap(function(delay){
+    return Bacon.once().delay(delay).flatMapFirst(FsioAPI.downloadRemoteItems, token);
+  });
+
+  var remoteItemsErrors = remoteItems.errors().mapError(_.identity);
+  var expectedRemoteItemsErrors = remoteItemsErrors.filter(function(error){
+    return error.code === FsioAPI.errors.FILE_SCANNING_INCOMPLETE;
+  });
+
+  errors.plug(expectedRemoteItemsErrors);
+
+  var resetStateEvents = remoteItems.take(1).map(makeResetStateEvent);
 
   return resetStateEvents;
 }
@@ -205,7 +223,7 @@ function handleStartRealTimeSync(event){
 function handleNotification(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   // delay to avoid "File scanning incomplete" error
-  var resetStateEvents = Bacon.once().delay(1000).flatMap(loadCurrentRemoteState, token);
+  var resetStateEvents = Bacon.once().delay(0).flatMap(loadCurrentRemoteState, token);
   return resetStateEvents;
 }
 
