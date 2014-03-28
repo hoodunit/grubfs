@@ -108,14 +108,20 @@ var AddGroceryItemInput = React.createClass({
 
 var GroceryList = React.createClass({
   render: function() {
-    var itemsSorted = _.sort(function(a, b) {
-        if (a.completed > b.completed)
-            return 1;
-        else if (a.completed < b.completed)
-            return -1; 
-        else
-            return a.name.toLowerCase() === b.name.toLowerCase() ? 0 : a.name > b.name ? 1 : -1;
-    }, this.props.items);
+    var lexicographicalOrder = function(a, b) {
+      return a.localeCompare(b);
+    };
+
+    var order = function(a, b) {
+      if (a.completed > b.completed)
+        return 1;
+      else if (a.completed < b.completed)
+        return -1;
+      else
+        return lexicographicalOrder(a.name, b.name);
+    };
+
+    var itemsSorted = _.sort(order, this.props.items);
 
     var itemNodes = _.into_array(_.map(function(item) {
       return GroceryItem.GroceryItem({data: item,
