@@ -49,7 +49,12 @@ var GroceryItem = React.createClass({
                          this.getText(isCompleted, name, this.state.editing),
                          this.getDeleteButton(this.state.editing),
                          this.getItemInput(this.state.editing),
-                         this.getEditButton(this.state.editing, this.state.mouseover));
+                         this.getEditButton(this.state.editing, this.state.mouseover),
+                         this.getTooltip(this.state.error));
+  },
+  getTooltip: function(error) {
+    var tooltipClass = 'error-tooltip';
+    return error ? React.DOM.span({ className: tooltipClass }, error) : null;
   },
   getCheckbox: function(isCompleted){
     return React.DOM.input({
@@ -195,8 +200,14 @@ var GroceryItem = React.createClass({
                    tapped: false});
   },
   handleInputBlur : function() {
-    this.setState({editing: false});
-    this.sendUpdateEvent();
+    var name = this.refs.iteminput.getDOMNode().value.trim();
+    if(name) {
+      this.setState({error: ""});
+      this.setState({editing: false});
+      this.sendUpdateEvent();
+    } else {
+      this.setState({error: "oops"});
+    }
   },
   sendUpdateEvent: function(){
     var id = this.props.data.id;
