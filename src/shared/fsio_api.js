@@ -179,8 +179,22 @@ function downloadFile(filename, token){
   var request = {url: url,
                  type: 'GET'};
   var authRequest = makeAuthorizedRequest(request, token);
+  
+  return downloadFileWithRetry(authRequest).map(JSON.parse);
+}
 
-  return sendRequest(authRequest).map(JSON.parse);
+function downloadFileWithRetry(request){
+  var retryDelay = 350;
+  
+  var response = sendRequest(request);
+  var fileScanningFailures = response.errors()
+    .mapError(_.identity)
+    .filter(function(error){ return error.code === errors.FILE_SCANNING_INCOMPLETE; });
+  var retry = fileScanningFailures
+    .delay(retryDelay)
+    .flatMapFirst(function() { return sendRequest(request); });
+
+  return response.merge(retry);
 }
 
 function downloadRemoteItems(token){
