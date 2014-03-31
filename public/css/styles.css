@@ -34,6 +34,7 @@
     position: relative;
     overflow-x: hidden;
     margin-top: 15px;
+    padding-bottom: 40px;
 }
 
 .groceryItem {
@@ -104,4 +105,26 @@
 
 .sign-in-form button{
     margin-left: 5px;
+}
+.error-tooltip {
+    position: absolute;
+    display: block;
+    left: 5px;
+    height: 30px;
+    color: #fff;
+    background-color: #000;
+    top: 49px;
+    z-index: 999;
+    padding: 0 10px;
+    opacity: 0.7;
+    border-radius: 3px;
+    line-height: 26px;
+}
+.error-tooltip:before {
+    content:"";
+    position: absolute;
+    top: -14px;
+    border-width: 7px;
+    border-style: solid;
+    border-color: transparent transparent #000 transparent;
 }
