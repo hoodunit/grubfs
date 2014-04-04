@@ -1,3 +1,56 @@
+body {
+    background-color: "grey";
+    background: url(../../images/ap1.png) no-repeat fixed center;
+    font-family: "Segoe UI", Frutiger, "Frutiger Linotype", "Dejavu Sans", "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.btn{
+    border-radius: 0em;
+    border-color: #adadad;
+}
+
+#signUp{
+    background-color: #B7C204;
+}
+
+#signIn{
+    background-color: #0D4575;
+}
+
+#add{
+    background-color: #B7C204;
+}
+
+#name{
+    border-top-right-radius: 0em !important;
+    border-top-left-radius: 0em !important;
+    border-bottom-left-radius: 0em !important;
+    border-bottom-right-radius: 0em !important;
+}
+
+.sign-in-form{
+    border-top-right-radius: 0em !important;
+    border-top-left-radius: 0em !important;
+    border-bottom-left-radius: 0em !important;
+    border-bottom-right-radius: 0em !important;
+    background-color: transparent;
+    border-color: transparent;
+}
+
+#email{
+    border-top-right-radius: 0em;
+    border-top-left-radius: 0em;
+    border-bottom-left-radius: 0em;
+    border-bottom-right-radius: 0em;
+}
+
+#password{
+    border-top-right-radius: 0em;
+    border-top-left-radius: 0em;
+    border-bottom-left-radius: 0em;
+    border-bottom-right-radius: 0em;
+}
+
 .container {
     margin-top: 40px;
 }
@@ -6,14 +59,22 @@
     margin-bottom: 10px;
 }
 
-.top-bar .nav-btn{
+
+#clearList{
     float: left;
-    margin-right: 10px;
+    margin-right: 1em;
+}
+
+#signOut{
+    float: right;
+    margin-left: 1em;
 }
 
 .user-info {
+    float: right;
     overflow: hidden;
     word-break: break-all;
+    padding-top: 6px;
 }
 
 .clearfix:before, .clearfix:after {
@@ -34,12 +95,25 @@
     position: relative;
     overflow-x: hidden;
     margin-top: 15px;
+    border-top-right-radius: 0em;
+    border-top-left-radius: 0em;
+    border-bottom-left-radius: 0em;
+    border-bottom-right-radius: 0em;
+}
+
+.list-group-item{
+    border-top-right-radius: 0em !important;
+    border-top-left-radius: 0em !important;
+    border-bottom-left-radius: 0em !important;
+    border-bottom-right-radius: 0em !important;
 }
 
 .groceryItem {
     font-size: 16px;
     cursor: default;
     color: #7f7f7f;
+    border-radius: 0em;
+    margin-bottom: 0.3em;    
 }
 
 .groceryItem.pressed .groceryText {
@@ -61,11 +135,11 @@
 }
 
 .groceryItemComplete {
-    background-color: #f3f3f3;
+    background-color: #D4DB86;
 }
 
 .groceryItem.pressed {
-    background-color: #545454;
+    background-color: #3F4201;
 }
 
 .groceryTextComplete {
@@ -104,4 +178,27 @@
 
 .sign-in-form button{
     margin-left: 5px;
+}
+
+.error-tooltip {
+    position: absolute;
+    display: block;
+    left: 5px;
+    height: 30px;
+    color: #fff;
+    background-color: #000;
+    top: 49px;
+    z-index: 999;
+    padding: 0 10px;
+    opacity: 0.7;
+    border-radius: 3px;
+    line-height: 26px;
+}
+.error-tooltip:before {
+    content:"";
+    position: absolute;
+    top: -14px;
+    border-width: 7px;
+    border-style: solid;
+    border-color: transparent transparent #000 transparent;
 }
