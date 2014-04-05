@@ -66,6 +66,7 @@ function resetStateFromRemote(token){
 }
 
 function loadRemoteState(token){
+  //FIXME: move/merge retry to api layer
   var errors = new Bacon.Bus();
   var retryDelays = Bacon.fromArray([100, 1500]);
   var retries = errors.zip(retryDelays, function(error, retryDelay){
@@ -229,9 +230,6 @@ function handleStartRealTimeSync(event){
 function handleNotification(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   var journalId = _.get_in(event, ['state', 'journalId']);
-  //FIXME: what if another notification comes before all journal update events have been processed
-  //       there will be another journal update with old journal id, will this break something?
-  //       at least it's waist of resources to redownload some of the entries again
   var journalUpdateEvents = updateJournal(journalId, token);
   return journalUpdateEvents;
 }
@@ -245,9 +243,7 @@ function handleJournalUpdate(event){
   if(operation === 'create'){
     var token = _.get_in(event, ['state', 'credentials', 'token']);
     var fileName = 'items/' + itemId;
-    //FIXME: file scan uncomplete
     var item = FsioAPI.downloadFile(fileName, token);
-    //FIXME: what if downloads do not complete in order, will something break up?
     var remoteItemEvents = item.flatMap(makeRemoteItemEvent, journalId);
     return remoteItemEvents;
   } else if (operation === 'delete'){
