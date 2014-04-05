@@ -11,7 +11,11 @@ function getInitialState(){
   if(localStorageState === null){
     return getDefaultState();
   } else {
-    return _.assoc(localStorageState, 'clientState', getDefaultClientState());
+    var deviceId = _.get(localStorageState, 'deviceId');
+    if(deviceId === null) {
+      deviceId = Util.generateUUID();
+    }
+    return _.assoc(localStorageState, 'clientState', getDefaultClientState(), 'deviceId', deviceId);
   }
 }
 
