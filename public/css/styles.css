@@ -71,7 +71,6 @@ body {
 }
 
 .user-info {
-    float: right;
     overflow: hidden;
     word-break: break-all;
     padding-top: 6px;
