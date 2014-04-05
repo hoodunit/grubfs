@@ -180,21 +180,41 @@ function downloadFile(filename, token){
                  type: 'GET'};
   var authRequest = makeAuthorizedRequest(request, token);
   
-  return downloadFileWithRetry(authRequest).map(JSON.parse);
+  var response = downloadFileWithRetry(authRequest).map(JSON.parse);
+  return response;
 }
 
 function downloadFileWithRetry(request){
-  var retryDelay = 350;
+  var retryDelay = 200;
+  var retries = 3;
   
-  var response = sendRequest(request);
+  var downloadFileRequests = new Bacon.Bus();
+  var response = downloadFileRequests.flatMap(function(downloadRequest){
+    return sendRequest(downloadRequest);
+  });
+  
   var fileScanningFailures = response.errors()
     .mapError(_.identity)
     .filter(function(error){ return error.code === errors.FILE_SCANNING_INCOMPLETE; });
-  var retry = fileScanningFailures
-    .delay(retryDelay)
-    .flatMapFirst(function() { return sendRequest(request); });
 
-  return response.merge(retry);
+  fileScanningFailures
+    .delay(retryDelay)
+    .onValue(function(){
+      if(retries > 0){
+        downloadFileRequests.push(request);
+        retries = retries - 1;
+      } else {
+        downloadFileRequests.end();
+      }
+    });
+  
+  downloadFileRequests.push(request);
+
+  response.onValue(function(v){
+    downloadFileRequests.end();
+  });
+
+  return response;
 }
 
 function downloadRemoteItems(token){
