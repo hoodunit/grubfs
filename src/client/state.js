@@ -89,7 +89,8 @@ function handleStateChanges(initialState, events, toRemote){
     }
     if(signedIn(state) ||
        _.equals(_.get(event, 'eventType'), 'signIn') ||
-       _.equals(_.get(event, 'eventType'), 'signUp')){
+       _.equals(_.get(event, 'eventType'), 'signUp') ||
+       _.equals(_.get(event, 'eventType'), 'signOut')){
       var eventWithState = _.assoc(event, 'state', state);
       toRemote.push(eventWithState);
     }

@@ -365,8 +365,9 @@ function makeAuthorizedRequest(request, token){
 }
 
 function sendRequest(request){
+  var abortOnUnsubscribe = true;
   request.cache = false;
-  var response = Bacon.fromPromise($.ajax(request));
+  var response = Bacon.fromPromise($.ajax(request), abortOnUnsubscribe);
   return parseFsioErrors(response);
 }
 

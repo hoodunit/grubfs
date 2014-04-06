@@ -6,6 +6,8 @@ var ServerAPI = require('./server_api');
 
 var DEBUG = false;
 
+var killNotifications = function() {};
+
 function syncStateWithFsio(event){
   var eventHandler = getEventHandler(event);
 
@@ -34,6 +36,7 @@ function getEventHandler(event){
                                  'signUp', handleSignUp,
                                  'signedUp', handleSignedUp,
                                  'signedIn', handleSignedIn,
+                                 'signOut', handleSignOut,
                                  'addItem', handleAddItem,
                                  'completeItem', handleCompleteItem,
                                  'updateItem', handleUpdateItem,
@@ -179,6 +182,11 @@ function handleSignedIn(event){
   return handleAppInitOrSignedIn(event);
 }
 
+function handleSignOut(event){
+  killNotifications();
+  return Bacon.never();
+}
+
 function handleAppInitOrSignedIn(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
   var resetStateEvents = resetStateFromRemote(token);
@@ -314,14 +322,18 @@ function listenNotifications(notifications, userUuid, deviceId, lastStateId, tok
   var responsesWithNotification = response.map(stateIdFromNotificationResponse).filter(function(stateId){
     return stateId !== null;
   });
-  notifications.plug(responsesWithNotification.map(makeNotificationEvent));
+  var unplugNotifications = notifications.plug(responsesWithNotification.map(makeNotificationEvent));
   // long-polling, make new request on response
-  response.onValue(function(notificationResponse){
+  var detachLongPolling = response.onValue(function(notificationResponse){
     var newStateId = stateIdFromNotificationResponse(notificationResponse);
     // if notification request returned no new notification use the last id
     var stateId = newStateId ? newStateId : lastStateId;
     listenNotifications(notifications, userUuid, deviceId, stateId, token);
   });
+  killNotifications = function(){
+    unplugNotifications();
+    detachLongPolling();
+  };
 }
 
 function stateIdFromNotificationResponse(notificationResponse){
