@@ -257,7 +257,7 @@ function handleRemoteItem(oldState, event){
   var oldItems = _.get(oldState, 'items');
   var oldClientState = _.get(oldState, 'clientState');
 
-  var newJournalId = newJournalId(oldState, event);
+  var newJournalId = newestJournalId(oldState, event);
 
   var newItem = _.get(event, 'item');
 
@@ -278,7 +278,7 @@ function handleRemoteItemDelete(oldState, event){
   var oldItems = _.get(oldState, 'items');
   var oldClientState = _.get(oldState, 'clientState');
 
-  var newJournalId = newJournalId(oldState, event);
+  var newJournalId = newestJournalId(oldState, event);
 
   var id = _.get(event, 'id');
   var newItems = _.remove(function(item) {
@@ -292,7 +292,7 @@ function handleRemoteItemDelete(oldState, event){
   return newState;
 }
 
-function newJournalId(state, event){
+function newestJournalId(state, event){
   return Math.max(_.get_in(state, ['clientState', 'journalId']), _.get(event, 'journalId'));
 }
 
