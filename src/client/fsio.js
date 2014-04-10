@@ -237,7 +237,7 @@ function handleStartRealTimeSync(event){
 
 function handleNotification(event){
   var token = _.get_in(event, ['state', 'credentials', 'token']);
-  var journalId = _.get_in(event, ['state', 'journalId']);
+  var journalId = _.get_in(event, ['state', 'clientState', 'journalId']);
   var journalUpdateEvents = updateJournal(journalId, token);
   return journalUpdateEvents;
 }

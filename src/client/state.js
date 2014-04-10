@@ -75,7 +75,8 @@ function getDefaultClientState(){
     'passwordError', null,
     'confirmError', null,
     'signInError', false,
-    'signUpError', false);
+    'signUpError', false,
+    'journalId', null);
 }
 
 function handleStateChanges(initialState, events, toRemote){
@@ -254,8 +255,9 @@ function handleResetState(oldState, event){
 
 function handleRemoteItem(oldState, event){
   var oldItems = _.get(oldState, 'items');
+  var oldClientState = _.get(oldState, 'clientState');
 
-  var newJournalId = Math.max(_.get(oldState, 'journalId'), _.get(event, 'journalId'));
+  var newJournalId = newJournalId(oldState, event);
 
   var newItem = _.get(event, 'item');
 
@@ -265,26 +267,33 @@ function handleRemoteItem(oldState, event){
   }, oldItems);
 
   var newItems = _.conj(updatedItems, newItem);
+  var newClientState = _.assoc(oldClientState, 'journalId', newJournalId);
   var newState = _.assoc(oldState,
-                         'journalId', newJournalId,
+                         'clientState', newClientState,
                          'items', newItems);
   return newState;
 }
 
 function handleRemoteItemDelete(oldState, event){
   var oldItems = _.get(oldState, 'items');
+  var oldClientState = _.get(oldState, 'clientState');
 
-  var newJournalId = Math.max(_.get(oldState, 'journalId'), _.get(event, 'journalId'));
+  var newJournalId = newJournalId(oldState, event);
 
   var id = _.get(event, 'id');
   var newItems = _.remove(function(item) {
     return _.get(item, 'id') === id;
   }, oldItems);
 
+  var newClientState = _.assoc(oldClientState, 'journalId', newJournalId);
   var newState = _.assoc(oldState,
-                         'journalId', newJournalId,
+                         'clientState', newClientState,
                          'items', newItems);
   return newState;
+}
+
+function newJournalId(state, event){
+  return Math.max(_.get_in(state, ['clientState', 'journalId']), _.get(event, 'journalId'));
 }
 
 function signedIn(state){
